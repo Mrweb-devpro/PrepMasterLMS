@@ -202,11 +202,20 @@ export function AddCourse() {
             {isUniversityTrack && (
               <>
                 <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
-                  <div>
-                    <Label className="text-sm font-semibold">Faculties sharing this course</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Check the faculties that offer this course. Leave unchecked for a course shared across all faculties (e.g. general GET).
-                    </p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-sm font-semibold">Faculties sharing this course</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Check the faculties that offer this course. Leave unchecked for a course shared across all faculties (e.g. general GET).
+                      </p>
+                    </div>
+                    <label className="flex items-center gap-2 text-sm">
+                      <Checkbox
+                        checked={faculties.length > 0 && facultyIds.length === faculties.length}
+                        onCheckedChange={(v) => setFacultyIds(v ? faculties.map((f) => f.id) : [])}
+                      />
+                      <span className="text-xs font-medium">Select all</span>
+                    </label>
                   </div>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {faculties.map((f) => (
@@ -221,11 +230,20 @@ export function AddCourse() {
                   </div>
                 </div>
                 <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
-                  <div>
-                    <Label className="text-sm font-semibold">Departments sharing this course</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Check specific departments. Leave unchecked to share across all departments in the selected faculties (or all if no faculty selected).
-                    </p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-sm font-semibold">Departments sharing this course</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Check specific departments. Leave unchecked to share across all departments in the selected faculties (or all if no faculty selected).
+                      </p>
+                    </div>
+                    <label className="flex items-center gap-2 text-sm">
+                      <Checkbox
+                        checked={availableDepartments.length > 0 && departmentIds.length === availableDepartments.length && availableDepartments.every((d) => departmentIds.includes(d.id))}
+                        onCheckedChange={(v) => setDepartmentIds(v ? availableDepartments.map((d) => d.id) : [])}
+                      />
+                      <span className="text-xs font-medium">Select all</span>
+                    </label>
                   </div>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {availableDepartments.map((d) => (
