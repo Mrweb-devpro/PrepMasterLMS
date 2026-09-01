@@ -64,7 +64,11 @@ const tracks = [
     tagline: "SS1 – SS3 · Science",
     description:
       "Physics, Chemistry, Mathematics and Further Mathematics prep for WAEC and JAMB with past questions and mock exams.",
-    items: ["Past questions by exam & year", "Timed CBT & mock exams", "Topic-based practice"],
+    items: [
+      "Past questions by exam & year",
+      "Timed CBT & mock exams",
+      "Topic-based practice",
+    ],
     cta: "Prepare for SSCE",
   },
   {
@@ -73,7 +77,11 @@ const tracks = [
     tagline: "Engineering · Science · Architecture",
     description:
       "Course-centric CBT practice for year 1 shared courses and general engineering (GET) courses by department and semester.",
-    items: ["Auto-select your courses", "Department-scoped content", "Course-wise mock exams"],
+    items: [
+      "Auto-select your courses",
+      "Department-scoped content",
+      "Course-wise mock exams",
+    ],
     cta: "Practice your courses",
   },
 ];
@@ -89,11 +97,16 @@ export default async function LandingPage() {
         .slice(0, 2)
         .map((n) => n[0]?.toUpperCase())
         .join("")
-    : user?.email?.[0]?.toUpperCase() ?? "U";
+    : (user?.email?.[0]?.toUpperCase() ?? "U");
 
   return (
     <div className="flex min-h-screen flex-col">
-      <LandingHeader user={user} profile={profile} isAdmin={admin} initials={initials} />
+      <LandingHeader
+        user={user}
+        profile={profile}
+        isAdmin={admin}
+        initials={initials}
+      />
 
       {/* Hero */}
       <section className="relative overflow-hidden">
@@ -117,9 +130,10 @@ export default async function LandingPage() {
               </span>
             </h1>
             <p className="mt-6 max-w-xl text-lg text-muted-foreground">
-              Prepmaster is a smart LMS for secondary school science students and
-              university students — practice with realistic timed CBTs, mock exams,
-              past questions and AI-generated banks built from your own materials.
+              Prepmaster is a smart LMS for secondary school science students
+              and university students — practice with realistic timed CBTs, mock
+              exams, past questions and AI-generated banks built from your own
+              materials.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-4">
               <Button size="lg" asChild>
@@ -137,7 +151,8 @@ export default async function LandingPage() {
                 <Clock className="h-4 w-4 text-primary" /> Timed exam simulation
               </span>
               <span className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-primary" /> Progress analytics
+                <BarChart3 className="h-4 w-4 text-primary" /> Progress
+                analytics
               </span>
             </div>
           </div>
@@ -162,7 +177,8 @@ export default async function LandingPage() {
                   Which of the following is NOT a programming language?
                   <div className="mt-3 space-y-2 text-muted-foreground">
                     <div>
-                      <span className="text-muted-foreground/60">a.</span> Python
+                      <span className="text-muted-foreground/60">a.</span>{" "}
+                      Python
                     </div>
                     <div>
                       <span className="text-muted-foreground/60">b.</span> HTML
@@ -185,13 +201,13 @@ export default async function LandingPage() {
                         i === 9
                           ? "border-2 border-foreground font-bold"
                           : i > 6
-                          ? "bg-primary/10"
-                          : "border-border"
+                            ? "bg-primary/10"
+                            : "border-border"
                       }`}
                     >
                       {n}
                     </div>
-                  )
+                  ),
                 )}
               </div>
               <div className="mt-5 flex justify-end">
@@ -241,8 +257,8 @@ export default async function LandingPage() {
               Choose your track
             </h2>
             <p className="mt-4 text-muted-foreground">
-              Register under the class or course program you're on — everything is
-              scoped exactly to your level.
+              Register under the class or course program you're on — everything
+              is scoped exactly to your level.
             </p>
           </div>
           <div className="mx-auto mt-14 grid max-w-4xl gap-6 md:grid-cols-2">
