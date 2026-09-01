@@ -45,9 +45,9 @@ export function LevelEditor({ level }: { level: Level }) {
 
   return (
     <Card>
-      <CardContent className="p-5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      <CardContent className="p-4 sm:p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-base font-semibold">{level.name}</span>
             <Badge variant={isActive ? "default" : "secondary"}>
               {isActive ? "Open" : "Closed"}

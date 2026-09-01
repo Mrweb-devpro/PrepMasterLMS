@@ -24,15 +24,17 @@ export default async function FacultiesPage() {
     (departments ?? []).filter((d) => d.faculty_id === facultyId);
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Faculties &amp; Departments</h1>
-          <p className="mt-1 text-muted-foreground">
+    <div className="mx-auto max-w-5xl space-y-6 p-4 sm:p-0">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Faculties &amp; Departments</h1>
+          <p className="mt-1 text-sm text-muted-foreground sm:text-base">
             Organise university courses by faculty and department.
           </p>
         </div>
-        <AddFaculty />
+        <div className="shrink-0">
+          <AddFaculty />
+        </div>
       </div>
 
       {faculties && faculties.length > 0 ? (
@@ -42,17 +44,17 @@ export default async function FacultiesPage() {
             return (
               <Card key={f.id}>
                 <CardContent className="p-5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Building2 className="h-5 w-5 text-muted-foreground" />
-                      <div>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-3">
+                      <Building2 className="h-5 w-5 shrink-0 text-muted-foreground" />
+                      <div className="min-w-0">
                         <p className="font-semibold">{f.name}</p>
                         <span className="text-xs text-muted-foreground">
                           {depts.length} department{depts.length === 1 ? "" : "s"}
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <Badge variant={f.is_active ? "default" : "secondary"}>
                         {f.is_active ? "Active" : "Inactive"}
                       </Badge>

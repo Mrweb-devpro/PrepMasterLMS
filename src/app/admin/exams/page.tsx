@@ -34,20 +34,22 @@ export default async function AdminExamsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">CBTs &amp; Exams</h1>
-          <p className="mt-1 text-muted-foreground">
+    <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-0">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">CBTs &amp; Exams</h1>
+          <p className="mt-1 text-sm text-muted-foreground sm:text-base">
             Create and manage CBTs, quizzes, mock exams and past-paper tests.
           </p>
         </div>
-        <Button asChild>
-          <Link href="/admin/exams/new">
-            <Plus className="mr-2 h-4 w-4" />
-            Create exam
-          </Link>
-        </Button>
+        <div className="shrink-0">
+          <Button asChild className="w-full sm:w-auto">
+            <Link href="/admin/exams/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Create exam
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {exams && exams.length > 0 ? (
