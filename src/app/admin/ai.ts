@@ -27,15 +27,17 @@ const CANDIDATE_MODELS = [
 async function callGemini(system: string, user: string): Promise<string> {
   if (!API_KEY) throw new Error("GEMINI_API_KEY not configured");
   const payload = {
+    systemInstruction: { parts: [{ text: system }] },
     contents: [
       {
         role: "user",
-        parts: [{ text: `${system}\n\n${user}` }],
+        parts: [{ text: user }],
       },
     ],
     generationConfig: {
       temperature: 0.7,
-      maxOutputTokens: 4096,
+      maxOutputTokens: 8192,
+      responseMimeType: "application/json",
     },
   };
 
@@ -167,7 +169,12 @@ export async function generateQuestionsFromText(
       : `Generate study-based questions from these lecture notes for a ${opts.examType} exam:\n\n${source}`;
 
   try {
-    const raw = await callGemini(system, user);
+    let raw = await callGemini(system, user);
+    // If model echoed the instructions instead of JSON (seen as "No JSON array found. Model returned: Nigerian exam..."), retry once with a stricter prompt
+    if (raw.includes("Nigerian exam question writer") && !raw.includes("[")) {
+      const retryUser = `STRICT JSON ONLY. ${user}\n\nRespond with ONLY a JSON array, no intro, no markdown.`;
+      raw = await callGemini(system, retryUser);
+    }
     const parsed = extractJson(raw) as GeneratedQuestion[];
     if (!Array.isArray(parsed) || parsed.length === 0) {
       return { error: "No questions generated." };
