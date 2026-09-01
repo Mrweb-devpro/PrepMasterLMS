@@ -19,15 +19,17 @@ export default async function PastPapersPage() {
     subjects?.find((s) => s.id === id)?.name ?? "Unknown";
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Past Papers</h1>
-          <p className="mt-1 text-muted-foreground">
+    <div className="mx-auto max-w-5xl space-y-6 p-4 sm:p-0">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Past Papers</h1>
+          <p className="mt-1 text-sm text-muted-foreground sm:text-base">
             WAEC, JAMB, NECO and other past papers for secondary subjects.
           </p>
         </div>
-        <AddPastPaperForm subjects={subjects ?? []} />
+        <div className="shrink-0">
+          <AddPastPaperForm subjects={subjects ?? []} />
+        </div>
       </div>
 
       {papers && papers.length > 0 ? (
@@ -35,11 +37,11 @@ export default async function PastPapersPage() {
           {papers.map((p) => (
             <div
               key={p.id}
-              className="flex items-center justify-between border-b p-4 last:border-b-0"
+              className="flex flex-col gap-3 border-b p-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between"
             >
-              <div className="flex items-center gap-3">
-                <FileArchive className="h-5 w-5 text-muted-foreground" />
-                <div>
+              <div className="flex items-start gap-3">
+                <FileArchive className="mt-1 h-5 w-5 shrink-0 text-muted-foreground" />
+                <div className="min-w-0">
                   <p className="font-semibold">
                     {subjectName(p.subject_id)} · {p.exam_type} · {p.year}
                   </p>

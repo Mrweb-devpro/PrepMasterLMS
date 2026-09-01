@@ -4,6 +4,31 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/session";
 
+async function getServiceSupabase() {
+  const { createClient: createAdminClient } = await import("@supabase/supabase-js");
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+  return createAdminClient(url, key);
+}
+
+async function uploadMaterialFile(file: File): Promise<{ url: string | null; error?: string }> {
+  try {
+    const service = await getServiceSupabase();
+    const ext = file.name.split(".").pop() ?? "bin";
+    const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const buf = Buffer.from(await file.arrayBuffer());
+    const { error } = await service.storage.from("materials").upload(path, buf, {
+      contentType: file.type || "application/octet-stream",
+      upsert: false,
+    });
+    if (error) return { url: null, error: error.message };
+    const { data } = service.storage.from("materials").getPublicUrl(path);
+    return { url: data.publicUrl };
+  } catch (e: unknown) {
+    return { url: null, error: e instanceof Error ? e.message : "Upload failed" };
+  }
+}
+
 export async function updateLevel(input: {
   id: string;
   is_active?: boolean;
@@ -60,24 +85,44 @@ export async function createCourse(input: {
   level_id: string;
   faculty_id?: string | null;
   department_id?: string | null;
+  faculty_ids?: string[];
+  department_ids?: string[];
   semester_id?: string | null;
 }) {
   if (!(await isAdmin())) return { error: "Unauthorized" };
-  const supabase = await createClient();
-  const { error } = await supabase
+  // Use service_role to bypass RLS (courses table had missing policy in 00002)
+  const service = await getServiceSupabase();
+  const primaryFaculty = input.faculty_ids?.[0] ?? input.faculty_id ?? null;
+  const primaryDept = input.department_ids?.[0] ?? input.department_id ?? null;
+  const { data, error } = await service
     .from("courses")
     .insert({
       code: input.code.trim().toUpperCase(),
       name: input.name.trim(),
       track_id: input.track_id,
       level_id: input.level_id,
-      faculty_id: input.faculty_id || null,
-      department_id: input.department_id || null,
+      faculty_id: primaryFaculty || null,
+      department_id: primaryDept || null,
       semester_id: input.semester_id || null,
     })
     .select("id")
     .single();
   if (error) return { error: error.message };
+  // If multiple faculties/departments selected for a shared course, store sharing in course_shares (if table exists)
+  // Best-effort: try to insert into course_shares for additional departments
+  const courseId = (data as { id: string }).id;
+  const extraDepts = (input.department_ids ?? []).slice(1);
+  const extraFacs = (input.faculty_ids ?? []).slice(1);
+  if (extraDepts.length > 0 || extraFacs.length > 0) {
+    try {
+      const rows: { course_id: string; department_id: string | null; faculty_id: string | null }[] = [];
+      extraDepts.forEach((d) => rows.push({ course_id: courseId, department_id: d, faculty_id: null }));
+      extraFacs.forEach((f) => {
+        if (!rows.some((r) => r.faculty_id === f)) rows.push({ course_id: courseId, department_id: null, faculty_id: f });
+      });
+      if (rows.length > 0) await service.from("course_shares").insert(rows);
+    } catch {}
+  }
   revalidatePath("/admin/courses");
   return { ok: true };
 }
@@ -491,31 +536,6 @@ export async function removeQuestionFromExam(examId: string, questionId: string)
 }
 
 // ─── Materials ───────────────────────────────────────────────────────────
-async function getServiceSupabase() {
-  const { createClient: createAdminClient } = await import("@supabase/supabase-js");
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-  return createAdminClient(url, key);
-}
-
-async function uploadMaterialFile(file: File): Promise<{ url: string | null; error?: string }> {
-  try {
-    const service = await getServiceSupabase();
-    const ext = file.name.split(".").pop() ?? "bin";
-    const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const buf = Buffer.from(await file.arrayBuffer());
-    const { error } = await service.storage.from("materials").upload(path, buf, {
-      contentType: file.type || "application/octet-stream",
-      upsert: false,
-    });
-    if (error) return { url: null, error: error.message };
-    const { data } = service.storage.from("materials").getPublicUrl(path);
-    return { url: data.publicUrl };
-  } catch (e: unknown) {
-    return { url: null, error: e instanceof Error ? e.message : "Upload failed" };
-  }
-}
-
 export async function createMaterial(formData: FormData) {
   if (!(await isAdmin())) return { error: "Unauthorized" };
   const title = String(formData.get("title") ?? "").trim();

@@ -5,6 +5,7 @@ import { Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -40,8 +41,8 @@ export function AddCourse() {
   const [name, setName] = useState("");
   const [trackId, setTrackId] = useState("");
   const [levelId, setLevelId] = useState("");
-  const [facultyId, setFacultyId] = useState("");
-  const [departmentId, setDepartmentId] = useState("");
+  const [facultyIds, setFacultyIds] = useState<string[]>([]);
+  const [departmentIds, setDepartmentIds] = useState<string[]>([]);
   const [semesterId, setSemesterId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -68,12 +69,26 @@ export function AddCourse() {
     () => levels.filter((l) => l.track_id === trackId && l.is_active),
     [levels, trackId]
   );
-  const trackDepartments = useMemo(
-    () => departments.filter((d) => d.faculty_id === facultyId),
-    [departments, facultyId]
-  );
   const selectedTrack = tracks.find((t) => t.id === trackId);
   const isUniversityTrack = selectedTrack?.type === "university";
+
+  const availableDepartments = useMemo(() => {
+    if (facultyIds.length === 0) return departments;
+    return departments.filter((d) => facultyIds.includes(d.faculty_id));
+  }, [departments, facultyIds]);
+
+  function toggleFaculty(id: string) {
+    setFacultyIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+    // also clear departments that are no longer visible
+    setDepartmentIds((prev) => prev.filter((did) => {
+      const dept = departments.find((d) => d.id === did);
+      return dept ? facultyIds.includes(dept.faculty_id) || id === dept.faculty_id : false;
+    }));
+  }
+
+  function toggleDept(id: string) {
+    setDepartmentIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }
 
   async function submit() {
     setLoading(true);
@@ -83,8 +98,10 @@ export function AddCourse() {
       name,
       track_id: trackId,
       level_id: levelId,
-      faculty_id: facultyId || null,
-      department_id: departmentId || null,
+      faculty_id: facultyIds[0] ?? null,
+      department_id: departmentIds[0] ?? null,
+      faculty_ids: facultyIds,
+      department_ids: departmentIds,
       semester_id: semesterId || null,
     });
     setLoading(false);
@@ -95,6 +112,8 @@ export function AddCourse() {
     setOpen(false);
     setCode("");
     setName("");
+    setFacultyIds([]);
+    setDepartmentIds([]);
   }
 
   return (
@@ -104,12 +123,12 @@ export function AddCourse() {
         Add course
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add a course</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-5">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>Code</Label>
                 <Input
@@ -142,7 +161,7 @@ export function AddCourse() {
                 onChange={(e) => setName(e.target.value)}
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>Track</Label>
                 <Select
@@ -182,58 +201,76 @@ export function AddCourse() {
             </div>
             {isUniversityTrack && (
               <>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label>Faculty</Label>
-                    <Select
-                      value={facultyId}
-                      onValueChange={(v) => {
-                        setFacultyId(v);
-                        setDepartmentId("");
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Shared / any" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {faculties.map((f) => (
-                          <SelectItem key={f.id} value={f.id}>
-                            {f.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-sm font-semibold">Faculties sharing this course</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Check the faculties that offer this course. Leave unchecked for a course shared across all faculties (e.g. general GET).
+                      </p>
+                    </div>
+                    <label className="flex items-center gap-2 text-sm">
+                      <Checkbox
+                        checked={faculties.length > 0 && facultyIds.length === faculties.length}
+                        onCheckedChange={(v) => setFacultyIds(v ? faculties.map((f) => f.id) : [])}
+                      />
+                      <span className="text-xs font-medium">Select all</span>
+                    </label>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Department</Label>
-                    <Select value={departmentId} onValueChange={setDepartmentId}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Shared / any" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {trackDepartments.map((d) => (
-                          <SelectItem key={d.id} value={d.id}>
-                            {d.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {faculties.map((f) => (
+                      <label key={f.id} className="flex items-center gap-2 rounded-md border bg-card px-3 py-2 text-sm hover:bg-accent">
+                        <Checkbox
+                          checked={facultyIds.includes(f.id)}
+                          onCheckedChange={() => toggleFaculty(f.id)}
+                        />
+                        <span>{f.name}</span>
+                      </label>
+                    ))}
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Leave faculty/department blank for a course shared across all
-                  departments (e.g. GET courses).
-                </p>
+                <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-sm font-semibold">Departments sharing this course</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Check specific departments. Leave unchecked to share across all departments in the selected faculties (or all if no faculty selected).
+                      </p>
+                    </div>
+                    <label className="flex items-center gap-2 text-sm">
+                      <Checkbox
+                        checked={availableDepartments.length > 0 && departmentIds.length === availableDepartments.length && availableDepartments.every((d) => departmentIds.includes(d.id))}
+                        onCheckedChange={(v) => setDepartmentIds(v ? availableDepartments.map((d) => d.id) : [])}
+                      />
+                      <span className="text-xs font-medium">Select all</span>
+                    </label>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {availableDepartments.map((d) => (
+                      <label key={d.id} className="flex items-center gap-2 rounded-md border bg-card px-3 py-2 text-sm hover:bg-accent">
+                        <Checkbox
+                          checked={departmentIds.includes(d.id)}
+                          onCheckedChange={() => toggleDept(d.id)}
+                        />
+                        <span className="truncate">{d.name}</span>
+                        <span className="ml-auto text-xs text-muted-foreground">{faculties.find((f) => f.id === d.faculty_id)?.name}</span>
+                      </label>
+                    ))}
+                    {availableDepartments.length === 0 && (
+                      <p className="col-span-2 text-sm text-muted-foreground">Select a faculty first or no departments available.</p>
+                    )}
+                  </div>
+                </div>
               </>
             )}
-            {error && <p className="text-sm text-destructive">{error}</p>}
+            {error && <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>}
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>
+          <DialogFooter className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <Button variant="outline" onClick={() => setOpen(false)} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button onClick={submit} disabled={loading || !code.trim() || !name.trim()}>
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add"}
+            <Button onClick={submit} disabled={loading || !code.trim() || !name.trim() || !trackId || !levelId} className="w-full sm:w-auto">
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add course"}
             </Button>
           </DialogFooter>
         </DialogContent>

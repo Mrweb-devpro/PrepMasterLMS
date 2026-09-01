@@ -18,12 +18,11 @@ export default async function LevelsPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8">
+    <div className="mx-auto max-w-5xl space-y-8 p-4 sm:p-0">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Levels</h1>
-        <p className="mt-1 text-muted-foreground">
-          Control which levels accept registration, and set free/paid pricing and
-          Telegram access for each.
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Levels</h1>
+        <p className="mt-1 text-sm text-muted-foreground sm:text-base">
+          Control which levels accept registration, and set free/paid pricing and Telegram access for each.
         </p>
       </div>
 

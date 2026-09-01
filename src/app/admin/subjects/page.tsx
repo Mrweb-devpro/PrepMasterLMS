@@ -12,29 +12,33 @@ export default async function AdminSubjectsPage() {
     .order("name");
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Subjects</h1>
-          <p className="mt-1 text-muted-foreground">
+    <div className="mx-auto max-w-4xl space-y-6 p-4 sm:p-0">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Subjects</h1>
+          <p className="mt-1 text-sm text-muted-foreground sm:text-base">
             Science subjects available for secondary practice.
           </p>
         </div>
-        <AddSubject />
+        <div className="shrink-0">
+          <AddSubject />
+        </div>
       </div>
 
       {subjects && subjects.length > 0 ? (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {subjects.map((s) => (
             <Card key={s.id}>
-              <CardContent className="flex items-center justify-between p-4">
-                <div className="flex items-center gap-3">
+              <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium">{s.name}</span>
                   <Badge variant={s.is_active ? "default" : "secondary"}>
                     {s.is_active ? "Active" : "Inactive"}
                   </Badge>
                 </div>
-                <SubjectToggle id={s.id} isActive={s.is_active} />
+                <div className="shrink-0">
+                  <SubjectToggle id={s.id} isActive={s.is_active} />
+                </div>
               </CardContent>
             </Card>
           ))}

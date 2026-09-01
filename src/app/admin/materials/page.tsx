@@ -16,22 +16,24 @@ export default async function AdminMaterialsPage() {
   const courseMap = new Map(((courses ?? []) as { id: string; name: string; code: string }[]).map((c) => [c.id, `${c.code} — ${c.name}`]));
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Materials</h1>
-          <p className="mt-1 text-muted-foreground">
+    <div className="mx-auto max-w-5xl space-y-6 p-4 sm:p-0">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Materials</h1>
+          <p className="mt-1 text-sm text-muted-foreground sm:text-base">
             Upload PDFs, notes and resources students can read. Scope to a subject or course; mark premium to gate behind a package.
           </p>
         </div>
-        <AddMaterialDialog subjects={subjects ?? []} courses={courses ?? []} />
+        <div className="shrink-0">
+          <AddMaterialDialog subjects={subjects ?? []} courses={courses ?? []} />
+        </div>
       </div>
 
       {materials && materials.length > 0 ? (
         <div className="space-y-3">
           {materials.map((m) => (
             <Card key={m.id}>
-              <CardContent className="flex items-center justify-between gap-4 p-4">
+              <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0 flex items-center gap-3">
                   <BookOpen className="h-5 w-5 shrink-0 text-muted-foreground" />
                   <div className="min-w-0">

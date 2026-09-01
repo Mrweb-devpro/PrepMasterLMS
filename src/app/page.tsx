@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
+import { LandingHeader } from "@/components/landing-header";
 import { getUser, getProfile, isAdmin } from "@/lib/session";
 
 const features = [
@@ -92,71 +93,7 @@ export default async function LandingPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      {/* Header */}
-      <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-md">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-          <Logo />
-          <nav className="hidden items-center gap-6 md:flex">
-            <Link
-              href="#features"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Features
-            </Link>
-            <Link
-              href="#tracks"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Tracks
-            </Link>
-            <Link
-              href="#how"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              How it works
-            </Link>
-          </nav>
-          <div className="flex items-center gap-3">
-            {user ? (
-              <>
-                {admin && (
-                  <Button variant="outline" asChild>
-                    <Link href="/admin">
-                      <ShieldCheck className="mr-2 h-4 w-4" />
-                      Admin
-                    </Link>
-                  </Button>
-                )}
-                <Button asChild>
-                  <Link href="/dashboard">
-                    Dashboard
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-                <Link
-                  href="/dashboard/profile"
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground shadow-sm ring-2 ring-primary/20 transition-colors hover:bg-primary/90"
-                  title={profile?.full_name ?? user.email ?? "Profile"}
-                >
-                  {initials}
-                </Link>
-              </>
-            ) : (
-              <>
-                <Button variant="ghost" asChild>
-                  <Link href="/login">Log in</Link>
-                </Button>
-                <Button asChild>
-                  <Link href="/register">
-                    Get started
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-      </header>
+      <LandingHeader user={user} profile={profile} isAdmin={admin} initials={initials} />
 
       {/* Hero */}
       <section className="relative overflow-hidden">
