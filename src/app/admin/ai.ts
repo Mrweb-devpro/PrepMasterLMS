@@ -99,10 +99,55 @@ async function callGemini(system: string, user: string): Promise<string> {
 }
 
 function extractJson(text: string): GeneratedQuestion[] {
-  const start = text.indexOf("[");
-  const end = text.lastIndexOf("]");
-  if (start === -1 || end === -1) throw new Error("No JSON array found");
-  return JSON.parse(text.slice(start, end + 1));
+  // Strip markdown fences like ```json ... ``` and ``` ... ```
+  let t = text.trim();
+  const fence = t.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (fence) t = fence[1].trim();
+
+  // Try direct parse (handles pure JSON array or object with questions key)
+  try {
+    const direct = JSON.parse(t);
+    if (Array.isArray(direct)) return direct;
+    if (direct && Array.isArray((direct as { questions?: unknown }).questions)) {
+      return (direct as { questions: GeneratedQuestion[] }).questions;
+    }
+    if (direct && typeof direct === "object" && "text" in direct) {
+      return [direct as unknown as GeneratedQuestion];
+    }
+  } catch {}
+
+  // Find the outermost JSON array by bracket balancing (handles extra prose before/after)
+  const start = t.indexOf("[");
+  const end = t.lastIndexOf("]");
+  if (start !== -1 && end !== -1 && end > start) {
+    const candidate = t.slice(start, end + 1);
+    try {
+      const parsed = JSON.parse(candidate);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {}
+    // Try to fix trailing commas / single quotes as fallback
+    try {
+      const fixed = candidate
+        .replace(/,\s*]/g, "]")
+        .replace(/,\s*}/g, "}")
+        .replace(/'/g, '"');
+      const parsed2 = JSON.parse(fixed);
+      if (Array.isArray(parsed2)) return parsed2;
+    } catch {}
+  }
+
+  // Last resort: look for JSON object wrapper { "questions": [...] }
+  const objMatch = t.match(/"questions"\s*:\s*(\[[\s\S]*?\])/);
+  if (objMatch) {
+    try {
+      const arr = JSON.parse(objMatch[1]);
+      if (Array.isArray(arr)) return arr;
+    } catch {}
+  }
+
+  throw new Error(
+    `No JSON array found. Model returned:\n${text.slice(0, 800)}${text.length > 800 ? "…" : ""}`
+  );
 }
 
 export async function generateQuestionsFromText(
