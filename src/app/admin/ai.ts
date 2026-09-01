@@ -13,10 +13,15 @@ const API_KEY = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY;
 
 const CANDIDATE_MODELS = [
   "gemini-2.0-flash",
+  "gemini-2.0-flash-lite",
   "gemini-2.5-flash",
-  "gemini-1.5-flash-latest",
+  "gemini-2.5-flash-lite",
   "gemini-1.5-flash",
-  "gemini-2.0-flash-exp",
+  "gemini-1.5-flash-001",
+  "gemini-1.5-flash-latest",
+  "gemini-1.5-pro",
+  "gemini-1.0-pro",
+  "gemini-pro",
 ];
 
 async function callGemini(system: string, user: string): Promise<string> {
@@ -35,36 +40,61 @@ async function callGemini(system: string, user: string): Promise<string> {
   };
 
   let lastError = "";
-  for (const model of CANDIDATE_MODELS) {
-    for (const ver of ["v1", "v1beta"]) {
-      const url = `https://generativelanguage.googleapis.com/${ver}/models/${model}:generateContent?key=${API_KEY}`;
-      try {
-        const res = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          lastError = data?.error?.message ?? `HTTP ${res.status} for ${model} (${ver})`;
-          // 404 model not found -> try next model/ver, other errors also try next
-          if (res.status === 404 || lastError.toLowerCase().includes("not found")) continue;
-          throw new Error(lastError);
-        }
-        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (!text) {
-          lastError = data?.error?.message ?? "Gemini returned no content";
-          continue;
-        }
-        return text;
-      } catch (e: unknown) {
-        lastError = e instanceof Error ? e.message : String(e);
-        continue;
+  async function tryModel(model: string, ver: string): Promise<string | null> {
+    const url = `https://generativelanguage.googleapis.com/${ver}/models/${model}:generateContent?key=${API_KEY}`;
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        lastError = data?.error?.message ?? `HTTP ${res.status} for ${model} (${ver})`;
+        if (res.status === 404 || lastError.toLowerCase().includes("not found")) return null;
+        throw new Error(lastError);
       }
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) {
+        lastError = data?.error?.message ?? "Gemini returned no content";
+        return null;
+      }
+      return text;
+    } catch (e: unknown) {
+      lastError = e instanceof Error ? e.message : String(e);
+      return null;
     }
   }
+
+  for (const model of CANDIDATE_MODELS) {
+    for (const ver of ["v1", "v1beta"]) {
+      const out = await tryModel(model, ver);
+      if (out) return out;
+    }
+  }
+
+  // Fallback: discover via ListModels and try whatever the key actually supports
+  for (const ver of ["v1", "v1beta"]) {
+    try {
+      const listRes = await fetch(
+        `https://generativelanguage.googleapis.com/${ver}/models?key=${API_KEY}`
+      );
+      const listData = await listRes.json();
+      const models: { name: string; supportedGenerationMethods?: string[] }[] = listData?.models ?? [];
+      const candidates = models
+        .filter((m) => (m.supportedGenerationMethods ?? []).includes("generateContent"))
+        .map((m) => m.name.replace("models/", ""))
+        .filter((n) => !CANDIDATE_MODELS.includes(n));
+      for (const model of candidates.slice(0, 5)) {
+        const out = await tryModel(model, ver);
+        if (out) return out;
+      }
+    } catch {}
+  }
+
   throw new Error(
-    lastError || "Gemini: no candidate model succeeded. Call ModelService.ListModels to see available models for your key / API version."
+    lastError ||
+      "Gemini: no candidate model succeeded. Call https://generativelanguage.googleapis.com/v1beta/models?key=YOUR_KEY to see available models for your key / API version."
   );
 }
 
