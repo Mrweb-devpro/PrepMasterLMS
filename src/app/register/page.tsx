@@ -42,6 +42,9 @@ export default function RegisterPage() {
   const [semesterId, setSemesterId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showOverlay, setShowOverlay] = useState(false);
+  const [countdown, setCountdown] = useState(5);
+  const [signingOut, setSigningOut] = useState(false);
 
   const selectedTrack = useMemo(
     () => tracks.find((t) => t.id === trackId),
@@ -81,6 +84,23 @@ export default function RegisterPage() {
     load();
   }, []);
 
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setShowOverlay(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!showOverlay) return;
+    if (countdown <= 0) {
+      router.push("/dashboard");
+      return;
+    }
+    const id = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(id);
+  }, [showOverlay, countdown, router]);
+
   const isUniversity = selectedTrack?.type === "university";
   const availableLevels = levels.filter(
     (l) => l.track_id === trackId && l.is_active
@@ -119,7 +139,55 @@ export default function RegisterPage() {
     router.push("/register/complete");
   }
 
+  async function handleOverlaySignOut() {
+    setSigningOut(true);
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    setShowOverlay(false);
+    setCountdown(5);
+    setSigningOut(false);
+    router.refresh();
+  }
+
+  const overlayMessage =
+    countdown >= 4
+      ? "We are taking you to the dashboard"
+      : countdown >= 2
+        ? "almost there"
+        : countdown === 1
+          ? "let go"
+          : "Redirecting...";
+
   return (
+    <>
+      {showOverlay && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/80 px-4 backdrop-blur-md">
+          <div className="w-full max-w-md rounded-2xl border bg-card p-8 text-center shadow-xl">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary text-3xl font-bold text-primary-foreground shadow-sm">
+              {countdown > 0 ? countdown : "✓"}
+            </div>
+            <h2 className="mt-5 text-xl font-semibold tracking-tight">{overlayMessage}</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              You&apos;re already signed in. We&apos;ll redirect you automatically in {countdown > 0 ? `${countdown}s` : "a moment"}.
+            </p>
+            <div className="mt-6 flex flex-col gap-3">
+              <Button onClick={() => router.push("/dashboard")} size="lg" className="w-full">
+                Go to dashboard now
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleOverlaySignOut}
+                disabled={signingOut}
+                className="w-full"
+              >
+                {signingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Sign out to use another account
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
     <div className="flex min-h-screen flex-col items-center justify-center bg-muted/30 px-4 py-12">
       <div className="w-full max-w-lg">
         <Link href="/" className="mb-8 flex justify-center">
@@ -405,5 +473,6 @@ export default function RegisterPage() {
         </p>
       </div>
     </div>
+    </>
   );
 }

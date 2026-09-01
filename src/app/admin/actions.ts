@@ -489,3 +489,100 @@ export async function removeQuestionFromExam(examId: string, questionId: string)
   revalidatePath(`/admin/exams/${examId}`);
   return { ok: true };
 }
+
+// ─── Materials ───────────────────────────────────────────────────────────
+async function getServiceSupabase() {
+  const { createClient: createAdminClient } = await import("@supabase/supabase-js");
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+  return createAdminClient(url, key);
+}
+
+async function uploadMaterialFile(file: File): Promise<{ url: string | null; error?: string }> {
+  try {
+    const service = await getServiceSupabase();
+    const ext = file.name.split(".").pop() ?? "bin";
+    const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const buf = Buffer.from(await file.arrayBuffer());
+    const { error } = await service.storage.from("materials").upload(path, buf, {
+      contentType: file.type || "application/octet-stream",
+      upsert: false,
+    });
+    if (error) return { url: null, error: error.message };
+    const { data } = service.storage.from("materials").getPublicUrl(path);
+    return { url: data.publicUrl };
+  } catch (e: unknown) {
+    return { url: null, error: e instanceof Error ? e.message : "Upload failed" };
+  }
+}
+
+export async function createMaterial(formData: FormData) {
+  if (!(await isAdmin())) return { error: "Unauthorized" };
+  const title = String(formData.get("title") ?? "").trim();
+  const subject_id = (formData.get("subject_id") as string) || null;
+  const course_id = (formData.get("course_id") as string) || null;
+  const is_premium = formData.get("is_premium") === "true" || formData.get("is_premium") === "on";
+  const file = formData.get("file") as File | null;
+  const file_url_input = String(formData.get("file_url") ?? "").trim();
+
+  if (!title) return { error: "Title is required" };
+  if (!subject_id && !course_id) return { error: "Select a subject or course" };
+
+  let file_url = file_url_input || null;
+  if (file && file.size > 0) {
+    const up = await uploadMaterialFile(file);
+    if (up.error || !up.url) return { error: up.error ?? "Upload failed" };
+    file_url = up.url;
+  }
+  if (!file_url) return { error: "Provide a file or file URL" };
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("materials").insert({
+    title,
+    subject_id: subject_id || null,
+    course_id: course_id || null,
+    file_url,
+    is_premium,
+  });
+  if (error) return { error: error.message };
+  revalidatePath("/admin/materials");
+  revalidatePath("/dashboard/materials");
+  return { ok: true };
+}
+
+export async function updateMaterial(
+  id: string,
+  input: { title?: string; is_premium?: boolean; file_url?: string | null }
+) {
+  if (!(await isAdmin())) return { error: "Unauthorized" };
+  const supabase = await createClient();
+  const update: { title?: string; is_premium?: boolean; file_url?: string } = {};
+  if (input.title !== undefined) update.title = input.title.trim();
+  if (input.is_premium !== undefined) update.is_premium = input.is_premium;
+  if (input.file_url !== undefined && input.file_url !== null) update.file_url = input.file_url;
+  const { error } = await supabase.from("materials").update(update as never).eq("id", id);
+  if (error) return { error: error.message };
+  revalidatePath("/admin/materials");
+  revalidatePath("/dashboard/materials");
+  return { ok: true };
+}
+
+export async function deleteMaterial(id: string) {
+  if (!(await isAdmin())) return { error: "Unauthorized" };
+  const supabase = await createClient();
+  // best-effort: try to remove storage object if path can be inferred
+  const { data: mat } = await supabase.from("materials").select("file_url").eq("id", id).single();
+  if (mat?.file_url) {
+    try {
+      const service = await getServiceSupabase();
+      const url = new URL(mat.file_url);
+      const parts = url.pathname.split("/materials/");
+      if (parts[1]) await service.storage.from("materials").remove([decodeURIComponent(parts[1])]);
+    } catch {}
+  }
+  const { error } = await supabase.from("materials").delete().eq("id", id);
+  if (error) return { error: error.message };
+  revalidatePath("/admin/materials");
+  revalidatePath("/dashboard/materials");
+  return { ok: true };
+}

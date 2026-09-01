@@ -15,8 +15,11 @@ export default async function DashboardLayout({
   if (!user) redirect("/login");
 
   const profile = await getProfile();
+  const isAdminUser = profile?.role === "admin";
 
   return (
-    <DashboardShell trackType={profile?.tracks?.type}>{children}</DashboardShell>
+    <DashboardShell trackType={profile?.tracks?.type} isAdmin={isAdminUser}>
+      {children}
+    </DashboardShell>
   );
 }
