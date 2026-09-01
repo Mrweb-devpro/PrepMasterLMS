@@ -1,0 +1,81 @@
+"use server";
+
+export type GeneratedQuestion = {
+  text: string;
+  options: string[];
+  correct_answer: string;
+  explanation?: string;
+  topic?: string;
+  difficulty?: string;
+};
+
+const API_KEY = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY;
+
+async function callGemini(system: string, user: string): Promise<string> {
+  if (!API_KEY) throw new Error("GEMINI_API_KEY not configured");
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: `${system}\n\n${user}` }],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 4096,
+        },
+      }),
+    }
+  );
+  const data = await res.json();
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) {
+    throw new Error(data?.error?.message ?? "Gemini returned no content");
+  }
+  return text;
+}
+
+function extractJson(text: string): GeneratedQuestion[] {
+  const start = text.indexOf("[");
+  const end = text.lastIndexOf("]");
+  if (start === -1 || end === -1) throw new Error("No JSON array found");
+  return JSON.parse(text.slice(start, end + 1));
+}
+
+export async function generateQuestionsFromText(
+  source: string,
+  opts: { count: number; mode: "notes" | "past_paper"; examType: string }
+): Promise<{ questions: GeneratedQuestion[] } | { error: string }> {
+  const system = `You are a Nigerian exam question writer following UNILAG/JAMB/Moodle style. ` +
+    `Generate exactly ${opts.count} multiple-choice questions as a JSON array. ` +
+    `Each object must have: "text" (the question), "options" (array of 4 strings), ` +
+    `"correct_answer" (the LETTER A-D of the correct option), "explanation" (a short explanation), ` +
+    `"topic" (short topic name), "difficulty" ("easy", "medium", or "hard"). ` +
+    `Output ONLY the JSON array, no markdown, no prose.`;
+
+  const user =
+    opts.mode === "past_paper"
+      ? `Convert this past-paper content into practice questions for a ${opts.examType} exam:\n\n${source}`
+      : `Generate study-based questions from these lecture notes for a ${opts.examType} exam:\n\n${source}`;
+
+  try {
+    const raw = await callGemini(system, user);
+    const parsed = extractJson(raw) as GeneratedQuestion[];
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      return { error: "No questions generated." };
+    }
+    const norm = parsed.slice(0, opts.count).map((q) => ({
+      ...q,
+      options: (q.options ?? []).slice(0, 4),
+      correct_answer: String(q.correct_answer ?? "A").toUpperCase(),
+    }));
+    return { questions: norm };
+  } catch (err: unknown) {
+    return { error: err instanceof Error ? err.message : "AI generation failed." };
+  }
+}
