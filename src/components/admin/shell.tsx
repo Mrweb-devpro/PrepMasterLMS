@@ -39,6 +39,7 @@ const nav: NavEntry[] = [
     items: [
       { href: "/admin/subjects", label: "Subjects", icon: BookOpen },
       { href: "/admin/courses", label: "Courses", icon: GraduationCap },
+      { href: "/admin/materials", label: "Materials", icon: FileText },
     ],
   },
   {

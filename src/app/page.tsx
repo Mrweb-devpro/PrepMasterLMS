@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
+import { getUser, getProfile, isAdmin } from "@/lib/session";
 
 const features = [
   {
@@ -76,7 +77,19 @@ const tracks = [
   },
 ];
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const user = await getUser();
+  const profile = user ? await getProfile() : null;
+  const admin = user ? await isAdmin() : false;
+  const initials = profile?.full_name
+    ? profile.full_name
+        .split(" ")
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((n) => n[0]?.toUpperCase())
+        .join("")
+    : user?.email?.[0]?.toUpperCase() ?? "U";
+
   return (
     <div className="flex min-h-screen flex-col">
       {/* Header */}
@@ -104,15 +117,43 @@ export default function LandingPage() {
             </Link>
           </nav>
           <div className="flex items-center gap-3">
-            <Button variant="ghost" asChild>
-              <Link href="/login">Log in</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/register">
-                Get started
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
+            {user ? (
+              <>
+                {admin && (
+                  <Button variant="outline" asChild>
+                    <Link href="/admin">
+                      <ShieldCheck className="mr-2 h-4 w-4" />
+                      Admin
+                    </Link>
+                  </Button>
+                )}
+                <Button asChild>
+                  <Link href="/dashboard">
+                    Dashboard
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+                <Link
+                  href="/dashboard/profile"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground shadow-sm ring-2 ring-primary/20 transition-colors hover:bg-primary/90"
+                  title={profile?.full_name ?? user.email ?? "Profile"}
+                >
+                  {initials}
+                </Link>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" asChild>
+                  <Link href="/login">Log in</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/register">
+                    Get started
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </header>

@@ -14,6 +14,8 @@ import {
   GraduationCap,
   Settings,
   CreditCard,
+  Library,
+  ShieldCheck,
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
@@ -23,6 +25,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 const secondaryNav = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/dashboard/subjects", label: "Subjects", icon: BookOpen },
+  { href: "/dashboard/materials", label: "Materials", icon: Library },
   { href: "/dashboard/practice", label: "Practice & CBTs", icon: FileText },
   { href: "/dashboard/packages", label: "Packages", icon: CreditCard },
 ];
@@ -30,6 +33,7 @@ const secondaryNav = [
 const universityNav = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/dashboard/courses", label: "Courses", icon: BookOpen },
+  { href: "/dashboard/materials", label: "Materials", icon: Library },
   { href: "/dashboard/practice", label: "Practice & CBTs", icon: FileText },
   { href: "/dashboard/packages", label: "Packages", icon: CreditCard },
 ];
@@ -37,9 +41,11 @@ const universityNav = [
 export function DashboardShell({
   children,
   trackType,
+  isAdmin = false,
 }: {
   children: React.ReactNode;
   trackType?: string | null;
+  isAdmin?: boolean;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -80,6 +86,20 @@ export function DashboardShell({
               {item.label}
             </Link>
           ))}
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                pathname.startsWith("/admin")
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-foreground"
+              )}
+            >
+              <ShieldCheck className="h-4 w-4" />
+              Admin
+            </Link>
+          )}
         </nav>
         <div className="border-t p-4">
           <div className="mb-2 flex items-center justify-between px-1">
@@ -137,6 +157,21 @@ export function DashboardShell({
                   {item.label}
                 </Link>
               ))}
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  onClick={() => setMobileOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium",
+                    pathname.startsWith("/admin")
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-accent"
+                  )}
+                >
+                  <ShieldCheck className="h-4 w-4" />
+                  Admin
+                </Link>
+              )}
               <Link
                 href="/dashboard/profile"
                 onClick={() => setMobileOpen(false)}
