@@ -100,30 +100,30 @@ export default async function AdminOverview() {
         </Link>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         {stats.map((s) => (
           <Link key={s.label} href={s.href} className="group">
             <div
-              className={`flex min-h-[140px] flex-col justify-between rounded-2xl border bg-card p-4 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 ${s.pastel}`}
+              className={`flex min-h-[110px] flex-col justify-between rounded-2xl border bg-card p-3 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 sm:min-h-[140px] sm:p-4 ${s.pastel}`}
             >
               <div className="flex items-start justify-between">
-                <div className={`flex h-8 w-8 items-center justify-center rounded-xl bg-white shadow-sm dark:bg-card ${s.accent}`}>
-                  <s.icon className="h-4 w-4" />
+                <div className={`flex h-7 w-7 items-center justify-center rounded-xl bg-white shadow-sm dark:bg-card sm:h-8 sm:w-8 ${s.accent}`}>
+                  <s.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </div>
-                <span className="flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-foreground shadow-sm dark:bg-card">
+                <span className="hidden items-center gap-1 rounded-full bg-white px-2 py-0.5 text-[10px] font-medium text-foreground shadow-sm dark:bg-card sm:flex">
                   <TrendingUp className="h-2.5 w-2.5 text-emerald-600" />
                   +12%
                 </span>
               </div>
               <div>
-                <p className="text-xs font-medium text-muted-foreground">{s.label}</p>
-                <p className="mt-1 text-2xl font-bold tracking-tight">{s.value}</p>
-                <div className="mt-3 flex items-end gap-1">
+                <p className="text-[11px] font-medium text-muted-foreground sm:text-xs">{s.label}</p>
+                <p className="mt-1 text-xl font-bold tracking-tight sm:text-2xl">{s.value}</p>
+                <div className="mt-2 flex items-end gap-1 sm:mt-3">
                   {s.bar.map((h, i) => (
                     <div
                       key={i}
                       className={`w-full rounded-full ${s.accent} bg-current opacity-20 group-hover:opacity-30`}
-                      style={{ height: `${h * 0.22}px` }}
+                      style={{ height: `${h * 0.18}px` }}
                     />
                   ))}
                 </div>
