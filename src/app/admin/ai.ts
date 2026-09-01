@@ -11,33 +11,61 @@ export type GeneratedQuestion = {
 
 const API_KEY = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY;
 
+const CANDIDATE_MODELS = [
+  "gemini-2.0-flash",
+  "gemini-2.5-flash",
+  "gemini-1.5-flash-latest",
+  "gemini-1.5-flash",
+  "gemini-2.0-flash-exp",
+];
+
 async function callGemini(system: string, user: string): Promise<string> {
   if (!API_KEY) throw new Error("GEMINI_API_KEY not configured");
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: `${system}\n\n${user}` }],
-          },
-        ],
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 4096,
-        },
-      }),
+  const payload = {
+    contents: [
+      {
+        role: "user",
+        parts: [{ text: `${system}\n\n${user}` }],
+      },
+    ],
+    generationConfig: {
+      temperature: 0.7,
+      maxOutputTokens: 4096,
+    },
+  };
+
+  let lastError = "";
+  for (const model of CANDIDATE_MODELS) {
+    for (const ver of ["v1", "v1beta"]) {
+      const url = `https://generativelanguage.googleapis.com/${ver}/models/${model}:generateContent?key=${API_KEY}`;
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          lastError = data?.error?.message ?? `HTTP ${res.status} for ${model} (${ver})`;
+          // 404 model not found -> try next model/ver, other errors also try next
+          if (res.status === 404 || lastError.toLowerCase().includes("not found")) continue;
+          throw new Error(lastError);
+        }
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!text) {
+          lastError = data?.error?.message ?? "Gemini returned no content";
+          continue;
+        }
+        return text;
+      } catch (e: unknown) {
+        lastError = e instanceof Error ? e.message : String(e);
+        continue;
+      }
     }
-  );
-  const data = await res.json();
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) {
-    throw new Error(data?.error?.message ?? "Gemini returned no content");
   }
-  return text;
+  throw new Error(
+    lastError || "Gemini: no candidate model succeeded. Call ModelService.ListModels to see available models for your key / API version."
+  );
 }
 
 function extractJson(text: string): GeneratedQuestion[] {
