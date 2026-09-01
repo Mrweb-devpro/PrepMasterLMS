@@ -44,28 +44,44 @@ async function callGemini(system: string, user: string): Promise<string> {
   let lastError = "";
   async function tryModel(model: string, ver: string): Promise<string | null> {
     const url = `https://generativelanguage.googleapis.com/${ver}/models/${model}:generateContent?key=${API_KEY}`;
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        lastError = data?.error?.message ?? `HTTP ${res.status} for ${model} (${ver})`;
-        if (res.status === 404 || lastError.toLowerCase().includes("not found")) return null;
-        throw new Error(lastError);
+    const tryPayloads = [
+      payload,
+      { ...payload, generationConfig: { temperature: 0.7, maxOutputTokens: 8192 } },
+    ];
+    for (const p of tryPayloads) {
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(p),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          lastError = data?.error?.message ?? `HTTP ${res.status} for ${model} (${ver})`;
+          if (res.status === 404 || lastError.toLowerCase().includes("not found")) break;
+          throw new Error(lastError);
+        }
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!text) {
+          lastError = data?.error?.message ?? "Gemini returned no content";
+          continue;
+        }
+        if (
+          !text.includes("[") &&
+          (text.includes("Nigerian exam question writer") ||
+            (text.includes("* Subject:") && text.includes("* Format:")) ||
+            text.includes("Subject: Grade 10 Physics"))
+        ) {
+          lastError = `Model ${model} echoed prompt instead of JSON`;
+          continue;
+        }
+        return text;
+      } catch (e: unknown) {
+        lastError = e instanceof Error ? e.message : String(e);
+        continue;
       }
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!text) {
-        lastError = data?.error?.message ?? "Gemini returned no content";
-        return null;
-      }
-      return text;
-    } catch (e: unknown) {
-      lastError = e instanceof Error ? e.message : String(e);
-      return null;
     }
+    return null;
   }
 
   for (const model of CANDIDATE_MODELS) {
@@ -170,10 +186,18 @@ export async function generateQuestionsFromText(
 
   try {
     let raw = await callGemini(system, user);
-    // If model echoed the instructions instead of JSON (seen as "No JSON array found. Model returned: Nigerian exam..."), retry once with a stricter prompt
-    if (raw.includes("Nigerian exam question writer") && !raw.includes("[")) {
-      const retryUser = `STRICT JSON ONLY. ${user}\n\nRespond with ONLY a JSON array, no intro, no markdown.`;
-      raw = await callGemini(system, retryUser);
+    // If model echoed instructions (seen as "No JSON array found. Model returned: * Subject: Grade 10 Physics..." or "Nigerian exam..."), retry with minimal prompt
+    const isEcho =
+      !raw.includes("[") ||
+      raw.includes("Nigerian exam question writer") ||
+      (raw.includes("* Subject:") && raw.includes("* Format:")) ||
+      (raw.includes("Subject: Grade 10 Physics") && raw.includes("Topic:"));
+    if (isEcho) {
+      const retryUser = `Generate ONLY a JSON array of ${opts.count} multiple-choice questions for Grade 10 Physics. No intro, no markdown, no explanation outside JSON. Source topics:\n${source.slice(0, 2000)}`;
+      const retrySystem = `You are a JSON generator. Output ONLY a JSON array. Each element: {"text": string, "options": ["A","B","C","D"], "correct_answer": "A"-"D", "explanation": string, "topic": string, "difficulty": "easy"|"medium"|"hard"}. No prose, no markdown.`;
+      try {
+        raw = await callGemini(retrySystem, retryUser);
+      } catch {}
     }
     const parsed = extractJson(raw) as GeneratedQuestion[];
     if (!Array.isArray(parsed) || parsed.length === 0) {
