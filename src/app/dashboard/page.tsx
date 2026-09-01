@@ -54,44 +54,44 @@ export default async function DashboardOverview() {
   ];
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8 p-4 sm:p-0">
+    <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-0">
       <div className="flex flex-col gap-1">
-        <h1 className="flex items-center gap-2 text-3xl font-bold tracking-tight sm:text-4xl">
+        <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight sm:text-3xl">
           Welcome back, {displayName}
-          <Sparkles className="h-6 w-6 text-primary" />
+          <Sparkles className="h-5 w-5 text-primary" />
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           {isUniversity
             ? "Pick a course below to start a CBT or practice."
             : "Pick a subject below to start practicing for your exams."}
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-3">
         {stats.map((s) => (
           <div
             key={s.label}
-            className={`flex aspect-square flex-col justify-between rounded-[1.75rem] border bg-card p-6 shadow-sm ${s.pastel}`}
+            className={`flex min-h-[140px] flex-col justify-between rounded-2xl border bg-card p-4 shadow-sm ${s.pastel}`}
           >
             <div className="flex items-start justify-between">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-2xl bg-white shadow-sm dark:bg-card ${s.accent}`}>
-                <s.icon className="h-5 w-5" />
+              <div className={`flex h-8 w-8 items-center justify-center rounded-xl bg-white shadow-sm dark:bg-card ${s.accent}`}>
+                <s.icon className="h-4 w-4" />
               </div>
-              <span className="flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-foreground shadow-sm dark:bg-card">
-                <TrendingUp className="h-3 w-3 text-emerald-600" />
+              <span className="flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-foreground shadow-sm dark:bg-card">
+                <TrendingUp className="h-2.5 w-2.5 text-emerald-600" />
                 +8%
               </span>
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">{s.label}</p>
-              <p className={`mt-1 font-bold tracking-tight ${s.isText ? "text-2xl" : "text-3xl"}`}>{s.value}</p>
+              <p className="text-xs font-medium text-muted-foreground">{s.label}</p>
+              <p className={`mt-1 font-bold tracking-tight ${s.isText ? "text-xl" : "text-2xl"}`}>{s.value}</p>
               <p className="text-xs text-muted-foreground">{s.sub}</p>
-              <div className="mt-4 flex items-end gap-1">
+              <div className="mt-3 flex items-end gap-1">
                 {s.bar.map((h, i) => (
                   <div
                     key={i}
                     className={`w-full rounded-full ${s.accent} bg-current opacity-20`}
-                    style={{ height: `${h * 0.32}px` }}
+                    style={{ height: `${h * 0.22}px` }}
                   />
                 ))}
               </div>
