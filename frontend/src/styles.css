@@ -1,0 +1,351 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+/*
+ * PrepMaster design system — the single source of truth.
+ * Every color, radius, shadow, font, size and motion value lives here.
+ * Components only use the semantic tokens below (bg-surface, text-muted-foreground, rounded-lg…).
+ *
+ * Themes:
+ *   :root          -> Student (neutral, blue accent)
+ *   .theme-admin   -> Admin (neutral, red accent) — applied by the admin shell
+ * Gold tokens are RESERVED for paid/premium signals only.
+ */
+
+@theme inline {
+  /* Typography */
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", "DM Sans", ui-sans-serif, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+  --text-2xs: 11px;
+  --text-xs: 12px;
+  --text-sm: 13.5px;
+  --text-base: 15px;
+  --text-lg: 17px;
+  --text-xl: 22px;
+  --text-2xl: 28px;
+  --text-3xl: 36px;
+  --text-4xl: 44px;
+
+  /* Radius scale */
+  --radius-xs: var(--r-xs);
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --radius-xl: var(--r-xl);
+  --radius-2xl: var(--r-2xl);
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-xs: var(--sh-xs);
+  --shadow-sm: var(--sh-sm);
+  --shadow-md: var(--sh-md);
+  --shadow-lg: var(--sh-lg);
+
+  /* Motion */
+  --animate-fade-in: fade-in 280ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-rise: rise 360ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+
+  /* Colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-active: var(--primary-active);
+  --color-primary-disabled: var(--primary-disabled);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-surface: var(--surface);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-surface-hover: var(--surface-hover);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-muted: var(--sidebar-muted);
+  --color-sidebar-active: var(--sidebar-active);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-foreground: var(--ink-foreground);
+  --color-ink-muted: var(--ink-muted);
+  --color-gold: var(--gold);
+  --color-gold-bg: var(--gold-bg);
+  --color-gold-text: var(--gold-text);
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-error: var(--error);
+  --color-error-bg: var(--error-bg);
+}
+
+:root {
+  /* radius */
+  --radius: 10px;
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+  --r-2xl: 28px;
+
+  /* shadows — soft, layered */
+  --sh-xs: 0 1px 1px 0 rgb(0 0 0 / 0.03);
+  --sh-sm: 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 1px 1px -0.5px rgb(0 0 0 / 0.03);
+  --sh-md: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px -12px rgb(0 0 0 / 0.12);
+  --sh-lg: 0 2px 4px rgb(0 0 0 / 0.04), 0 24px 48px -20px rgb(0 0 0 / 0.22);
+
+  /* neutrals */
+  --background: #fafaf9;
+  --foreground: #171717;
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --popover: #ffffff;
+  --popover-foreground: #171717;
+  --surface: #ffffff;
+  --surface-subtle: #f4f4f3;
+  --surface-hover: #f0f0ef;
+  --border: #ebebea;
+  --border-strong: #dcdcda;
+  --input: #e5e5e3;
+  --text-secondary: #525252;
+  --text-muted: #8a8a88;
+  --muted: #f4f4f3;
+  --muted-foreground: #737373;
+
+  /* sidebar */
+  --sidebar: #f5f5f4;
+  --sidebar-foreground: #262626;
+  --sidebar-muted: #7a7a78;
+  --sidebar-active: #ffffff;
+  --sidebar-border: #e8e8e6;
+
+  /* student accent — blue */
+  --primary: #3b6cff;
+  --primary-foreground: #ffffff;
+  --primary-hover: #2a58e8;
+  --primary-active: #1f47c7;
+  --primary-soft: #eef2ff;
+  --primary-disabled: #a9bdff;
+  --secondary: #eef2ff;
+  --secondary-foreground: #1f3a8a;
+  --accent: #f0f0ef;
+  --accent-foreground: #171717;
+  --ring: #3b6cff;
+
+  /* ink — dark hero surfaces */
+  --ink: #111113;
+  --ink-soft: #1c1c20;
+  --ink-foreground: #ffffff;
+  --ink-muted: #a1a1aa;
+  --gradient-ink:
+    radial-gradient(90% 120% at 100% 0%, color-mix(in oklab, var(--primary) 70%, transparent) 0%, transparent 55%),
+    radial-gradient(70% 90% at 0% 100%, color-mix(in oklab, var(--primary) 30%, transparent) 0%, transparent 60%),
+    linear-gradient(180deg, #16161a 0%, #0e0e10 100%);
+  --gradient-glow: radial-gradient(60% 60% at 50% 0%, color-mix(in oklab, var(--primary) 14%, transparent), transparent 70%);
+
+  /* status */
+  --destructive: #e5484d;
+  --destructive-foreground: #ffffff;
+  --gold: #d4a72c;
+  --gold-bg: #fbf5e2;
+  --gold-text: #86640f;
+  --success: #16a34a;
+  --success-bg: #ecfdf3;
+  --warning: #c27a12;
+  --warning-bg: #fff6e6;
+  --error: #e5484d;
+  --error-bg: #fff0f0;
+}
+
+/* Admin theme — red accent so admin is instantly distinguishable */
+.theme-admin {
+  --primary: #e5484d;
+  --primary-hover: #d13a3f;
+  --primary-active: #b82f34;
+  --primary-soft: #fff0f0;
+  --primary-disabled: #f5b3b5;
+  --secondary: #fff0f0;
+  --secondary-foreground: #8f1d22;
+  --ring: #e5484d;
+  --sidebar: #fbf7f7;
+  --sidebar-border: #f1e6e6;
+  --background: #fcfbfb;
+  --ink: #1a0e0f;
+  --ink-soft: #2a1416;
+}
+
+/* SolidWorks dashboard — teal accent, applied by SwShell */
+.theme-sw {
+  --primary: #0e9384;
+  --primary-hover: #0b7c6f;
+  --primary-active: #09665b;
+  --primary-soft: #e8f7f5;
+  --primary-disabled: #9fd9d1;
+  --secondary: #e8f7f5;
+  --secondary-foreground: #0a5a51;
+  --ring: #0e9384;
+  --sidebar: #f6faf9;
+  --sidebar-border: #e3eeec;
+  --background: #fbfcfc;
+}
+
+/* Dark theme — toggled via `.dark` on <html> (light / dark / system) */
+.dark {
+  color-scheme: dark;
+  --sh-xs: 0 1px 1px 0 rgb(0 0 0 / 0.3);
+  --sh-sm: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+  --sh-md: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+  --sh-lg: 0 2px 4px rgb(0 0 0 / 0.4), 0 24px 48px -20px rgb(0 0 0 / 0.7);
+  --background: #0f0f10;
+  --foreground: #ededec;
+  --card: #18181a;
+  --card-foreground: #ededec;
+  --popover: #1c1c1f;
+  --popover-foreground: #ededec;
+  --surface: #18181a;
+  --surface-subtle: #1f1f22;
+  --surface-hover: #242427;
+  --border: #2a2a2e;
+  --border-strong: #3a3a3f;
+  --input: #2f2f33;
+  --text-secondary: #b4b4b2;
+  --text-muted: #85858a;
+  --muted: #1f1f22;
+  --muted-foreground: #9a9a9e;
+  --sidebar: #131315;
+  --sidebar-foreground: #e6e6e4;
+  --sidebar-muted: #8c8c90;
+  --sidebar-active: #1f1f23;
+  --sidebar-border: #26262a;
+  --primary: #5b84ff;
+  --primary-hover: #7096ff;
+  --primary-active: #4a72ee;
+  --primary-soft: #1a2240;
+  --primary-disabled: #2e3d6e;
+  --secondary: #1a2240;
+  --secondary-foreground: #c3d0ff;
+  --accent: #242427;
+  --accent-foreground: #ededec;
+  --ring: #5b84ff;
+  --gold-bg: #2a2310;
+  --gold-text: #e8c65a;
+  --success-bg: #0f2a1a;
+  --warning-bg: #2c2110;
+  --error-bg: #2e1415;
+}
+.dark .theme-admin {
+  --primary: #ef5f63;
+  --primary-hover: #f37a7d;
+  --primary-active: #d94a4f;
+  --primary-soft: #2e1516;
+  --primary-disabled: #5a2a2c;
+  --secondary: #2e1516;
+  --secondary-foreground: #ffc9ca;
+  --ring: #ef5f63;
+  --background: #110e0e;
+  --sidebar: #151111;
+  --sidebar-border: #2b2222;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.022em;
+    color: var(--color-foreground);
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--primary) 22%, transparent);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@utility font-display {
+  font-family: var(--font-display);
+}
+@utility bg-ink-gradient {
+  background: var(--gradient-ink);
+}
+@utility bg-glow {
+  background-image: var(--gradient-glow);
+}
+@utility dot-grid {
+  background-image: radial-gradient(color-mix(in oklab, var(--ink-foreground) 10%, transparent) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+@utility card-surface {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-sm);
+}
+@utility card-hover {
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--sh-md);
+    border-color: var(--border-strong);
+  }
+}
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+.dark .theme-sw {
+  --primary: #2bb3a3;
+  --primary-hover: #45c4b5;
+  --primary-active: #1f9a8b;
+  --primary-soft: #10272a;
+  --primary-disabled: #1f4a46;
+  --secondary: #10272a;
+  --secondary-foreground: #a8eee4;
+  --ring: #2bb3a3;
+  --background: #0d1112;
+  --sidebar: #101516;
+  --sidebar-border: #1f2a2a;
+}
