@@ -1,5 +1,5 @@
+// imports
 import "dotenv/config";
-
 import { z } from "zod";
 
 const schema = z.object({
