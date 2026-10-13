@@ -7,3 +7,4 @@ Todos on the frontend
 - cant get students data, throws error on the bacnkend 500
 - cant get cbt 500 error on the backend
 - getting error when trying to create a new cbt
+- after email confirmation link tell user that they have been verfied that they should login with there new credentials
