@@ -1,0 +1,224 @@
+// In-memory dummy data for the SolidWorks app. Resets on reload.
+import bracket from "@/assets/sw-task-bracket.jpg";
+import gear from "@/assets/sw-task-gear.jpg";
+import housing from "@/assets/sw-task-housing.jpg";
+import shaft from "@/assets/sw-task-shaft.jpg";
+import type { SwQuestion, SwSubmission, SwTask, SwUser } from "../types";
+
+export const db: {
+  tasks: SwTask[];
+  submissions: SwSubmission[];
+  questions: SwQuestion[];
+  users: SwUser[];
+} = {
+  tasks: [
+    {
+      id: "task-housing",
+      number: 4,
+      title: "Shelled enclosure with ribs",
+      summary: "Model a plastic housing with screw bosses, ribs and a 2 mm shell.",
+      description:
+        "A classic product-design part. Focus on the shell feature, draft and rib placement so the part could actually be moulded.",
+      steps: [
+        "Sketch a 120 × 80 mm rectangle with 8 mm corner fillets and extrude 40 mm.",
+        "Shell the top face to 2 mm wall thickness.",
+        "Add four Ø8 mm screw bosses with Ø3 mm holes, 4 mm from each corner.",
+        "Add 1.5 mm ribs between the bosses and the walls.",
+        "Apply ABS material and measure mass and volume.",
+      ],
+      thumbnailUrl: housing,
+      createdAt: "2026-10-08T10:00:00Z",
+    },
+    {
+      id: "task-shaft",
+      number: 3,
+      title: "Stepped shaft with keyway",
+      summary: "Revolve a stepped shaft and add fillets, chamfers and a keyway.",
+      description:
+        "Practise the revolve feature and small detail features engineers rely on every day.",
+      steps: [
+        "Sketch the half profile on the Front plane using the given diameters.",
+        "Revolve 360° about the centreline.",
+        "Add 1 mm chamfers on both ends and 2 mm fillets at each shoulder.",
+        "Cut a 6 × 3 mm keyway, 40 mm long.",
+        "Apply AISI 1020 steel and record mass and volume.",
+      ],
+      thumbnailUrl: shaft,
+      createdAt: "2026-09-30T10:00:00Z",
+    },
+    {
+      id: "task-gear",
+      number: 2,
+      title: "24-tooth spur gear",
+      summary: "Build a spur gear from scratch using a circular pattern.",
+      description: "Create one tooth profile, then pattern it. Finish with a bore and keyway.",
+      steps: [
+        "Extrude a Ø100 mm disc, 20 mm thick.",
+        "Sketch one tooth gap and cut-extrude through all.",
+        "Circular pattern the cut 24 times.",
+        "Add a Ø30 mm bore with an 8 mm keyway.",
+        "Apply cast carbon steel and record mass and volume.",
+      ],
+      thumbnailUrl: gear,
+      createdAt: "2026-09-21T10:00:00Z",
+    },
+    {
+      id: "task-bracket",
+      number: 1,
+      title: "Flanged bearing bracket",
+      summary: "A base plate, upright flange and gussets — great for practising sketches.",
+      description: "This one tests sketch relations and mirroring. Keep it fully defined.",
+      steps: [
+        "Extrude a 140 × 90 × 12 mm base plate with four Ø10 mm holes.",
+        "Add a 12 mm upright flange with a Ø50 mm bore.",
+        "Mirror two triangular gussets either side.",
+        "Fillet all outer edges at 3 mm.",
+        "Apply 6061 aluminium and record mass and volume.",
+      ],
+      thumbnailUrl: bracket,
+      createdAt: "2026-09-12T10:00:00Z",
+    },
+  ],
+  submissions: [
+    {
+      id: "sub-1",
+      taskId: "task-bracket",
+      userId: "stu-001",
+      userName: "Dane Okonkwo",
+      files: [
+        { name: "bearing-bracket.SLDPRT", size: 482_000 },
+        { name: "bracket-render.png", size: 220_000 },
+      ],
+      mass: "612.4 g",
+      volume: "226.8 cm³",
+      difficulty: "medium",
+      challenge: "Getting the gussets fully defined took a while. Mirroring saved a lot of time.",
+      submittedAt: "2026-09-14T15:20:00Z",
+      grade: {
+        scores: { mass: 28, volume: 27, model: 34 },
+        total: 89,
+        verdict: "good",
+        remarks: "Clean, fully-defined sketches. Mass is slightly off — check your fillet sizes.",
+        gradedAt: "2026-09-16T09:00:00Z",
+      },
+    },
+    {
+      id: "sub-2",
+      taskId: "task-gear",
+      userId: "stu-001",
+      userName: "Dane Okonkwo",
+      files: [{ name: "spur-gear-24T.SLDPRT", size: 905_000 }],
+      mass: "1.21 kg",
+      volume: "154.2 cm³",
+      difficulty: "hard",
+      challenge: "The tooth profile was tricky. I used a 3-point arc instead of an involute.",
+      submittedAt: "2026-09-24T18:02:00Z",
+    },
+    {
+      id: "sub-3",
+      taskId: "task-bracket",
+      userId: "usr-tobi",
+      userName: "Tobi Adeyemi",
+      files: [{ name: "bracket_v2.SLDPRT", size: 501_000 }],
+      mass: "540 g",
+      volume: "200 cm³",
+      difficulty: "easy",
+      challenge: "Nothing too hard here.",
+      submittedAt: "2026-09-15T11:00:00Z",
+      grade: {
+        scores: { mass: 14, volume: 15, model: 25 },
+        total: 54,
+        verdict: "needs-work",
+        remarks: "Gussets are missing and the bore is undersized. Re-watch from 6:40.",
+        gradedAt: "2026-09-17T09:00:00Z",
+      },
+    },
+    {
+      id: "sub-4",
+      taskId: "task-shaft",
+      userId: "usr-kemi",
+      userName: "Kemi Balogun",
+      files: [{ name: "stepped-shaft.SLDPRT", size: 312_000 }],
+      mass: "845 g",
+      volume: "107.6 cm³",
+      difficulty: "medium",
+      challenge: "Keyway depth confused me at first.",
+      submittedAt: "2026-10-03T08:40:00Z",
+    },
+  ],
+  questions: [
+    {
+      id: "q-1",
+      userId: "stu-001",
+      userName: "Dane Okonkwo",
+      title: "How do I make an involute tooth profile?",
+      body: "For the spur gear task, is it okay to approximate the tooth with arcs, or should I use the Toolbox gear?",
+      taskIds: ["task-gear"],
+      createdAt: "2026-09-23T12:00:00Z",
+      updatedAt: "2026-09-23T12:00:00Z",
+      responses: [
+        {
+          id: "r-1",
+          body: "Arcs are fine for this task. Toolbox is great too, but build it manually once so you understand it.",
+          at: "2026-09-23T16:30:00Z",
+        },
+      ],
+    },
+    {
+      id: "q-2",
+      userId: "stu-001",
+      userName: "Dane Okonkwo",
+      title: "Which density should I use for ABS?",
+      body: "SolidWorks gives 1020 kg/m³ but my textbook says 1050.",
+      taskIds: ["task-housing"],
+      createdAt: "2026-10-09T09:15:00Z",
+      updatedAt: "2026-10-09T09:15:00Z",
+      responses: [],
+    },
+    {
+      id: "q-3",
+      userId: "usr-tobi",
+      userName: "Tobi Adeyemi",
+      title: "Can I submit a STEP file instead?",
+      body: "I'm on SolidWorks 2022 — will you be able to open my files?",
+      taskIds: [],
+      createdAt: "2026-10-05T19:00:00Z",
+      updatedAt: "2026-10-05T19:00:00Z",
+      responses: [],
+    },
+  ],
+  users: [
+    {
+      userId: "stu-001",
+      name: "Dane Okonkwo",
+      email: "dane.okonkwo@unilag.edu.ng",
+      userType: "student",
+      heard: "youtube",
+      joinedAt: "2026-09-10T10:00:00Z",
+    },
+    {
+      userId: "usr-tobi",
+      name: "Tobi Adeyemi",
+      email: "tobi.designs@gmail.com",
+      userType: "freelancer",
+      heard: "youtube",
+      joinedAt: "2026-09-02T10:00:00Z",
+    },
+    {
+      userId: "usr-kemi",
+      name: "Kemi Balogun",
+      email: "kemi.b@oauife.edu.ng",
+      userType: "student",
+      heard: "whatsapp",
+      joinedAt: "2026-09-28T10:00:00Z",
+    },
+    {
+      userId: "usr-sam",
+      name: "Samuel Ojo",
+      email: "samojo.cad@gmail.com",
+      userType: "freelancer",
+      heard: "instagram",
+      joinedAt: "2026-10-06T10:00:00Z",
+    },
+  ],
+};

@@ -1,0 +1,169 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+/*
+ * PrepMaster design system — "Midnight ink". Light theme.
+ * Ink navy for structure, electric blue for action.
+ * Gold tokens are RESERVED for paid/premium signals only.
+ */
+
+@theme inline {
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", "DM Sans", ui-sans-serif, sans-serif;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-2xl: 28px;
+
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+  --text-3xl: 40px;
+
+  --shadow-sm: 0 1px 2px 0 rgb(10 15 31 / 0.05);
+  --shadow-md: 0 8px 24px -10px rgb(15 31 75 / 0.18);
+  --shadow-lg: 0 24px 60px -20px rgb(15 31 75 / 0.35);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-active: var(--primary-active);
+  --color-primary-disabled: var(--primary-disabled);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-surface: var(--surface);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-foreground: var(--ink-foreground);
+  --color-ink-muted: var(--ink-muted);
+  --color-gold: var(--gold);
+  --color-gold-bg: var(--gold-bg);
+  --color-gold-text: var(--gold-text);
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-error: var(--error);
+  --color-error-bg: var(--error-bg);
+}
+
+:root {
+  --radius: 12px;
+  --background: #f5f7fb;
+  --foreground: #0a0f1f;
+  --card: #ffffff;
+  --card-foreground: #0a0f1f;
+  --popover: #ffffff;
+  --popover-foreground: #0a0f1f;
+  --primary: #3b6cff;
+  --primary-foreground: #ffffff;
+  --primary-hover: #2a58e8;
+  --primary-active: #1f47c7;
+  --primary-disabled: #a9bdff;
+  --secondary: #e8eeff;
+  --secondary-foreground: #0f1f4b;
+  --muted: #eef1f7;
+  --muted-foreground: #6b7390;
+  --accent: #e8eeff;
+  --accent-foreground: #0f1f4b;
+  --destructive: #d23b3b;
+  --destructive-foreground: #ffffff;
+  --border: #e3e7f0;
+  --border-strong: #cdd3e1;
+  --input: #e3e7f0;
+  --ring: #3b6cff;
+  --surface: #ffffff;
+  --surface-subtle: #f0f3f9;
+  --text-secondary: #4a5372;
+  --text-muted: #7c849f;
+  --ink: #0f1f4b;
+  --ink-soft: #1a2c60;
+  --ink-foreground: #ffffff;
+  --ink-muted: #9aa6cc;
+  --gold: #d4a72c;
+  --gold-bg: #fbf3dc;
+  --gold-text: #86640f;
+  --success: #15935f;
+  --success-bg: #e3f6ed;
+  --warning: #b7791f;
+  --warning-bg: #fdf1dc;
+  --error: #d23b3b;
+  --error-bg: #fdeaea;
+
+  --gradient-ink: radial-gradient(120% 140% at 100% 0%, #3b6cff 0%, #1a2c60 45%, #0f1f4b 75%);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+}
+
+@utility font-display {
+  font-family: var(--font-display);
+}
+
+@utility bg-ink-gradient {
+  background: var(--gradient-ink);
+}
+
+@utility dot-grid {
+  background-image: radial-gradient(color-mix(in oklab, var(--ink-foreground) 14%, transparent) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+@utility card-surface {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow-sm);
+}
+
+@utility card-hover {
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--border-strong);
+  }
+}
