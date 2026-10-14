@@ -1,27 +1,26 @@
-# Agent Instructions & Constraints
+# Agent Instructions & Project Rules
 
-## Absolute Constraints
+## Repository Layout
 
-1. NEVER edit, delete, or import from `src2/` — it is a frozen legacy backup.
-2. NEVER install new npm/bun packages without explicit instruction from the user.
-3. Keep frontend in `src/` and backend in `backend/` — do not merge or relocate folders.
-4. Keep the Supabase service-role key backend-only — never expose it in `src/` or `VITE_` variables.
+- Root folders: `frontend/`, `backend/`, `context/`, `docs/`, `.git/`.
+- Active frontend: lives in `frontend/src/`.
+- Active backend: lives in `backend/src/` (Hono on Node.js).
+- `docs/` is for human developer notes only; agents must ignore it.
+- Context documentation: lives in `context/`. Consult `context/architecture.md` and `context/conventions.md` before making structural changes.
 
-## Frontend & Styling Rules
+## Strict Restrictions
 
-1. Never hardcode colors (`#3b6cff`, `bg-black`, `text-white`). Use the semantic tokens in `src/styles.css`.
-2. Headings use `font-display` (Space Grotesk), body uses DM Sans.
-3. Gold accent is strictly reserved for paid/premium items.
-4. All client-side data flows through TanStack Query hooks using `api` from `src/lib/api/client.ts`.
+- NEVER read, edit, delete, or commit any `.env` file (`backend/.env`, `frontend/.env`, or root). Why: keeps API keys, service roles, and secrets strictly secure.
+- NEVER edit, delete, or import from `frontend/src2/` or `frontend/old_src/`. Why: these are frozen legacy UI backups kept for user reference.
+- NEVER install or introduce `react-router-dom` or Next.js. Why: frontend uses TanStack Start v1 with TanStack Router.
+- NEVER query the Supabase database directly inside backend controllers. Why: controllers only parse/validate HTTP requests; all queries and rules belong in `backend/src/services/`.
 
-## Context References
+## Architecture & Coding Rules
 
-Before starting complex tasks, read:
-
-- `context/architecture.md` (System design & layers)
-- `context/designsystem.md` (Tokens, components & themes)
-- `context/techstack.md` (Approved dependencies)
-
-## Quality Gate
-
-Always run typecheck (`npm run build` or `npx tsc --noEmit`) before reporting a task complete.
+- Design tokens: all colors, radii, shadows, and fonts live in `frontend/src/styles.css`. Admin theme uses `.theme-admin` class; SolidWorks uses `.theme-sw`. Never hardcode raw hex values like `bg-[#...]` in components.
+- Gold token: gold (`--gold`, `--gold-text`, etc.) is reserved exclusively for paid/premium items. Never use gold decoratively.
+- Data flow: frontend pages must fetch data through TanStack Query hooks via feature services. Do not import mock data arrays directly into components.
+- Dual Mode (`LIVE` vs Dummy): `frontend/src/lib/api/config.ts` controls whether the app calls the Hono backend or returns local mock data. Keep both code paths working.
+- Backend layers: routes -> controllers (`backend/src/controllers/`) -> services (`backend/src/services/`) -> database/R2/Paystack.
+- CBT exams: server owns the exam clock and deadline. Answers autosave per question; browser timers are never trusted.
+- Payments: server prices every item. Paystack callback calls `POST /payments/:ref/verify`.

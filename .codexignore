@@ -1,0 +1,21 @@
+# .codexignore
+
+node*modules/
+vendor/
+.venv/
+*.sqlite
+_.wasm
+dist/
+coverage/
+.env
+.env._
+secrets/
+_.pem
+_.key
+
+**/.env\*
+backend/.env
+frontend/.env
+frontend/src2/**
+frontend/old_src/**
+docs/**

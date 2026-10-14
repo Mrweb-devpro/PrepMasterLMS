@@ -1,0 +1,16 @@
+# .opencodeignore (at repo root)
+# Block all secrets and environment files
+**/.env
+**/.env.*
+backend/.env
+frontend/.env
+
+# Block frozen directories from agent indexing
+frontend/src2/**
+frontend/old_src/**
+
+# Block personal docs and git internals
+docs/**
+.git/**
+
+node_modules/
