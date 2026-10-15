@@ -1,4 +1,4 @@
-import type { Profile } from "../types";
+import type { AccountWarning, Profile } from "../types";
 
 /** Row shape returned by GET /v1/me. */
 export interface ApiProfile {
@@ -20,7 +20,7 @@ export interface ApiProfile {
 export interface MeResponse {
   profile: ApiProfile;
   role: "admin" | "student";
-  warnings: { reason: string; created_at: string }[];
+  warnings: AccountWarning[];
 }
 
 export function toProfile(me: MeResponse, emailVerified = true): Profile {
@@ -35,6 +35,7 @@ export function toProfile(me: MeResponse, emailVerified = true): Profile {
     emailVerified,
     swRegistered: p.sw_registered,
     joinedAt: p.created_at,
+    warnings: me.warnings ?? [],
     ...(p.faculty ? { faculty: p.faculty } : {}),
     ...(p.department ? { course: p.department } : {}),
     ...(p.level ? { level: p.level } : {}),

@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { StudyFields, type ProfileDraft } from "@/features/auth/components/fields";
 import { useSession } from "@/features/auth/session";
+import { AccountModerationCard } from "@/features/auth/components/AccountModerationCard";
 import { Switch } from "@/components/ui/switch";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { useTransactions } from "@/features/payments/useTransactions";
@@ -96,6 +97,7 @@ function AccountPage() {
 
         <div className="min-w-0 space-y-6">
           <ProfileCard />
+          <AccountModerationCard />
 
           <Card>
             <h2 className="text-lg font-semibold">Appearance</h2>

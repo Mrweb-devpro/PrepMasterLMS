@@ -18,6 +18,7 @@ import { AppFrame, Brand, type NavGroup } from "@/components/layout/AppSidebar";
 import { useMainAppGuard } from "@/features/auth/hooks/useGuards";
 import { useSession } from "@/features/auth/session";
 import { fullName, initials } from "@/features/auth/utils/profile";
+import { WarningNoticeDialog } from "./WarningNoticeDialog";
 
 export function StudentShell({ children }: { children: ReactNode }) {
   const ready = useMainAppGuard();
@@ -95,6 +96,7 @@ export function StudentShell({ children }: { children: ReactNode }) {
       topbar={topbar}
     >
       {children}
+      <WarningNoticeDialog key={user?.id} />
     </AppFrame>
   );
 }

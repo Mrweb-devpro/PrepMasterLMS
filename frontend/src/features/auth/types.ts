@@ -2,6 +2,12 @@ export type Role = "student" | "admin";
 export type UserType = "student" | "freelancer";
 export type Provider = "email" | "google";
 
+export interface AccountWarning {
+  id: string;
+  reason: string;
+  created_at: string;
+}
+
 /** One shape for every user — students, SolidWorks-only users and admins alike. */
 export interface Profile {
   id: string;
@@ -20,4 +26,5 @@ export interface Profile {
   userType?: UserType;
   swRegistered: boolean;
   joinedAt: string;
+  warnings?: AccountWarning[];
 }
