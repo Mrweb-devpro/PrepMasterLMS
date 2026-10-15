@@ -54,16 +54,21 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         .currentUser()
         .then(setUser)
         .catch((e: Error) => {
+          // A profile request must never invalidate a password recovery session.
+          if (window.location.pathname.includes("reset-password")) return;
           // e.g. suspended account or API down: sign out with a clear message.
           toast.error(e.message);
           void authService.signOut();
           setUser(null);
         })
         .finally(() => setHydrated(true));
-    void load();
+    if (window.location.pathname.includes("reset-password")) setHydrated(true);
+    else void load();
     const { data } = supabase().auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN" || event === "USER_UPDATED") void load();
+      if (event === "PASSWORD_RECOVERY") return;
       if (event === "SIGNED_OUT") setUser(null);
+      if (window.location.pathname.includes("reset-password")) return;
+      if (event === "SIGNED_IN" || event === "USER_UPDATED") void load();
     });
     return () => data.subscription.unsubscribe();
   }, []);

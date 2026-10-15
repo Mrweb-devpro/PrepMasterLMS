@@ -11,10 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountRouteImport } from './routes/account'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LearnSolidworksRouteImport } from './routes/learn-solidworks'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SolidworksRouteImport } from './routes/solidworks'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
@@ -65,6 +67,11 @@ const AccountRoute = AccountRouteImport.update({
   path: '/account',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LearnSolidworksRoute = LearnSolidworksRouteImport.update({
   id: '/learn-solidworks',
   path: '/learn-solidworks',
@@ -83,6 +90,11 @@ const LoginRoute = LoginRouteImport.update({
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignupRoute = SignupRouteImport.update({
@@ -287,10 +299,12 @@ const DriveCourseCategorySubfolderRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/learn-solidworks': typeof LearnSolidworksRoute
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/solidworks': typeof SolidworksRouteWithChildren
   '/admin/payments': typeof AdminPaymentsRoute
@@ -334,10 +348,12 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/learn-solidworks': typeof LearnSolidworksRoute
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/sw-questions': typeof AdminSwQuestionsRoute
@@ -381,10 +397,12 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/learn-solidworks': typeof LearnSolidworksRoute
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/solidworks': typeof SolidworksRouteWithChildren
   '/admin/payments': typeof AdminPaymentsRoute
@@ -430,10 +448,12 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/account'
+    | '/forgot-password'
     | '/learn-solidworks'
     | '/library'
     | '/login'
     | '/onboarding'
+    | '/reset-password'
     | '/signup'
     | '/solidworks'
     | '/admin/payments'
@@ -477,10 +497,12 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/account'
+    | '/forgot-password'
     | '/learn-solidworks'
     | '/library'
     | '/login'
     | '/onboarding'
+    | '/reset-password'
     | '/signup'
     | '/admin/payments'
     | '/admin/sw-questions'
@@ -523,10 +545,12 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/account'
+    | '/forgot-password'
     | '/learn-solidworks'
     | '/library'
     | '/login'
     | '/onboarding'
+    | '/reset-password'
     | '/signup'
     | '/solidworks'
     | '/admin/payments'
@@ -571,10 +595,12 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountRoute: typeof AccountRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LearnSolidworksRoute: typeof LearnSolidworksRoute
   LibraryRoute: typeof LibraryRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
   SolidworksRoute: typeof SolidworksRouteWithChildren
   AdminPaymentsRoute: typeof AdminPaymentsRoute
@@ -622,6 +648,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/learn-solidworks': {
       id: '/learn-solidworks'
       path: '/learn-solidworks'
@@ -648,6 +681,13 @@ declare module '@tanstack/react-router' {
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signup': {
@@ -959,10 +999,12 @@ const SolidworksRouteWithChildren = SolidworksRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LearnSolidworksRoute: LearnSolidworksRoute,
   LibraryRoute: LibraryRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
   SolidworksRoute: SolidworksRouteWithChildren,
   AdminPaymentsRoute: AdminPaymentsRoute,

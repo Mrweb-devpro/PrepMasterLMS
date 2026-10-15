@@ -42,7 +42,7 @@ export const authService = {
   async signInWithEmail(email: string, password: string): Promise<Profile> {
     if (LIVE) {
       const { error } = await supabase().auth.signInWithPassword({ email, password });
-      if (error) throw new Error(error.message);
+      if (error) throw error;
       const p = await this.currentUser();
       if (!p) throw new Error("Couldn't sign you in. Try again.");
       return p;
@@ -53,6 +53,26 @@ export const authService = {
     if (/admin/i.test(email)) return { ...PERSONAS.admin.profile, email };
     const known = Object.values(PERSONAS).find((p) => p.profile?.email === email)?.profile;
     return known ?? { ...PERSONAS.student.profile, email };
+  },
+
+  async resetPassword(email: string): Promise<void> {
+    if (LIVE) {
+      const { error } = await supabase().auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw new Error(error.message);
+      return;
+    }
+    await delay(500);
+  },
+
+  async updatePassword(password: string): Promise<void> {
+    if (LIVE) {
+      const { error } = await supabase().auth.updateUser({ password });
+      if (error) throw new Error(error.message);
+      return;
+    }
+    await delay(500);
   },
 
   /** Google gives us name + email only; the rest is collected afterwards. */
@@ -121,7 +141,11 @@ export const authService = {
 
   async resendVerification(email: string) {
     if (!LIVE) return;
-    const { error } = await supabase().auth.resend({ type: "signup", email });
+    const { error } = await supabase().auth.resend({
+      type: "signup",
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/` },
+    });
     if (error) throw new Error(error.message);
   },
 

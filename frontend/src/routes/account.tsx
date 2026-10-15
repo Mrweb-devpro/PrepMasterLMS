@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { BadgeCheck, LogOut, MailWarning } from "lucide-react";
 import { toast } from "sonner";
 import { StudentShell } from "@/components/prep/StudentShell";
@@ -32,6 +32,8 @@ export const Route = createFileRoute("/account")({
 });
 
 function AccountPage() {
+  const { signOut } = useSession();
+  const navigate = useNavigate();
   const prep = usePrep();
   const tx = useTransactions("mine");
   const mine = LIVE ? tx : tx.filter((t) => t.student === prep.name);
@@ -78,11 +80,17 @@ function AccountPage() {
               <p className="text-xs text-text-muted">CBTs</p>
             </div>
           </div>
-          <Button variant="outline" className="mt-5 w-full" asChild>
-            <Link to="/login">
-              <LogOut className="size-4" />
-              Sign out
-            </Link>
+          <Button
+            variant="destructive"
+            className="mt-5 w-full font-medium"
+            onClick={() => {
+              signOut();
+              toast.success("Signed out successfully");
+              navigate({ to: "/login" });
+            }}
+          >
+            <LogOut className="size-4" />
+            Sign out
           </Button>
         </Card>
 
