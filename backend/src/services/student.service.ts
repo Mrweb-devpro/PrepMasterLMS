@@ -11,7 +11,7 @@ export async function me(userId: string) {
     must(
       await db
         .from("warnings")
-        .select("reason, created_at")
+        .select("id, reason, created_at")
         .eq("user_id", userId)
         .order("created_at", { ascending: false }),
     ),
