@@ -11,6 +11,7 @@ PrepMaster is an online tutorial platform for Nigerian university students (buil
 
 ## Student features
 - **Auth & onboarding**: email sign-up with verification link, Google sign-in, onboarding with faculty → department → level dropdowns (no school field). Matric number optional.
+- **Password recovery**: login links to `/forgot-password`, with an email form, inbox confirmation, and resend action. LIVE mode sends a Supabase recovery email returning to `/reset-password`, where users enter and confirm a password of at least six characters. Supabase updates the password, then the page returns to `/login`. Demo mode simulates both requests. Allow the app's `/reset-password` URL in Supabase Auth redirect settings.
 - **Home**: overview, continue-where-you-left-off, featured courses/CBTs.
 - **Drive** (`/drive/$course/$category/$subfolder`): course folders → categories → subfolders → files. Free and paid (gold) files. In-app viewer for PDF, images, video; Word/PowerPoint via Microsoft online viewer (needs public URL).
 - **Purchases**: Paystack checkout; server sets price; `/payment/callback` verifies and unlocks the item.
