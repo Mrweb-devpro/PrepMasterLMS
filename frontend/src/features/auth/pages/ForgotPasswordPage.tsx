@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Loader2, Mail } from "lucide-react";
 import { toast } from "sonner";
+import { EmailDeliveryNotice } from "../components/EmailDeliveryNotice";
 
 export function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -51,6 +52,7 @@ export function ForgotPasswordPage() {
           <p className="text-sm text-text-muted">
             Click the link inside the email to set a new password.
           </p>
+          <EmailDeliveryNotice />
           <div className="space-y-2 pt-2">
             <Button
               type="button"
@@ -106,6 +108,7 @@ export function ForgotPasswordPage() {
           Send recovery link
         </Button>
       </form>
+      {resetPassword.isPending && <EmailDeliveryNotice />}
     </AuthLayout>
   );
 }

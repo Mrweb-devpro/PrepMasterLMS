@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { LIVE } from "@/lib/api/config";
 import { supabase } from "@/lib/api/supabase";
 import { isMainProfileComplete } from "@/features/auth/utils/profile";
+import { EmailDeliveryNotice } from "../components/EmailDeliveryNotice";
 
 export function ResetPasswordPage() {
   const [password, setPassword] = useState("");
@@ -143,6 +144,7 @@ export function ResetPasswordPage() {
           </Button>
         </form>
       )}
+      <EmailDeliveryNotice />
     </AuthLayout>
   );
 }
