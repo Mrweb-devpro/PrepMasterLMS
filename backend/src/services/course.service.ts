@@ -20,6 +20,9 @@ export async function catalog(userId: string, isAdmin: boolean) {
     library(userId),
     must<{ cbt_id: string }[]>(await db.from("cbt_attempts").select("cbt_id").eq("user_id", userId)),
   ]);
+  subfolders.sort((a, b) =>
+    a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" }),
+  );
   const used = new Map<string, number>();
   for (const a of attempts) used.set(a.cbt_id, (used.get(a.cbt_id) ?? 0) + 1);
   return {

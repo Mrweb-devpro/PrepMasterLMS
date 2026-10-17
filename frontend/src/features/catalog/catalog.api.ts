@@ -97,7 +97,10 @@ export async function fetchCatalog(): Promise<Catalog> {
   const courses: Course[] = r.courses.map((c) => {
     const subs = r.subfolders.filter((s) => s.course_id === c.id);
     const pick = (cat: CategorySlug) =>
-      subs.filter((s) => s.category === cat).map((s) => ({ slug: s.slug, name: s.name }));
+      subs
+        .filter((s) => s.category === cat)
+        .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" }))
+        .map((s) => ({ slug: s.slug, name: s.name }));
     return {
       id: c.id,
       slug: c.slug,

@@ -46,7 +46,9 @@ function CourseDetail() {
       </AdminShell>
     );
   const list = filesIn(course.slug, cat, sub ?? undefined);
-  const subs = course.subfolders[cat] ?? [];
+  const subs = [...(course.subfolders[cat] ?? [])].sort((a, b) =>
+    a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" }),
+  );
 
   return (
     <AdminShell

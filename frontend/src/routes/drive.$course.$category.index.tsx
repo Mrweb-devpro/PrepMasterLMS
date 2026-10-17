@@ -37,7 +37,9 @@ function CategoryPage() {
     );
   }
 
-  const subfolders = course.subfolders[category.slug];
+  const subfolders = [...(course.subfolders[category.slug] ?? [])].sort((a, b) =>
+    a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" }),
+  );
   const allFiles = filesIn(course.slug, category.slug);
 
   return (
