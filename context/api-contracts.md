@@ -31,6 +31,8 @@ Base URL: `VITE_API_URL` (e.g. `http://localhost:4000/v1`). All routes below are
 `profile` shape: `{ id, first_name, last_name, email, role, faculty, department, level, sw_registered, suspended, created_at }`.
 `warning` shape: `{ id, reason, created_at, issued_by }`.
 
+Avatar profile fields: `gender: "male" | "female" | null` and `avatar_url: string | null` are returned in `profile`. `PATCH /me` accepts camelCase `{ gender?, avatarUrl? }`, including null to clear; avatar URLs must be valid URLs of at most 500 characters. The service maps `avatarUrl` to `avatar_url`.
+
 ## Catalog
 
 | GET | `/catalog` | Role-aware list of courses → subfolders → materials, and CBTs, each with `owned: boolean` and `price` (kobo). |
