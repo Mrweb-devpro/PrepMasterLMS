@@ -10,6 +10,7 @@ import { KV } from "@/features/admin/components/parts";
 import { NameFields } from "@/features/auth/components/fields";
 import { heardLabel } from "@/features/auth/constants/options";
 import { useSession } from "@/features/auth/session";
+import { AvatarEditor } from "@/features/auth/components/AvatarEditor";
 import { formatDate } from "@/lib/mock-api";
 import { useSwUser } from "../hooks/useSwUser";
 
@@ -24,6 +25,11 @@ export function SettingsPage() {
   return (
     <div className="mx-auto w-full min-w-0 max-w-3xl space-y-6 [&>*]:min-w-0">
       <PageHeader title="Settings" subtitle="Your account details and preferences." />
+
+      <Card>
+        <h2 className="mb-4 text-sm font-semibold">Avatar</h2>
+        <AvatarEditor />
+      </Card>
 
       <Card>
         <div className="mb-4 flex items-center justify-between gap-3">
@@ -48,12 +54,12 @@ export function SettingsPage() {
                 Cancel
               </Button>
               <Button
-                onClick={() => {
+                onClick={async () => {
                   if (!names.firstName?.trim() || !names.lastName?.trim()) {
                     toast.error("Names can't be empty");
                     return;
                   }
-                  update({ firstName: names.firstName.trim(), lastName: names.lastName.trim() });
+                  if (!(await update({ firstName: names.firstName.trim(), lastName: names.lastName.trim() }))) return;
                   toast.success("Profile updated");
                   setEditing(false);
                 }}

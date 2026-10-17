@@ -10,6 +10,7 @@ import { useState } from "react";
 import { StudyFields, type ProfileDraft } from "@/features/auth/components/fields";
 import { useSession } from "@/features/auth/session";
 import { AccountModerationCard } from "@/features/auth/components/AccountModerationCard";
+import { AvatarEditor } from "@/features/auth/components/AvatarEditor";
 import { Switch } from "@/components/ui/switch";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { useTransactions } from "@/features/payments/useTransactions";
@@ -63,9 +64,7 @@ function AccountPage() {
 
       <div className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-[320px_minmax(0,1fr)] [&>*]:min-w-0">
         <Card className="h-fit text-center">
-          <span className="mx-auto flex size-20 items-center justify-center rounded-full bg-ink-gradient font-display text-2xl font-semibold text-ink-foreground">
-            {prep.initials}
-          </span>
+          <AvatarEditor />
           <p className="mt-4 font-display text-lg font-semibold">{prep.name}</p>
           <p className="flex items-center justify-center gap-1 text-sm text-text-secondary">
             {prep.email}
@@ -199,7 +198,7 @@ function ProfileCard() {
       ) : (
       <form
         className="mt-4 space-y-4"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
           if (!d.firstName?.trim() || !d.lastName?.trim()) {
             toast.error("Enter your names");
@@ -210,13 +209,14 @@ function ProfileCard() {
             toast.error("Choose your faculty, department and level");
             return;
           }
-          update({
+          const saved = await update({
             firstName: d.firstName.trim(),
             lastName: d.lastName.trim(),
             faculty: d.faculty,
             course: d.course,
             level: d.level,
           });
+          if (!saved) return;
           toast.success("Profile saved");
           setEditing(false);
         }}

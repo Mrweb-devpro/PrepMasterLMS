@@ -12,7 +12,7 @@ const STUDY_FIELDS = ["faculty", "course", "level"] as const;
 /** Fields still needed before the main PrepMaster dashboard opens. Admins skip this. */
 export function missingMainFields(p: Profile) {
   if (p.role === "admin") return [];
-  return [...NAME_FIELDS, ...STUDY_FIELDS].filter((k) => !p[k]);
+  return [...NAME_FIELDS, ...STUDY_FIELDS, "gender" as const].filter((k) => !p[k]);
 }
 
 export const isMainProfileComplete = (p: Profile) => missingMainFields(p).length === 0;

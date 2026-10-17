@@ -8,12 +8,11 @@ import {
   type ReactNode,
 } from "react";
 import { toast } from "sonner";
-import { api } from "@/lib/api/client";
+import { flushSync } from "react-dom";
 import { LIVE } from "@/lib/api/config";
 import { supabase } from "@/lib/api/supabase";
 import { DEFAULT_PERSONA, PERSONAS, type PersonaKey } from "./constants/personas";
 import { authService } from "./services/auth.service";
-import { toProfilePatch } from "./services/profile.mapper";
 import type { Profile } from "./types";
 
 const KEY = "prepmaster-session";
@@ -24,7 +23,7 @@ interface SessionState {
   user: Profile | null;
   signIn: (p: Profile) => void;
   signOut: () => void;
-  update: (patch: Partial<Profile>) => void;
+  update: (patch: Partial<Profile>) => Promise<boolean>;
   switchPersona: (k: PersonaKey) => void;
 }
 
@@ -82,13 +81,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setUser(null);
     void authService.signOut();
   }, []);
-  const update = useCallback((patch: Partial<Profile>) => {
-    setUser((u) => (u ? { ...u, ...patch } : u));
-    if (!LIVE) return;
-    const body = toProfilePatch(patch);
-    if (Object.keys(body).length === 0) return;
-    api.patch("/me", body).catch((e: Error) => toast.error("Couldn't save your profile", { description: e.message }));
-  }, []);
+  const update = useCallback(async (patch: Partial<Profile>) => {
+    if (!user) return false;
+    try {
+      await authService.updateProfile(patch);
+      flushSync(() => setUser((current) => current?.id === user.id ? { ...current, ...patch } : current));
+      return true;
+    } catch (error) {
+      toast.error("Couldn't save your profile", { description: (error as Error).message });
+      return false;
+    }
+  }, [user?.id]);
   const switchPersona = useCallback((k: PersonaKey) => setUser(PERSONAS[k].profile), []);
 
   const value = useMemo(

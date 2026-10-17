@@ -14,7 +14,8 @@ import {
 import { Suspense, useEffect, useState, type ReactNode } from "react";
 import { AppFrame, Brand, type NavGroup } from "@/components/layout/AppSidebar";
 import { useSession } from "@/features/auth/session";
-import { fullName, initials } from "@/features/auth/utils/profile";
+import { fullName } from "@/features/auth/utils/profile";
+import { ProfileAvatar } from "@/features/auth/components/ProfileAvatar";
 import { PageLoading } from "./bits";
 
 const groups: NavGroup[] = [
@@ -75,9 +76,7 @@ export function SwShell({ children }: { children: ReactNode }) {
           to="/solidworks/settings"
           className="flex items-center gap-2.5 rounded-md p-1.5 transition-colors hover:bg-surface-hover"
         >
-          <span className="flex size-8 items-center justify-center rounded-full bg-primary text-2xs font-semibold text-primary-foreground">
-            {initials(user)}
-          </span>
+          <ProfileAvatar user={user} />
           <span className="min-w-0 flex-1">
             <span className="block truncate text-sm font-medium">{fullName(user)}</span>
             <span className="block truncate text-2xs text-sidebar-muted">{user.email}</span>

@@ -17,7 +17,8 @@ import { toast } from "sonner";
 import { AppFrame, Brand, type NavGroup } from "@/components/layout/AppSidebar";
 import { useMainAppGuard } from "@/features/auth/hooks/useGuards";
 import { useSession } from "@/features/auth/session";
-import { fullName, initials } from "@/features/auth/utils/profile";
+import { fullName } from "@/features/auth/utils/profile";
+import { ProfileAvatar } from "@/features/auth/components/ProfileAvatar";
 import { WarningNoticeDialog } from "./WarningNoticeDialog";
 
 export function StudentShell({ children }: { children: ReactNode }) {
@@ -43,9 +44,7 @@ export function StudentShell({ children }: { children: ReactNode }) {
         to="/account"
         className="flex items-center gap-2.5 rounded-md p-1.5 transition-colors hover:bg-surface-hover"
       >
-        <span className="flex size-8 items-center justify-center rounded-full bg-primary text-2xs font-semibold text-primary-foreground">
-          {user ? initials(user) : ""}
-        </span>
+        <ProfileAvatar user={user} />
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-medium">{user ? fullName(user) : ""}</span>
           <span className="block truncate text-2xs text-sidebar-muted">{user?.email}</span>

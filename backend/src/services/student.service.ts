@@ -20,6 +20,8 @@ export async function me(userId: string) {
 }
 
 export interface ProfilePatch {
+  gender?: "male" | "female" | null | undefined;
+  avatarUrl?: string | null | undefined;
   firstName?: string | undefined;
   lastName?: string | undefined;
   faculty?: string | null | undefined;
@@ -31,6 +33,8 @@ export interface ProfilePatch {
 }
 
 const COLUMNS: Record<keyof ProfilePatch, string> = {
+  gender: "gender",
+  avatarUrl: "avatar_url",
   firstName: "first_name",
   lastName: "last_name",
   faculty: "faculty",

@@ -1,4 +1,4 @@
-import type { AccountWarning, Profile } from "../types";
+import type { AccountWarning, Gender, Profile } from "../types";
 
 /** Row shape returned by GET /v1/me. */
 export interface ApiProfile {
@@ -7,6 +7,8 @@ export interface ApiProfile {
   last_name: string;
   email: string;
   provider: string;
+  gender: Gender | null;
+  avatar_url: string | null;
   faculty: string | null;
   department: string | null;
   level: string | null;
@@ -36,6 +38,8 @@ export function toProfile(me: MeResponse, emailVerified = true): Profile {
     swRegistered: p.sw_registered,
     joinedAt: p.created_at,
     warnings: me.warnings ?? [],
+    ...(p.gender ? { gender: p.gender } : {}),
+    ...(p.avatar_url ? { avatarUrl: p.avatar_url } : {}),
     ...(p.faculty ? { faculty: p.faculty } : {}),
     ...(p.department ? { course: p.department } : {}),
     ...(p.level ? { level: p.level } : {}),
@@ -50,6 +54,7 @@ export function toProfilePatch(p: Partial<Profile>) {
   const out: {
     firstName?: string; lastName?: string; faculty?: string | null; department?: string | null;
     level?: string | null; dob?: string | null; heard?: string | null; userType?: string | null;
+    gender?: Gender | null; avatarUrl?: string | null;
   } = {};
   if (p.firstName !== undefined) out.firstName = p.firstName;
   if (p.lastName !== undefined) out.lastName = p.lastName;
@@ -59,5 +64,7 @@ export function toProfilePatch(p: Partial<Profile>) {
   if (p.dob !== undefined) out.dob = p.dob || null;
   if (p.heard !== undefined) out.heard = p.heard || null;
   if (p.userType !== undefined) out.userType = p.userType || null;
+  if (p.gender !== undefined) out.gender = p.gender;
+  if (p.avatarUrl !== undefined) out.avatarUrl = p.avatarUrl || null;
   return out;
 }

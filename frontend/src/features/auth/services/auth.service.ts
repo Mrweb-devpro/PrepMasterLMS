@@ -7,7 +7,7 @@ import { delay, nowIso, uid } from "@/lib/mock-api";
 import { PERSONAS } from "../constants/personas";
 import type { ProfileDraft } from "../components/fields";
 import type { Profile } from "../types";
-import { toProfile, type MeResponse } from "./profile.mapper";
+import { toProfile, toProfilePatch, type MeResponse } from "./profile.mapper";
 
 const base = (d: ProfileDraft, provider: Profile["provider"]): Profile => ({
   id: uid("usr"),
@@ -31,6 +31,11 @@ const base = (d: ProfileDraft, provider: Profile["provider"]): Profile => ({
 let pending: { email: string; password: string } | null = null;
 
 export const authService = {
+  async updateProfile(patch: Partial<Profile>): Promise<void> {
+    if (!LIVE) return;
+    const body = toProfilePatch(patch);
+    if (Object.keys(body).length) await api.patch("/me", body);
+  },
   /** Loads the signed-in user's profile from the API (null when signed out). */
   async currentUser(): Promise<Profile | null> {
     const { data } = await supabase().auth.getSession();

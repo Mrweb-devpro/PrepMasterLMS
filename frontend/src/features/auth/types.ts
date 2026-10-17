@@ -1,6 +1,7 @@
 export type Role = "student" | "admin";
 export type UserType = "student" | "freelancer";
 export type Provider = "email" | "google";
+export type Gender = "male" | "female";
 
 export interface AccountWarning {
   id: string;
@@ -16,6 +17,8 @@ export interface Profile {
   email: string;
   role: Role;
   provider: Provider;
+  gender?: Gender;
+  avatarUrl?: string;
   emailVerified: boolean;
   school?: string;
   faculty?: string;

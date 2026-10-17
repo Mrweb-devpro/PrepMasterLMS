@@ -268,3 +268,8 @@ create policy "read sw tasks" on public.sw_tasks for select to authenticated usi
 
 -- Upgrading an existing database? Run once:
 -- alter table public.cbts add column if not exists paused boolean not null default false;
+
+-- Avatar profile upgrade (idempotent): run this block on existing databases.
+alter table public.profiles
+  add column if not exists gender text check (gender in ('male', 'female')),
+  add column if not exists avatar_url text check (char_length(avatar_url) <= 500);

@@ -8,6 +8,8 @@ const slug = z.string().regex(/^[a-z0-9-]+$/).max(60);
 // ---------- Profile ----------
 const optionalText = (max: number) => z.string().max(max).nullable().optional();
 export const updateMeBody = z.object({
+  gender: z.enum(["male", "female"]).nullable().optional(),
+  avatarUrl: z.string().url().max(500).nullable().optional(),
   firstName: z.string().min(1).max(60).optional(),
   lastName: z.string().min(1).max(60).optional(),
   faculty: optionalText(100),
