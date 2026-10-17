@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
-import { StudyFields, type ProfileDraft } from "@/features/auth/components/fields";
+import { GenderField, StudyFields, type ProfileDraft } from "@/features/auth/components/fields";
 import { useSession } from "@/features/auth/session";
 import { AccountModerationCard } from "@/features/auth/components/AccountModerationCard";
 import { AvatarEditor } from "@/features/auth/components/AvatarEditor";
+import { generateAvatarUrl } from "@/features/auth/utils/avatar";
 import { Switch } from "@/components/ui/switch";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { useTransactions } from "@/features/payments/useTransactions";
@@ -158,6 +159,7 @@ function ProfileCard() {
     faculty: user?.faculty ?? "",
     course: user?.course ?? "",
     level: user?.level ?? "",
+    ...(user?.gender ? { gender: user.gender } : {}),
   }));
   const patch = (p: ProfileDraft) => setD((x) => ({ ...x, ...p }));
   const [editing, setEditing] = useState(false);
@@ -168,6 +170,7 @@ function ProfileCard() {
       faculty: user?.faculty ?? "",
       course: user?.course ?? "",
       level: user?.level ?? "",
+      ...(user?.gender ? { gender: user.gender } : {}),
     });
   const levelLabel = (l?: string) => (!l ? "—" : l === "Postgraduate" ? l : `${l} level`);
   return (
@@ -188,6 +191,7 @@ function ProfileCard() {
             ["Faculty", user?.faculty || "—"],
             ["Department", user?.course || "—"],
             ["Level", levelLabel(user?.level)],
+            ["Gender", user?.gender === "male" ? "Male" : user?.gender === "female" ? "Female" : "—"],
           ].map(([k, v]) => (
             <div key={k} className="flex flex-col gap-0.5 py-2.5 sm:flex-row sm:justify-between">
               <dt className="text-text-muted">{k}</dt>
@@ -204,9 +208,12 @@ function ProfileCard() {
             toast.error("Enter your names");
             return;
           }
-          if (!d.faculty || !d.course || !d.level)
-          {
+          if (!d.faculty || !d.course || !d.level) {
             toast.error("Choose your faculty, department and level");
+            return;
+          }
+          if (!d.gender) {
+            toast.error("Select your gender");
             return;
           }
           const saved = await update({
@@ -215,6 +222,8 @@ function ProfileCard() {
             faculty: d.faculty,
             course: d.course,
             level: d.level,
+            gender: d.gender,
+            ...(d.gender !== user?.gender ? { avatarUrl: generateAvatarUrl(d.gender) } : {}),
           });
           if (!saved) return;
           toast.success("Profile saved");
@@ -236,6 +245,7 @@ function ProfileCard() {
           </div>
         </div>
         <StudyFields value={d} onChange={patch} />
+        <GenderField value={d.gender} onChange={(gender) => patch({ gender })} />
         <div className="flex flex-col-reverse gap-2 sm:flex-row">
           <Button type="submit">Save changes</Button>
           <Button

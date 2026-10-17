@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Folder, Search } from "lucide-react";
+import { Folder, Loader2, Search } from "lucide-react";
 import { useState } from "react";
 import { StudentShell } from "@/components/prep/StudentShell";
-import { Breadcrumbs, FileIcon, PageHeader, PaidPill } from "@/components/prep/bits";
+import { Breadcrumbs, EmptyState, FileIcon, PageHeader, PaidPill } from "@/components/prep/bits";
 import { Input } from "@/components/ui/input";
 import { useCatalog } from "@/features/catalog/useCatalog";
 import { usePrep } from "@/lib/prep-store";
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/drive/")({
 
 function DrivePage() {
   const prep = usePrep();
-  const { courses, files, getCourse, filesIn } = useCatalog();
+  const { courses, files, getCourse, filesIn, loading } = useCatalog();
   const [query, setQuery] = useState("");
   const searching = query.trim().length > 0;
   const results = files.filter((f) => f.name.toLowerCase().includes(query.trim().toLowerCase()));
@@ -47,7 +47,11 @@ function DrivePage() {
         />
       </div>
 
-      {searching ? (
+      {loading ? (
+        <div role="status" className="flex items-center justify-center gap-2 py-12 text-sm text-text-muted">
+          <Loader2 className="size-4 animate-spin" /> Loading course materials…
+        </div>
+      ) : searching ? (
         <div className="overflow-hidden rounded-lg border border-border bg-surface shadow-sm">
           {results.length === 0 && (
             <p className="px-5 py-8 text-center text-sm text-text-muted">
@@ -74,6 +78,11 @@ function DrivePage() {
             </Link>
           ))}
         </div>
+      ) : courses.length === 0 ? (
+        <EmptyState
+          title="No course materials yet"
+          description="Your courses and study materials will appear here when they are available."
+        />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {courses.map((course) => (

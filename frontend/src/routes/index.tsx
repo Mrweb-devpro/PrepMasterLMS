@@ -1,5 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, CalendarClock, Clock3 } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarClock,
+  Clock3,
+} from "lucide-react";
 import { StudentShell } from "@/components/prep/StudentShell";
 import { Card, FileIcon, LiveBadge, PaidPill, SectionTitle } from "@/components/prep/bits";
 import { usePrep } from "@/lib/prep-store";
@@ -33,47 +37,81 @@ function HomePage() {
   const liveCbts = cbts.filter(
     (c) => c.kind === "live" && (c.status === "live" || c.status === "upcoming"),
   );
+  const lastAttempt = [...prep.attempts]
+    .filter((attempt) => Boolean(attempt.submittedAt))
+    .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt))[0];
+  const lastCbt = lastAttempt ? getCbt(lastAttempt.cbtId) : undefined;
+  const lastCourse = lastCbt ? getCourse(lastCbt.courseSlug) : undefined;
+  const lastScore =
+    lastAttempt &&
+    lastAttempt.correct !== null &&
+    lastAttempt.total > 0 &&
+    lastCbt?.revealResults !== false
+      ? Math.round((lastAttempt.correct / lastAttempt.total) * 100)
+      : null;
 
   return (
     <StudentShell>
-      <div className="relative mb-10 overflow-hidden rounded-xl bg-ink-gradient p-7 text-ink-foreground shadow-lg md:p-10">
-        <div className="dot-grid absolute inset-0 opacity-60" />
-        <div className="relative grid gap-8 md:grid-cols-[1.4fr_1fr] md:items-end">
+      <div className="relative mb-10 overflow-hidden rounded-xl border border-border bg-surface p-6 shadow-sm sm:p-8 md:p-10">
+        <div className="grid gap-8 md:grid-cols-[1.4fr_1fr] md:items-end">
           <div>
-            <p className="text-sm text-ink-muted">Welcome back</p>
-            <h1 className="mt-1 text-3xl font-semibold text-ink-foreground md:text-[44px] md:leading-[1.05]">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl md:text-4xl">
               Hi {prep.name.split(" ")[0]}, ready to ace this week?
             </h1>
-            <p className="mt-3 max-w-md text-sm text-ink-muted">
+            <p className="mt-2.5 max-w-md text-sm text-text-secondary sm:text-base">
               You have {liveCbts.length} live CBTs coming up and {prep.unfinishedAttempts.length}{" "}
               practice sets waiting.
             </p>
-            <div className="mt-6 flex flex-wrap gap-2">
+            <div className="mt-6 flex flex-wrap gap-2.5">
               <Link
                 to="/cbts"
-                className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary-hover"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
               >
                 Browse CBTs <ArrowRight className="size-4" />
               </Link>
               <Link
                 to="/drive"
-                className="inline-flex items-center rounded-md bg-ink-foreground/10 px-4 py-2.5 text-sm font-medium hover:bg-ink-foreground/20"
+                className="inline-flex items-center rounded-lg border border-border bg-surface px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-surface-subtle"
               >
                 Open Drive
               </Link>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { v: prep.ownedFileIds.length, l: "Files owned" },
-              { v: prep.ownedCbtIds.length, l: "CBTs owned" },
-              { v: "75%", l: "Last score" },
-            ].map((s) => (
-              <div key={s.l} className="rounded-md bg-ink-foreground/10 p-3 backdrop-blur">
-                <p className="font-display text-2xl font-semibold">{s.v}</p>
-                <p className="text-[11px] text-ink-muted">{s.l}</p>
+          <div>
+            <div className="rounded-lg border border-border bg-surface-subtle/60 p-4 sm:p-5">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+                  Latest Test Result
+                </span>
+                <span className="max-w-32 truncate rounded-md border border-border bg-surface px-2 py-0.5 text-xs font-medium text-text-secondary">
+                  {lastCourse ? `${lastCourse.code} · Test` : "No attempt yet"}
+                </span>
               </div>
-            ))}
+              <p className="mt-2 font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                {lastScore === null ? "—" : `${lastScore}%`}
+              </p>
+              <p className="mt-1 truncate text-xs text-text-secondary">
+                {lastAttempt
+                  ? lastScore === null
+                    ? "Results pending"
+                    : lastCbt?.title ?? "Completed CBT"
+                  : "Take a CBT to see your score"}
+              </p>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <div className="rounded-lg border border-border bg-surface-subtle/60 p-3.5">
+                <p className="font-display text-2xl font-bold text-foreground">
+                  {prep.ownedFileIds.length}
+                </p>
+                <p className="mt-0.5 text-xs text-text-secondary">Files owned</p>
+              </div>
+              <div className="rounded-lg border border-border bg-surface-subtle/60 p-3.5">
+                <p className="font-display text-2xl font-bold text-foreground">
+                  {prep.ownedCbtIds.length}
+                </p>
+                <p className="mt-0.5 text-xs text-text-secondary">CBTs owned</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

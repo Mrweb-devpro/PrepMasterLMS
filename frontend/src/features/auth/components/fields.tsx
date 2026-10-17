@@ -13,7 +13,7 @@ import { Field } from "@/features/admin/components/parts";
 import { cn } from "@/lib/utils";
 import { FACULTIES, FACULTY_NAMES, HEARD_OPTIONS, LEVELS } from "../constants/options";
 import { useSchools } from "../hooks/useSchools";
-import type { Profile } from "../types";
+import type { Gender, Profile } from "../types";
 import { looksLikeStudentEmail } from "../utils/profile";
 
 export type ProfileDraft = Partial<Profile> & { password?: string };
@@ -216,6 +216,27 @@ export function StudyFields({ value, onChange }: { value: ProfileDraft; onChange
         onChange={(level) => onChange({ level })}
       />
     </div>
+  );
+}
+
+export function GenderField({
+  value,
+  onChange,
+}: {
+  value?: Gender | undefined;
+  onChange: (gender: Gender) => void;
+}) {
+  return (
+    <SelectField
+      label="Gender"
+      value={value}
+      options={[
+        { value: "female", label: "Female" },
+        { value: "male", label: "Male" },
+      ]}
+      placeholder="Select your gender"
+      onChange={(gender) => onChange(gender as Gender)}
+    />
   );
 }
 

@@ -1,17 +1,21 @@
 import { Link } from "@tanstack/react-router";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Loader2 } from "lucide-react";
 import { EmptyState, PageHeader } from "@/components/prep/bits";
 import { Button } from "@/components/ui/button";
 import { useCatalog } from "@/features/catalog/useCatalog";
 import { usePrep } from "@/lib/prep-store";
 
 export function AttemptsPage() {
-  const { attempts } = usePrep();
+  const { attempts, attemptsLoading } = usePrep();
   const { getCbt, getCourse } = useCatalog();
   return (
     <>
       <PageHeader title="My attempts" subtitle="Every CBT you've submitted is saved here." />
-      {attempts.length === 0 ? (
+      {attemptsLoading ? (
+        <div role="status" className="flex items-center justify-center gap-2 py-12 text-sm text-text-muted">
+          <Loader2 className="size-4 animate-spin" /> Loading attempts…
+        </div>
+      ) : attempts.length === 0 ? (
         <div className="space-y-4">
           <EmptyState title="No attempts yet" />
           <div className="text-center">
@@ -25,7 +29,7 @@ export function AttemptsPage() {
           {attempts.map((a) => {
             const cbt = getCbt(a.cbtId);
             const course = cbt ? getCourse(cbt.courseSlug) : undefined;
-            const hidden = cbt?.revealResults === false;
+            const hidden = a.correct === null || cbt?.revealResults === false;
             return (
               <Link
                 key={a.id}
@@ -41,7 +45,7 @@ export function AttemptsPage() {
                   </p>
                 </div>
                 <p className="font-display text-lg font-semibold tabular-nums">
-                  {hidden ? (
+                  {hidden || a.correct === null ? (
                     <span className="text-sm font-normal text-text-muted">Pending</span>
                   ) : (
                     `${Math.round((a.correct / a.total) * 100)}%`

@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, Check, Eye, ListChecks, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Eye, ListChecks, Loader2, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { AdminShell } from "@/components/prep/AdminShell";
@@ -449,19 +449,28 @@ function NewCbt() {
       )}
 
       <div className="sticky bottom-4 mt-6 flex items-center justify-between rounded-lg border border-border bg-surface/90 p-3 shadow-md backdrop-blur">
-        <Button variant="ghost" disabled={step === 0} onClick={() => setStep((x) => x - 1)}>
+        <Button variant="ghost" disabled={step === 0 || saving} onClick={() => setStep((x) => x - 1)}>
           <ArrowLeft />
           Back
         </Button>
         {step < 2 ? (
-          <Button onClick={next}>
+          <Button disabled={saving} onClick={next}>
             Continue
             <ArrowRight />
           </Button>
         ) : (
-          <Button onClick={create}>
-            <Check />
-            Create CBT
+          <Button disabled={saving} onClick={create}>
+            {saving ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                Creating CBT...
+              </>
+            ) : (
+              <>
+                <Check className="size-4" />
+                Create CBT
+              </>
+            )}
           </Button>
         )}
       </div>
