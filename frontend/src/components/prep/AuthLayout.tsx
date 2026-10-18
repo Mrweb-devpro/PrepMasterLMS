@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { GraduationCap, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { BlueprintCanvas } from "./BlueprintCanvas";
 
 export function AuthLayout({
   title,
@@ -13,6 +14,7 @@ export function AuthLayout({
   brand = "PrepMaster",
   icon: Icon = GraduationCap,
   theme = "default",
+  variant = "signup",
 }: {
   title?: string;
   subtitle?: string;
@@ -23,6 +25,7 @@ export function AuthLayout({
   brand?: string;
   icon?: LucideIcon;
   theme?: "default" | "sw" | "admin";
+  variant?: "signup" | "login" | "solidworks";
 }) {
   return (
     <div
@@ -32,17 +35,19 @@ export function AuthLayout({
         theme === "admin" && "theme-admin",
       )}
     >
-      <div className="relative hidden overflow-hidden bg-ink-gradient p-12 text-ink-foreground lg:flex lg:flex-col">
-        <div className="dot-grid absolute inset-0 opacity-50" />
-        <Link to="/" className="relative flex items-center gap-2.5">
-          <span className="flex size-9 items-center justify-center rounded-md bg-primary">
+      <div className="relative hidden justify-between overflow-hidden p-12 text-ink-foreground lg:flex lg:flex-col">
+        <BlueprintCanvas variant={variant} />
+        <Link to="/" className="relative z-10 flex w-fit items-center gap-2.5">
+          <span className="flex size-9 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-sm">
             <Icon className="size-5" />
           </span>
-          <span className="font-display text-lg font-semibold">{brand}</span>
+          <span className="font-display text-lg font-semibold tracking-tight">{brand}</span>
         </Link>
-        <div className="relative mt-auto">
-          <h2 className="max-w-md text-[44px] font-semibold leading-[1.05]">{heroTitle}</h2>
-          <p className="mt-4 max-w-sm text-ink-muted">{heroText}</p>
+        <div className="relative z-10 mt-auto pt-16">
+          <h2 className="max-w-md text-[40px] font-semibold leading-[1.08] tracking-tight text-white drop-shadow-sm">
+            {heroTitle}
+          </h2>
+          <p className="mt-3.5 max-w-sm text-sm leading-relaxed text-zinc-400">{heroText}</p>
         </div>
       </div>
       <div className="flex items-center justify-center p-6">

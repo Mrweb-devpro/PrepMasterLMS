@@ -44,6 +44,7 @@ export function LoginPage({ redirect }: { redirect?: string }) {
 
   return (
     <AuthLayout
+      variant="login"
       title="Welcome back"
       subtitle="Sign in to continue. Admins sign in here too."
       footer={

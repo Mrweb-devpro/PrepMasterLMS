@@ -86,7 +86,7 @@ export function RegisterPage({ heard }: { heard?: string }) {
   // Existing PrepMaster user: one question only.
   if (user) {
     return (
-      <AuthLayout {...HERO} theme="sw">
+      <AuthLayout {...HERO} theme="sw" variant="solidworks">
         <StepCard
           step={0}
           total={1}
@@ -105,7 +105,7 @@ export function RegisterPage({ heard }: { heard?: string }) {
 
   if (verifying) {
     return (
-      <AuthLayout {...HERO} theme="sw">
+      <AuthLayout {...HERO} theme="sw" variant="solidworks">
         <VerifyEmail
           email={verifying.email}
           onVerified={(live) => complete({ ...(live ?? verifying), emailVerified: true }, {})}
@@ -164,6 +164,7 @@ export function RegisterPage({ heard }: { heard?: string }) {
     <AuthLayout
       {...HERO}
       theme="sw"
+      variant="solidworks"
       footer={
         <>
           Already on PrepMaster?{" "}

@@ -77,7 +77,7 @@ export function SignupPage() {
 
   if (verifying) {
     return (
-      <AuthLayout>
+      <AuthLayout variant="signup">
         <VerifyEmail
           email={draft.email ?? ""}
           onVerified={(live) => {
@@ -93,7 +93,7 @@ export function SignupPage() {
   }
 
   return (
-    <AuthLayout footer={footer}>
+    <AuthLayout variant="signup" footer={footer}>
       {step === 0 && (
         <StepCard
           step={0}

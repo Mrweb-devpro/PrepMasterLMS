@@ -66,6 +66,7 @@ export function OnboardingPage() {
     return (
       <AuthLayout
         theme="sw"
+        variant="solidworks"
         heroTitle="Choose your destination."
         heroText="PrepMaster hosts both university academic resources and the SolidWorks Design Lab. Pick where you'd like to go."
         footer={
