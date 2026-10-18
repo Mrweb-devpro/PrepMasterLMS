@@ -18,6 +18,7 @@ import { StepCard } from "@/features/auth/components/StepCard";
 import { VerifyEmail } from "@/features/auth/components/VerifyEmail";
 import { useAuthActions } from "@/features/auth/hooks/useAuthActions";
 import { useSession } from "@/features/auth/session";
+import { authService } from "@/features/auth/services/auth.service";
 import type { Profile } from "@/features/auth/types";
 import { fullName } from "@/features/auth/utils/profile";
 import { checks } from "@/features/auth/utils/validate";
@@ -45,6 +46,7 @@ export function RegisterPage({ heard }: { heard?: string }) {
   const [draft, setDraft] = useState<ProfileDraft>({ ...(heard ? { heard } : {}) });
   const [step, setStep] = useState<Step>("account");
   const [verifying, setVerifying] = useState<Profile | null>(null);
+  const [checkingEmail, setCheckingEmail] = useState(false);
   const patch = (p: ProfileDraft) => setDraft((d) => ({ ...d, ...p }));
 
   useEffect(() => {
@@ -84,7 +86,7 @@ export function RegisterPage({ heard }: { heard?: string }) {
   // Existing PrepMaster user: one question only.
   if (user) {
     return (
-      <AuthLayout {...HERO}>
+      <AuthLayout {...HERO} theme="sw">
         <StepCard
           step={0}
           total={1}
@@ -103,7 +105,7 @@ export function RegisterPage({ heard }: { heard?: string }) {
 
   if (verifying) {
     return (
-      <AuthLayout {...HERO}>
+      <AuthLayout {...HERO} theme="sw">
         <VerifyEmail
           email={verifying.email}
           onVerified={(live) => complete({ ...(live ?? verifying), emailVerified: true }, {})}
@@ -129,6 +131,27 @@ export function RegisterPage({ heard }: { heard?: string }) {
     const nextStep = order[i + 1];
     if (nextStep) setStep(nextStep);
   };
+  const handleAccountNext = async () => {
+    if (checkingEmail) return;
+    const error = checks.account(draft);
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    setCheckingEmail(true);
+    try {
+      const available = await authService.checkEmailAvailable(draft.email ?? "");
+      if (!available) {
+        toast.error("This email is already in use. Please sign in or use a different email.");
+        return;
+      }
+      setStep("names");
+    } catch (error) {
+      toast.error((error as Error).message || "Unable to verify email availability. Please try again.");
+    } finally {
+      setCheckingEmail(false);
+    }
+  };
   const common = {
     step: i,
     total: order.length,
@@ -140,6 +163,7 @@ export function RegisterPage({ heard }: { heard?: string }) {
   return (
     <AuthLayout
       {...HERO}
+      theme="sw"
       footer={
         <>
           Already on PrepMaster?{" "}
@@ -160,7 +184,8 @@ export function RegisterPage({ heard }: { heard?: string }) {
           {...common}
           title="Create your account"
           subtitle="One account works for SolidWorks and the PrepMaster study app."
-          onNext={go(checks.account)}
+          onNext={handleAccountNext}
+          busy={checkingEmail}
         >
           <GoogleButton
             label="Sign up with Google"

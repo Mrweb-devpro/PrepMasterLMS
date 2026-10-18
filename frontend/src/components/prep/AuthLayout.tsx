@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { GraduationCap, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
 export function AuthLayout({
   title,
@@ -11,6 +12,7 @@ export function AuthLayout({
   heroText = "Join thousands of students preparing smarter with timed CBTs and organised course drives.",
   brand = "PrepMaster",
   icon: Icon = GraduationCap,
+  theme = "default",
 }: {
   title?: string;
   subtitle?: string;
@@ -20,9 +22,16 @@ export function AuthLayout({
   heroText?: string;
   brand?: string;
   icon?: LucideIcon;
+  theme?: "default" | "sw" | "admin";
 }) {
   return (
-    <div className="grid min-h-screen bg-background lg:grid-cols-2">
+    <div
+      className={cn(
+        "grid min-h-screen bg-background lg:grid-cols-2",
+        theme === "sw" && "theme-sw",
+        theme === "admin" && "theme-admin",
+      )}
+    >
       <div className="relative hidden overflow-hidden bg-ink-gradient p-12 text-ink-foreground lg:flex lg:flex-col">
         <div className="dot-grid absolute inset-0 opacity-50" />
         <Link to="/" className="relative flex items-center gap-2.5">

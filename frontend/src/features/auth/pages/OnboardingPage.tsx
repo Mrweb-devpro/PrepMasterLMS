@@ -30,6 +30,7 @@ export function OnboardingPage() {
   const [draft, setDraft] = useState<ProfileDraft>({});
   const [i, setI] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [wantsStudentSetup, setWantsStudentSetup] = useState(false);
 
   // Decide steps once, from what the user had when they arrived.
   const steps = useMemo<StepKey[]>(() => {
@@ -56,6 +57,71 @@ export function OnboardingPage() {
   }, [user?.id]);
 
   if (!hydrated || !user || steps.length === 0) return null;
+
+  const isFreelancer =
+    user.userType === "freelancer" ||
+    (user.swRegistered && (!user.faculty || !user.course || !user.level));
+
+  if (isFreelancer && !wantsStudentSetup) {
+    return (
+      <AuthLayout
+        theme="sw"
+        heroTitle="Choose your destination."
+        heroText="PrepMaster hosts both university academic resources and the SolidWorks Design Lab. Pick where you'd like to go."
+        footer={
+          <button
+            type="button"
+            className="text-sm text-text-muted hover:text-foreground"
+            onClick={() => {
+              signOut();
+              navigate({ to: "/login" });
+            }}
+          >
+            Not you? Sign out
+          </button>
+        }
+      >
+        <div className="rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
+          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface-subtle px-3 py-1 text-xs font-medium text-text-secondary">
+            <span className="size-2 rounded-full bg-primary" />
+            SolidWorks Account
+          </div>
+
+          <h2 className="mt-4 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+            You're heading to the Student Dashboard
+          </h2>
+
+          <p className="mt-2 text-sm leading-relaxed text-text-muted">
+            Your account is currently set up as a SolidWorks Freelancer. The student dashboard
+            contains lecture notes, department past questions, and live CBT exams.
+          </p>
+
+          <p className="mt-3 text-xs text-text-secondary">
+            To access the student dashboard, you&apos;ll need to provide your faculty, department,
+            and level. Or, you can head straight into SolidWorks.
+          </p>
+
+          <div className="mt-6 flex w-full flex-col gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setWantsStudentSetup(true)}
+              className="h-auto min-h-10 w-full justify-center whitespace-normal border-border bg-background py-2.5 text-center text-xs text-foreground hover:bg-surface-hover sm:text-sm"
+            >
+              Go to student&apos;s dashboard
+            </Button>
+            <Button
+              type="button"
+              onClick={() => navigate({ to: "/solidworks" })}
+              className="h-auto min-h-10 w-full justify-center whitespace-normal bg-primary py-2.5 text-center text-xs font-medium text-primary-foreground hover:bg-primary-hover sm:text-sm"
+            >
+              Open SolidWorks dashboard
+            </Button>
+          </div>
+        </div>
+      </AuthLayout>
+    );
+  }
 
   const patch = (p: ProfileDraft) => setDraft((d) => ({ ...d, ...p }));
   const key = steps[i];
