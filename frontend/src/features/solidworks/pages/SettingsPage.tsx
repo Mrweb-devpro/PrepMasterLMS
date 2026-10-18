@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Info } from "lucide-react";
+import { Info, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useConfirm } from "@/components/common/ConfirmDialog";
@@ -20,6 +20,7 @@ export function SettingsPage() {
   const confirm = useConfirm();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [names, setNames] = useState({ firstName: user.firstName, lastName: user.lastName });
 
   return (
@@ -46,6 +47,7 @@ export function SettingsPage() {
             <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <Button
                 variant="ghost"
+                disabled={saving}
                 onClick={() => {
                   setNames({ firstName: user.firstName, lastName: user.lastName });
                   setEditing(false);
@@ -54,17 +56,29 @@ export function SettingsPage() {
                 Cancel
               </Button>
               <Button
+                disabled={saving}
                 onClick={async () => {
                   if (!names.firstName?.trim() || !names.lastName?.trim()) {
                     toast.error("Names can't be empty");
                     return;
                   }
-                  if (!(await update({ firstName: names.firstName.trim(), lastName: names.lastName.trim() }))) return;
-                  toast.success("Profile updated");
-                  setEditing(false);
+                  setSaving(true);
+                  try {
+                    await update({
+                      firstName: names.firstName.trim(),
+                      lastName: names.lastName.trim(),
+                    });
+                    toast.success("Profile updated");
+                    setEditing(false);
+                  } catch {
+                    // The session provider has already shown the save error.
+                  } finally {
+                    setSaving(false);
+                  }
                 }}
               >
-                Save changes
+                {saving && <Loader2 className="size-4 animate-spin" />}
+                {saving ? "Saving changes..." : "Save changes"}
               </Button>
             </div>
           </>

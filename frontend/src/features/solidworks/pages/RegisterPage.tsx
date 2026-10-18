@@ -67,10 +67,13 @@ export function RegisterPage({ heard }: { heard?: string }) {
       {
         onSuccess: async () => {
           if (user) {
-            const saved = await update(
-              extra.heard ? { heard: extra.heard, swRegistered: true } : { swRegistered: true },
-            );
-            if (!saved) return;
+            try {
+              await update(
+                extra.heard ? { heard: extra.heard, swRegistered: true } : { swRegistered: true },
+              );
+            } catch {
+              return;
+            }
           } else signIn(merged);
           navigate({ to: "/solidworks" });
         },

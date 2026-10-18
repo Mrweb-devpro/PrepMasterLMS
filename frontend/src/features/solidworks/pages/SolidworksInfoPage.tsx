@@ -97,7 +97,7 @@ export function SolidworksInfoPage() {
                     userType: user.userType ?? "student",
                     heard: "prepmaster-app",
                   },
-                  { onSuccess: () => update({ swRegistered: true }) },
+                  { onSuccess: () => void update({ swRegistered: true }).catch(() => undefined) },
                 )
               }
             >

@@ -15,7 +15,10 @@ export function AvatarEditor() {
     inFlight.current = true;
     setSaving(true);
     try {
-      if (await update({ avatarUrl: generateAvatarUrl(user.gender) })) toast.success("Avatar updated!");
+      await update({ avatarUrl: generateAvatarUrl(user.gender) });
+      toast.success("Avatar updated!");
+    } catch {
+      // The session provider has already shown the save error.
     } finally {
       inFlight.current = false;
       setSaving(false);

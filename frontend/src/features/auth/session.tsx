@@ -23,7 +23,7 @@ interface SessionState {
   user: Profile | null;
   signIn: (p: Profile) => void;
   signOut: () => void;
-  update: (patch: Partial<Profile>) => Promise<boolean>;
+  update: (patch: Partial<Profile>) => Promise<void>;
   switchPersona: (k: PersonaKey) => void;
 }
 
@@ -82,14 +82,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     void authService.signOut();
   }, []);
   const update = useCallback(async (patch: Partial<Profile>) => {
-    if (!user) return false;
+    if (!user) return;
     try {
       await authService.updateProfile(patch);
       flushSync(() => setUser((current) => current?.id === user.id ? { ...current, ...patch } : current));
-      return true;
     } catch (error) {
       toast.error("Couldn't save your profile", { description: (error as Error).message });
-      return false;
+      throw error;
     }
   }, [user?.id]);
   const switchPersona = useCallback((k: PersonaKey) => setUser(PERSONAS[k].profile), []);

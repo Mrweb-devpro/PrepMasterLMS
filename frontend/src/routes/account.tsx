@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { BadgeCheck, LogOut, MailWarning } from "lucide-react";
+import { BadgeCheck, Loader2, LogOut, MailWarning } from "lucide-react";
 import { toast } from "sonner";
 import { StudentShell } from "@/components/prep/StudentShell";
 import { Card, PageHeader, StatusPill } from "@/components/prep/bits";
@@ -163,6 +163,7 @@ function ProfileCard() {
   }));
   const patch = (p: ProfileDraft) => setD((x) => ({ ...x, ...p }));
   const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
   const reset = () =>
     setD({
       firstName: user?.firstName ?? "",
@@ -216,18 +217,24 @@ function ProfileCard() {
             toast.error("Select your gender");
             return;
           }
-          const saved = await update({
-            firstName: d.firstName.trim(),
-            lastName: d.lastName.trim(),
-            faculty: d.faculty,
-            course: d.course,
-            level: d.level,
-            gender: d.gender,
-            ...(d.gender !== user?.gender ? { avatarUrl: generateAvatarUrl(d.gender) } : {}),
-          });
-          if (!saved) return;
-          toast.success("Profile saved");
-          setEditing(false);
+          setSaving(true);
+          try {
+            await update({
+              firstName: d.firstName.trim(),
+              lastName: d.lastName.trim(),
+              faculty: d.faculty,
+              course: d.course,
+              level: d.level,
+              gender: d.gender,
+              ...(d.gender !== user?.gender ? { avatarUrl: generateAvatarUrl(d.gender) } : {}),
+            });
+            toast.success("Profile saved");
+            setEditing(false);
+          } catch {
+            // The session provider has already shown the save error.
+          } finally {
+            setSaving(false);
+          }
         }}
       >
         <div className="grid gap-4 sm:grid-cols-2">
@@ -247,10 +254,14 @@ function ProfileCard() {
         <StudyFields value={d} onChange={patch} />
         <GenderField value={d.gender} onChange={(gender) => patch({ gender })} />
         <div className="flex flex-col-reverse gap-2 sm:flex-row">
-          <Button type="submit">Save changes</Button>
+          <Button type="submit" disabled={saving}>
+            {saving && <Loader2 className="size-4 animate-spin" />}
+            {saving ? "Saving changes..." : "Save changes"}
+          </Button>
           <Button
             type="button"
             variant="ghost"
+            disabled={saving}
             onClick={() => {
               reset();
               setEditing(false);

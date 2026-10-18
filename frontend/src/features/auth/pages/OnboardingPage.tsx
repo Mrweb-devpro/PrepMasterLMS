@@ -75,9 +75,11 @@ export function OnboardingPage() {
     const { password: _pw, ...profile } = draft;
     setSaving(true);
     try {
-      if (!(await update(profile))) return;
+      await update(profile);
       toast.success("You're all set", { description: "Your account setup is complete." });
       await navigate({ to: "/" });
+    } catch {
+      // The session provider has already shown the save error.
     } finally {
       setSaving(false);
     }
