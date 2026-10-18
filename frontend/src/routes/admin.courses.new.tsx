@@ -13,9 +13,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/admin/courses/new")({
   head: () => ({
     meta: [
-      { title: "Create course — PrepMaster Admin" },
+      { title: "Create course | PrepMaster Admin" },
       { name: "description", content: "Set up a new course and its folders." },
-      { property: "og:title", content: "Create course — PrepMaster Admin" },
+      { property: "og:title", content: "Create course | PrepMaster Admin" },
       { property: "og:description", content: "Set up a new course and its folders." },
     ],
   }),

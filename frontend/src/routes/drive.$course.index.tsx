@@ -8,12 +8,12 @@ import { useCatalog } from "@/features/catalog/useCatalog";
 export const Route = createFileRoute("/drive/$course/")({
   head: () => ({
     meta: [
-      { title: "Course folder — PrepMaster Drive" },
+      { title: "Course materials | PrepMaster" },
       {
         name: "description",
         content: "Lecture notes, past questions and textbooks for this course.",
       },
-      { property: "og:title", content: "Course folder — PrepMaster Drive" },
+      { property: "og:title", content: "Course materials | PrepMaster" },
       {
         property: "og:description",
         content: "Lecture notes, past questions and textbooks for this course.",

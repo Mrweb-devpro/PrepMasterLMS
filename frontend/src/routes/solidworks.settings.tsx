@@ -3,6 +3,6 @@ import { SettingsPage } from "@/features/solidworks/pages/SettingsPage";
 import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/solidworks/settings")({
-  head: () => pageHead("SolidWorks settings", "Manage your account details and preferences."),
+  head: () => pageHead("Settings", "Manage your account details and preferences.", "SolidWorks"),
   component: SettingsPage,
 });

@@ -13,9 +13,9 @@ import { usePrep } from "@/lib/prep-store";
 export const Route = createFileRoute("/library")({
   head: () => ({
     meta: [
-      { title: "My Library — PrepMaster" },
+      { title: "My library | PrepMaster" },
       { name: "description", content: "Every file and CBT you've unlocked, in one place." },
-      { property: "og:title", content: "My Library — PrepMaster" },
+      { property: "og:title", content: "My library | PrepMaster" },
       { property: "og:description", content: "Every file and CBT you've unlocked, in one place." },
     ],
   }),

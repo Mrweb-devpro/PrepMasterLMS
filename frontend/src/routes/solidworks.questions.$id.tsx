@@ -3,7 +3,7 @@ import { QuestionDetailPage } from "@/features/solidworks/pages/QuestionDetailPa
 import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/solidworks/questions/$id")({
-  head: () => pageHead("Question", "Your question and responses from the instructor."),
+  head: () => pageHead("Question", "Your question and responses from the instructor.", "SolidWorks"),
   component: function RouteComponent() {
     return <QuestionDetailPage id={Route.useParams().id} />;
   },

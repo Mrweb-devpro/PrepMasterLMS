@@ -10,8 +10,9 @@ export const Route = createFileRoute("/solidworks_/register")({
   },
   head: () =>
     pageHead(
-      "Join SolidWorks",
+      "Register",
       "Register for SolidWorks with MrPrepMaster and get your drawings graded.",
+      "SolidWorks",
     ),
   component: function RouteComponent() {
     return <RegisterPage {...Route.useSearch()} />;

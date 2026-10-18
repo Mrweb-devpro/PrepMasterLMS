@@ -3,6 +3,6 @@ import { TasksPage } from "@/features/solidworks/pages/TasksPage";
 import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/solidworks/tasks/")({
-  head: () => pageHead("SolidWorks tasks", "Every drawing task from the MrPrepMaster channel."),
+  head: () => pageHead("Tasks", "Every drawing task from the MrPrepMaster channel.", "SolidWorks"),
   component: TasksPage,
 });

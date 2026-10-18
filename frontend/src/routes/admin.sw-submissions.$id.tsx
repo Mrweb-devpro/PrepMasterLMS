@@ -4,7 +4,7 @@ import { SwSubmissionDetailPage } from "@/features/admin/pages/sw/SwSubmissionDe
 import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/admin/sw-submissions/$id")({
-  head: () => pageHead("Grade submission", "View the student's files and answers, then grade."),
+  head: () => pageHead("Grade submission", "View the student's files and answers, then grade.", "SolidWorks Admin"),
   component: function RouteComponent() {
     return (
       <AdminShell

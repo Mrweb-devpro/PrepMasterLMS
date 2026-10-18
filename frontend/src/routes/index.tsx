@@ -14,13 +14,13 @@ import { useCatalog } from "@/features/catalog/useCatalog";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Home — PrepMaster" },
+      { title: "Home | PrepMaster" },
       {
         name: "description",
         content:
           "Your upcoming live CBTs, newest study materials and unfinished practice attempts.",
       },
-      { property: "og:title", content: "Home — PrepMaster" },
+      { property: "og:title", content: "Home | PrepMaster" },
       {
         property: "og:description",
         content:

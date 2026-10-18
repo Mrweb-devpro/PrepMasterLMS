@@ -4,6 +4,6 @@ import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/solidworks/premium")({
   head: () =>
-    pageHead("SolidWorks Premium", "One-on-one sessions and priority reviews — coming soon."),
+    pageHead("Premium", "One-on-one sessions and priority reviews — coming soon.", "SolidWorks"),
   component: PremiumPage,
 });

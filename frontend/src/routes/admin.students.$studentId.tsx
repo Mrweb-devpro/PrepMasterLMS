@@ -17,9 +17,9 @@ import { formatNaira } from "@/lib/mock-data";
 export const Route = createFileRoute("/admin/students/$studentId")({
   head: () => ({
     meta: [
-      { title: "Student profile — PrepMaster Admin" },
+      { title: "Student profile | PrepMaster Admin" },
       { name: "description", content: "A student's details, payments and account status." },
-      { property: "og:title", content: "Student profile — PrepMaster Admin" },
+      { property: "og:title", content: "Student profile | PrepMaster Admin" },
       { property: "og:description", content: "A student's details, payments and account status." },
     ],
   }),

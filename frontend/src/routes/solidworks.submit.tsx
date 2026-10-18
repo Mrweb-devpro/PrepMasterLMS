@@ -5,7 +5,7 @@ import { pageHead } from "@/lib/seo";
 export const Route = createFileRoute("/solidworks/submit")({
   validateSearch: (s: Record<string, unknown>): { task?: string } =>
     typeof s["task"] === "string" ? { task: s["task"] } : {},
-  head: () => pageHead("Submit work", "Submit your SolidWorks files and answers for grading."),
+  head: () => pageHead("Submit work", "Submit your SolidWorks files and answers for grading.", "SolidWorks"),
   component: function RouteComponent() {
     const { task } = Route.useSearch();
     return <SubmitPage {...(task ? { initialTask: task } : {})} />;

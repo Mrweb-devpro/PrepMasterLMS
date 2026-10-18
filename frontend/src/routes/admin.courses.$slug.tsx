@@ -16,12 +16,12 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/admin/courses/$slug")({
   head: () => ({
     meta: [
-      { title: "Course materials — PrepMaster Admin" },
+      { title: "Course materials | PrepMaster Admin" },
       {
         name: "description",
         content: "Every material inside this course, by category and folder.",
       },
-      { property: "og:title", content: "Course materials — PrepMaster Admin" },
+      { property: "og:title", content: "Course materials | PrepMaster Admin" },
       {
         property: "og:description",
         content: "Every material inside this course, by category and folder.",

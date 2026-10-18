@@ -12,12 +12,12 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/cbts/")({
   head: () => ({
     meta: [
-      { title: "CBTs — PrepMaster" },
+      { title: "CBTs | PrepMaster" },
       {
         name: "description",
         content: "Timed practice sets and scheduled live computer-based tests.",
       },
-      { property: "og:title", content: "CBTs — PrepMaster" },
+      { property: "og:title", content: "CBTs | PrepMaster" },
       {
         property: "og:description",
         content: "Timed practice sets and scheduled live computer-based tests.",

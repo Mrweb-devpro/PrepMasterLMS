@@ -10,12 +10,12 @@ import { usePrep } from "@/lib/prep-store";
 export const Route = createFileRoute("/drive/")({
   head: () => ({
     meta: [
-      { title: "Drive — PrepMaster" },
+      { title: "Drive | PrepMaster" },
       {
         name: "description",
         content: "Browse course folders, lecture notes, past questions and textbooks.",
       },
-      { property: "og:title", content: "Drive — PrepMaster" },
+      { property: "og:title", content: "Drive | PrepMaster" },
       {
         property: "og:description",
         content: "Browse course folders, lecture notes, past questions and textbooks.",

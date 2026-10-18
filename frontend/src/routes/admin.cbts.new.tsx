@@ -16,12 +16,12 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/admin/cbts/new")({
   head: () => ({
     meta: [
-      { title: "Create CBT — PrepMaster Admin" },
+      { title: "Create CBT | PrepMaster Admin" },
       {
         name: "description",
         content: "Set up a CBT, add questions and preview before publishing.",
       },
-      { property: "og:title", content: "Create CBT — PrepMaster Admin" },
+      { property: "og:title", content: "Create CBT | PrepMaster Admin" },
       {
         property: "og:description",
         content: "Set up a CBT, add questions and preview before publishing.",

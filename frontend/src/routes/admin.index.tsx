@@ -23,9 +23,9 @@ import { useAdmin } from "@/lib/admin-store";
 export const Route = createFileRoute("/admin/")({
   head: () => ({
     meta: [
-      { title: "Admin overview — PrepMaster" },
+      { title: "Overview | PrepMaster Admin" },
       { name: "description", content: "Revenue, students and content at a glance." },
-      { property: "og:title", content: "Admin overview — PrepMaster" },
+      { property: "og:title", content: "Overview | PrepMaster Admin" },
       { property: "og:description", content: "Revenue, students and content at a glance." },
     ],
   }),

@@ -15,9 +15,9 @@ import { usePrep } from "@/lib/prep-store";
 export const Route = createFileRoute("/drive/$course/$category/$subfolder")({
   head: () => ({
     meta: [
-      { title: "Files — PrepMaster Drive" },
+      { title: "Files | PrepMaster" },
       { name: "description", content: "Open, preview or unlock the materials in this folder." },
-      { property: "og:title", content: "Files — PrepMaster Drive" },
+      { property: "og:title", content: "Files | PrepMaster" },
       {
         property: "og:description",
         content: "Open, preview or unlock the materials in this folder.",

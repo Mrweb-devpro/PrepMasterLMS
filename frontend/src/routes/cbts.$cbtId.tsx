@@ -16,9 +16,9 @@ import { useConfirm } from "@/components/common/ConfirmDialog";
 export const Route = createFileRoute("/cbts/$cbtId")({
   head: () => ({
     meta: [
-      { title: "CBT details — PrepMaster" },
+      { title: "CBT details | PrepMaster" },
       { name: "description", content: "Rules, timing and access for this computer-based test." },
-      { property: "og:title", content: "CBT details — PrepMaster" },
+      { property: "og:title", content: "CBT details | PrepMaster" },
       {
         property: "og:description",
         content: "Rules, timing and access for this computer-based test.",

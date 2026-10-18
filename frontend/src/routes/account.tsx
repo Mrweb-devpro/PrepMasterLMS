@@ -22,9 +22,9 @@ import { usePrep } from "@/lib/prep-store";
 export const Route = createFileRoute("/account")({
   head: () => ({
     meta: [
-      { title: "Account — PrepMaster" },
+      { title: "Account | PrepMaster" },
       { name: "description", content: "Manage your profile, notifications and payment history." },
-      { property: "og:title", content: "Account — PrepMaster" },
+      { property: "og:title", content: "Account | PrepMaster" },
       {
         property: "og:description",
         content: "Manage your profile, notifications and payment history.",
