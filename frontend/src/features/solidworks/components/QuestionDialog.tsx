@@ -50,7 +50,7 @@ export function QuestionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="theme-sw max-w-lg">
         <DialogHeader>
           <DialogTitle>{initial ? "Edit question" : "Ask a question"}</DialogTitle>
           <DialogDescription>Mr PrepMaster will reply here.</DialogDescription>
