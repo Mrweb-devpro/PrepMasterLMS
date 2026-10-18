@@ -16,6 +16,7 @@ Base URL: `VITE_API_URL` (e.g. `http://localhost:4000/v1`). All routes below are
 | Method | Path                 | Notes                                                                            |
 | ------ | -------------------- | -------------------------------------------------------------------------------- |
 | GET    | `/health`            | `{ ok: true }`                                                                   |
+| POST   | `/auth/check-email`  | `{ email }` → `{ available, inUse }`; used before sign-up advances beyond account details. |
 | POST   | `/webhooks/paystack` | Paystack signature (`x-paystack-signature`) verified. Backup to verify endpoint. |
 
 ## Me (current user)

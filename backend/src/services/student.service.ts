@@ -2,6 +2,17 @@ import { must } from "../lib/errors.js";
 import { db } from "../lib/supabase.js";
 import type { Profile } from "../models/types.js";
 
+/** Public sign-up check. The caller has already validated the email shape. */
+export async function isEmailAvailable(email: string) {
+  const { data, error } = await db
+    .from("profiles")
+    .select("id")
+    .ilike("email", email.trim().toLowerCase())
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return !data;
+}
+
 export async function me(userId: string) {
   const [profile, warnings] = await Promise.all([
     must<Profile>(

@@ -31,6 +31,18 @@ const base = (d: ProfileDraft, provider: Profile["provider"]): Profile => ({
 let pending: { email: string; password: string } | null = null;
 
 export const authService = {
+  async checkEmailAvailable(email: string): Promise<boolean> {
+    const clean = email.trim().toLowerCase();
+    if (!clean) return false;
+    if (LIVE) {
+      const result = await api.post<{ available: boolean }>("/auth/check-email", { email: clean });
+      return result.available;
+    }
+    await delay(400);
+    const mockTaken = ["admin@prepmaster.app", "david@unilag.edu.ng", "student@prepmaster.app"];
+    return !mockTaken.includes(clean);
+  },
+
   async updateProfile(patch: Partial<Profile>): Promise<void> {
     if (!LIVE) return;
     const body = toProfilePatch(patch);

@@ -23,6 +23,7 @@ export const swRegisterBody = z.object({
   userType: z.enum(["student", "freelancer"]),
   heard: optionalText(60),
 });
+export const checkEmailBody = z.object({ email: z.string().trim().email().max(320) });
 
 // ---------- CBTs ----------
 export const saveAnswerBody = z.object({ questionId: uuid, selectedIndex: z.number().int().min(0).max(5) });
