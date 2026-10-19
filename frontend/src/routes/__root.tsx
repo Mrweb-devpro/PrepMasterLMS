@@ -3,12 +3,14 @@ import {
   Outlet,
   Link,
   createRootRouteWithContext,
+  isNotFound,
   useRouter,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { LayoutDashboard } from "lucide-react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -49,9 +51,10 @@ function NotFoundComponent() {
         <div className="mt-6">
           <Link
             to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
           >
-            Back to Dashboard
+            <LayoutDashboard className="size-4" />
+            <span>Back to Dashboard</span>
           </Link>
         </div>
       </div>
@@ -65,6 +68,17 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
+
+  const errorDetails = error as { status?: number; statusCode?: number; message?: string };
+  const is404 =
+    isNotFound(error) ||
+    errorDetails.status === 404 ||
+    errorDetails.statusCode === 404 ||
+    /not found/i.test(errorDetails.message ?? "");
+
+  if (is404) {
+    return <NotFoundComponent />;
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
