@@ -194,13 +194,15 @@ export function AppFrame({
 }
 
 export function Brand({
-  icon: Icon,
-  name,
+  logoSrc = "/brand/prepmaster-logo.png",
+  markSrc = "/brand/prepmaster-mark.png",
+  name = "PrepMaster",
   sub,
   to,
 }: {
-  icon: LucideIcon;
-  name: string;
+  logoSrc?: string;
+  markSrc?: string;
+  name?: string;
   sub?: string;
   to: string;
 }) {
@@ -209,17 +211,33 @@ export function Brand({
     <Link
       to={to}
       className={cn(
-        "flex items-center gap-2.5 rounded-md px-1.5 py-1",
+        "group flex items-center gap-2.5 rounded-md px-1.5 py-1",
         collapsed && "justify-center px-0",
       )}
     >
-      <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-sm">
-        <Icon className="size-4" />
-      </span>
-      <span className={cn("min-w-0", collapsed && "hidden")}>
-        <span className="block font-display text-base font-semibold leading-tight">{name}</span>
-        {sub && <span className="block text-2xs text-sidebar-muted">{sub}</span>}
-      </span>
+      {collapsed ? (
+        <img
+          src={markSrc}
+          alt={name}
+          className="size-8 object-contain transition-transform group-hover:scale-105"
+        />
+      ) : sub ? (
+        <div className="flex min-w-0 items-center gap-2.5">
+          <img src={markSrc} alt={name} className="size-7 shrink-0 object-contain" />
+          <div className="min-w-0">
+            <span className="block font-display text-base font-semibold leading-tight text-foreground">
+              {name}
+            </span>
+            <span className="block text-2xs font-medium text-sidebar-muted">{sub}</span>
+          </div>
+        </div>
+      ) : (
+        <img
+          src={logoSrc}
+          alt={name}
+          className="h-7 w-auto max-w-[170px] object-contain dark:brightness-110"
+        />
+      )}
     </Link>
   );
 }

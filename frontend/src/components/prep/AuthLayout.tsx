@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import { GraduationCap, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { BlueprintCanvas } from "./BlueprintCanvas";
@@ -12,7 +11,6 @@ export function AuthLayout({
   heroTitle = "Every note, past question and mock exam — in one place.",
   heroText = "Join thousands of students preparing smarter with timed CBTs and organised course drives.",
   brand = "PrepMaster",
-  icon: Icon = GraduationCap,
   theme = "default",
   variant = "signup",
 }: {
@@ -23,7 +21,6 @@ export function AuthLayout({
   heroTitle?: string;
   heroText?: string;
   brand?: string;
-  icon?: LucideIcon;
   theme?: "default" | "sw" | "admin";
   variant?: "signup" | "login" | "solidworks";
 }) {
@@ -37,11 +34,13 @@ export function AuthLayout({
     >
       <div className="relative hidden justify-between overflow-hidden p-12 text-ink-foreground lg:flex lg:flex-col">
         <BlueprintCanvas variant={variant} />
-        <Link to="/" className="relative z-10 flex w-fit items-center gap-2.5">
-          <span className="flex size-9 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-sm">
-            <Icon className="size-5" />
-          </span>
-          <span className="font-display text-lg font-semibold tracking-tight">{brand}</span>
+        <Link to="/" className="group relative z-10 flex w-fit items-center gap-2.5">
+          <img
+            src="/brand/prepmaster-mark.png"
+            alt={brand}
+            className="size-8 object-contain drop-shadow-sm transition-transform group-hover:scale-105"
+          />
+          <span className="font-display text-lg font-semibold tracking-tight text-white">{brand}</span>
         </Link>
         <div className="relative z-10 mt-auto pt-16">
           <h2 className="max-w-md text-[40px] font-semibold leading-[1.08] tracking-tight text-white drop-shadow-sm">

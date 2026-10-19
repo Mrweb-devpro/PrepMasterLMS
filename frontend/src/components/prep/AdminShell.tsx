@@ -10,7 +10,6 @@ import {
   LayoutDashboard,
   MonitorCheck,
   Plus,
-  ShieldCheck,
   Users,
 } from "lucide-react";
 import { Suspense, type ReactNode } from "react";
@@ -87,7 +86,7 @@ export function AdminShell({
     <div className="theme-admin">
       <AppFrame
         themeClass="theme-admin"
-        brand={<Brand icon={ShieldCheck} name="PrepMaster" sub="Admin console" to="/admin" />}
+        brand={<Brand name="PrepMaster" sub="Admin console" to="/admin" />}
         groups={groups}
         footer={footer}
         topbar={topbar}

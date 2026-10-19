@@ -4,7 +4,6 @@ import {
   Box,
   BookMarked,
   FolderClosed,
-  GraduationCap,
   History,
   Home,
   MonitorCheck,
@@ -89,7 +88,7 @@ export function StudentShell({ children }: { children: ReactNode }) {
 
   return (
     <AppFrame
-      brand={<Brand icon={GraduationCap} name="PrepMaster" to="/" />}
+      brand={<Brand name="PrepMaster" to="/" />}
       groups={groups}
       footer={footer}
       topbar={topbar}

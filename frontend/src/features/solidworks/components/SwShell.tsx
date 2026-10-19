@@ -102,7 +102,7 @@ export function SwShell({ children }: { children: ReactNode }) {
     <div className="theme-sw">
       <AppFrame
         themeClass="theme-sw"
-        brand={<Brand icon={Box} name="PrepMaster" sub="SolidWorks" to="/solidworks" />}
+        brand={<Brand name="PrepMaster" sub="SolidWorks" to="/solidworks" />}
         groups={groups}
         footer={footer}
         topbar={topbar}
