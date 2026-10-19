@@ -39,7 +39,6 @@ import { Route as AdminCbtsIndexRouteImport } from './routes/admin.cbts.index'
 import { Route as AdminCbtsCbtIdRouteImport } from './routes/admin.cbts.$cbtId'
 import { Route as AdminCbtsNewRouteImport } from './routes/admin.cbts.new'
 import { Route as AdminCoursesIndexRouteImport } from './routes/admin.courses.index'
-import { Route as AdminCoursesSlugRouteImport } from './routes/admin.courses.$slug'
 import { Route as AdminCoursesNewRouteImport } from './routes/admin.courses.new'
 import { Route as AdminStudentsIndexRouteImport } from './routes/admin.students.index'
 import { Route as AdminStudentsStudentIdRouteImport } from './routes/admin.students.$studentId'
@@ -54,8 +53,10 @@ import { Route as SolidworksTasksIndexRouteImport } from './routes/solidworks.ta
 import { Route as SolidworksTasksTaskIdRouteImport } from './routes/solidworks.tasks.$taskId'
 import { Route as SolidworksWorksIndexRouteImport } from './routes/solidworks.works.index'
 import { Route as SolidworksWorksIdRouteImport } from './routes/solidworks.works.$id'
+import { Route as AdminCoursesSlugIndexRouteImport } from './routes/admin.courses.$slug.index'
 import { Route as DriveCourseCategoryIndexRouteImport } from './routes/drive.$course.$category.index'
 import { Route as DriveCourseCategorySubfolderRouteImport } from './routes/drive.$course.$category.$subfolder'
+import { Route as AdminCoursesSlugMaterialsFileIdRouteImport } from './routes/admin.courses.$slug_.materials.$fileId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -207,11 +208,6 @@ const AdminCoursesIndexRoute = AdminCoursesIndexRouteImport.update({
   path: '/admin/courses/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminCoursesSlugRoute = AdminCoursesSlugRouteImport.update({
-  id: '/admin/courses/$slug',
-  path: '/admin/courses/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminCoursesNewRoute = AdminCoursesNewRouteImport.update({
   id: '/admin/courses/new',
   path: '/admin/courses/new',
@@ -283,6 +279,11 @@ const SolidworksWorksIdRoute = SolidworksWorksIdRouteImport.update({
   path: '/works/$id',
   getParentRoute: () => SolidworksRoute,
 } as any)
+const AdminCoursesSlugIndexRoute = AdminCoursesSlugIndexRouteImport.update({
+  id: '/admin/courses/$slug/',
+  path: '/admin/courses/$slug/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DriveCourseCategoryIndexRoute =
   DriveCourseCategoryIndexRouteImport.update({
     id: '/drive/$course/$category/',
@@ -293,6 +294,12 @@ const DriveCourseCategorySubfolderRoute =
   DriveCourseCategorySubfolderRouteImport.update({
     id: '/drive/$course/$category/$subfolder',
     path: '/drive/$course/$category/$subfolder',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminCoursesSlugMaterialsFileIdRoute =
+  AdminCoursesSlugMaterialsFileIdRouteImport.update({
+    id: '/admin/courses/$slug_/materials/$fileId',
+    path: '/admin/courses/$slug/materials/$fileId',
     getParentRoute: () => rootRouteImport,
   } as any)
 
@@ -325,7 +332,6 @@ export interface FileRoutesByFullPath {
   '/solidworks/': typeof SolidworksIndexRoute
   '/admin/cbts/$cbtId': typeof AdminCbtsCbtIdRoute
   '/admin/cbts/new': typeof AdminCbtsNewRoute
-  '/admin/courses/$slug': typeof AdminCoursesSlugRoute
   '/admin/courses/new': typeof AdminCoursesNewRoute
   '/admin/students/$studentId': typeof AdminStudentsStudentIdRoute
   '/admin/sw-submissions/$id': typeof AdminSwSubmissionsIdRoute
@@ -343,7 +349,9 @@ export interface FileRoutesByFullPath {
   '/solidworks/tasks/': typeof SolidworksTasksIndexRoute
   '/solidworks/works/': typeof SolidworksWorksIndexRoute
   '/drive/$course/$category/$subfolder': typeof DriveCourseCategorySubfolderRoute
+  '/admin/courses/$slug/': typeof AdminCoursesSlugIndexRoute
   '/drive/$course/$category/': typeof DriveCourseCategoryIndexRoute
+  '/admin/courses/$slug/materials/$fileId': typeof AdminCoursesSlugMaterialsFileIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -373,7 +381,6 @@ export interface FileRoutesByTo {
   '/solidworks': typeof SolidworksIndexRoute
   '/admin/cbts/$cbtId': typeof AdminCbtsCbtIdRoute
   '/admin/cbts/new': typeof AdminCbtsNewRoute
-  '/admin/courses/$slug': typeof AdminCoursesSlugRoute
   '/admin/courses/new': typeof AdminCoursesNewRoute
   '/admin/students/$studentId': typeof AdminStudentsStudentIdRoute
   '/admin/sw-submissions/$id': typeof AdminSwSubmissionsIdRoute
@@ -391,7 +398,9 @@ export interface FileRoutesByTo {
   '/solidworks/tasks': typeof SolidworksTasksIndexRoute
   '/solidworks/works': typeof SolidworksWorksIndexRoute
   '/drive/$course/$category/$subfolder': typeof DriveCourseCategorySubfolderRoute
+  '/admin/courses/$slug': typeof AdminCoursesSlugIndexRoute
   '/drive/$course/$category': typeof DriveCourseCategoryIndexRoute
+  '/admin/courses/$slug/materials/$fileId': typeof AdminCoursesSlugMaterialsFileIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -423,7 +432,6 @@ export interface FileRoutesById {
   '/solidworks/': typeof SolidworksIndexRoute
   '/admin/cbts/$cbtId': typeof AdminCbtsCbtIdRoute
   '/admin/cbts/new': typeof AdminCbtsNewRoute
-  '/admin/courses/$slug': typeof AdminCoursesSlugRoute
   '/admin/courses/new': typeof AdminCoursesNewRoute
   '/admin/students/$studentId': typeof AdminStudentsStudentIdRoute
   '/admin/sw-submissions/$id': typeof AdminSwSubmissionsIdRoute
@@ -441,7 +449,9 @@ export interface FileRoutesById {
   '/solidworks/tasks/': typeof SolidworksTasksIndexRoute
   '/solidworks/works/': typeof SolidworksWorksIndexRoute
   '/drive/$course/$category/$subfolder': typeof DriveCourseCategorySubfolderRoute
+  '/admin/courses/$slug/': typeof AdminCoursesSlugIndexRoute
   '/drive/$course/$category/': typeof DriveCourseCategoryIndexRoute
+  '/admin/courses/$slug_/materials/$fileId': typeof AdminCoursesSlugMaterialsFileIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -474,7 +484,6 @@ export interface FileRouteTypes {
     | '/solidworks/'
     | '/admin/cbts/$cbtId'
     | '/admin/cbts/new'
-    | '/admin/courses/$slug'
     | '/admin/courses/new'
     | '/admin/students/$studentId'
     | '/admin/sw-submissions/$id'
@@ -492,7 +501,9 @@ export interface FileRouteTypes {
     | '/solidworks/tasks/'
     | '/solidworks/works/'
     | '/drive/$course/$category/$subfolder'
+    | '/admin/courses/$slug/'
     | '/drive/$course/$category/'
+    | '/admin/courses/$slug/materials/$fileId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -522,7 +533,6 @@ export interface FileRouteTypes {
     | '/solidworks'
     | '/admin/cbts/$cbtId'
     | '/admin/cbts/new'
-    | '/admin/courses/$slug'
     | '/admin/courses/new'
     | '/admin/students/$studentId'
     | '/admin/sw-submissions/$id'
@@ -540,7 +550,9 @@ export interface FileRouteTypes {
     | '/solidworks/tasks'
     | '/solidworks/works'
     | '/drive/$course/$category/$subfolder'
+    | '/admin/courses/$slug'
     | '/drive/$course/$category'
+    | '/admin/courses/$slug/materials/$fileId'
   id:
     | '__root__'
     | '/'
@@ -571,7 +583,6 @@ export interface FileRouteTypes {
     | '/solidworks/'
     | '/admin/cbts/$cbtId'
     | '/admin/cbts/new'
-    | '/admin/courses/$slug'
     | '/admin/courses/new'
     | '/admin/students/$studentId'
     | '/admin/sw-submissions/$id'
@@ -589,7 +600,9 @@ export interface FileRouteTypes {
     | '/solidworks/tasks/'
     | '/solidworks/works/'
     | '/drive/$course/$category/$subfolder'
+    | '/admin/courses/$slug/'
     | '/drive/$course/$category/'
+    | '/admin/courses/$slug_/materials/$fileId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -617,7 +630,6 @@ export interface RootRouteChildren {
   DriveIndexRoute: typeof DriveIndexRoute
   AdminCbtsCbtIdRoute: typeof AdminCbtsCbtIdRoute
   AdminCbtsNewRoute: typeof AdminCbtsNewRoute
-  AdminCoursesSlugRoute: typeof AdminCoursesSlugRoute
   AdminCoursesNewRoute: typeof AdminCoursesNewRoute
   AdminStudentsStudentIdRoute: typeof AdminStudentsStudentIdRoute
   AdminSwSubmissionsIdRoute: typeof AdminSwSubmissionsIdRoute
@@ -629,7 +641,9 @@ export interface RootRouteChildren {
   AdminSwUsersIndexRoute: typeof AdminSwUsersIndexRoute
   DriveCourseIndexRoute: typeof DriveCourseIndexRoute
   DriveCourseCategorySubfolderRoute: typeof DriveCourseCategorySubfolderRoute
+  AdminCoursesSlugIndexRoute: typeof AdminCoursesSlugIndexRoute
   DriveCourseCategoryIndexRoute: typeof DriveCourseCategoryIndexRoute
+  AdminCoursesSlugMaterialsFileIdRoute: typeof AdminCoursesSlugMaterialsFileIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -844,13 +858,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCoursesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/courses/$slug': {
-      id: '/admin/courses/$slug'
-      path: '/admin/courses/$slug'
-      fullPath: '/admin/courses/$slug'
-      preLoaderRoute: typeof AdminCoursesSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin/courses/new': {
       id: '/admin/courses/new'
       path: '/admin/courses/new'
@@ -949,6 +956,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SolidworksWorksIdRouteImport
       parentRoute: typeof SolidworksRoute
     }
+    '/admin/courses/$slug/': {
+      id: '/admin/courses/$slug/'
+      path: '/admin/courses/$slug'
+      fullPath: '/admin/courses/$slug/'
+      preLoaderRoute: typeof AdminCoursesSlugIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/drive/$course/$category/': {
       id: '/drive/$course/$category/'
       path: '/drive/$course/$category'
@@ -961,6 +975,13 @@ declare module '@tanstack/react-router' {
       path: '/drive/$course/$category/$subfolder'
       fullPath: '/drive/$course/$category/$subfolder'
       preLoaderRoute: typeof DriveCourseCategorySubfolderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/courses/$slug_/materials/$fileId': {
+      id: '/admin/courses/$slug_/materials/$fileId'
+      path: '/admin/courses/$slug/materials/$fileId'
+      fullPath: '/admin/courses/$slug/materials/$fileId'
+      preLoaderRoute: typeof AdminCoursesSlugMaterialsFileIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -1021,7 +1042,6 @@ const rootRouteChildren: RootRouteChildren = {
   DriveIndexRoute: DriveIndexRoute,
   AdminCbtsCbtIdRoute: AdminCbtsCbtIdRoute,
   AdminCbtsNewRoute: AdminCbtsNewRoute,
-  AdminCoursesSlugRoute: AdminCoursesSlugRoute,
   AdminCoursesNewRoute: AdminCoursesNewRoute,
   AdminStudentsStudentIdRoute: AdminStudentsStudentIdRoute,
   AdminSwSubmissionsIdRoute: AdminSwSubmissionsIdRoute,
@@ -1033,7 +1053,9 @@ const rootRouteChildren: RootRouteChildren = {
   AdminSwUsersIndexRoute: AdminSwUsersIndexRoute,
   DriveCourseIndexRoute: DriveCourseIndexRoute,
   DriveCourseCategorySubfolderRoute: DriveCourseCategorySubfolderRoute,
+  AdminCoursesSlugIndexRoute: AdminCoursesSlugIndexRoute,
   DriveCourseCategoryIndexRoute: DriveCourseCategoryIndexRoute,
+  AdminCoursesSlugMaterialsFileIdRoute: AdminCoursesSlugMaterialsFileIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
