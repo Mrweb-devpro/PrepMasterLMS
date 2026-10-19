@@ -8,7 +8,7 @@ const slug = z.string().regex(/^[a-z0-9-]+$/).max(60);
 // ---------- Profile ----------
 const optionalText = (max: number) => z.string().max(max).nullable().optional();
 export const updateMeBody = z.object({
-  gender: z.enum(["male", "female"]).nullable().optional(),
+  gender: z.enum(["male", "female", "other", "prefer_not_to_say"]).nullable().optional(),
   avatarUrl: z.string().url().max(500).nullable().optional(),
   firstName: z.string().min(1).max(60).optional(),
   lastName: z.string().min(1).max(60).optional(),
@@ -88,6 +88,13 @@ export const materialBody = z.object({
   r2Key: z.string().min(1),
   sizeBytes: z.number().int().min(0),
   priceKobo: z.number().int().min(0).default(0),
+});
+
+export const updateMaterialBody = z.object({
+  title: z.string().min(1).max(200).optional(),
+  category: category.optional(),
+  subfolder: z.string().max(100).optional(),
+  priceKobo: z.number().int().min(0).optional(),
 });
 
 // ---------- Moderation ----------

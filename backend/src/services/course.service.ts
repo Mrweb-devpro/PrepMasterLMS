@@ -97,3 +97,20 @@ export async function deleteMaterial(materialId: string) {
   must(await db.from("course_materials").delete().eq("id", materialId).select("id"));
   return { deleted: true };
 }
+
+export async function updateMaterial(
+  materialId: string,
+  patch: { title?: string; category?: string; subfolder?: string; priceKobo?: number },
+) {
+  const updateData: Record<string, unknown> = {};
+  if (patch.title !== undefined) updateData.title = patch.title;
+  if (patch.category !== undefined) updateData.category = patch.category;
+  if (patch.subfolder !== undefined) updateData.subfolder = patch.subfolder;
+  if (patch.priceKobo !== undefined) updateData.price_kobo = patch.priceKobo;
+
+  const { r2_key: _key, ...row } = must<Material>(
+    await db.from("course_materials").update(updateData).eq("id", materialId).select().single(),
+    "File not found.",
+  );
+  return row;
+}

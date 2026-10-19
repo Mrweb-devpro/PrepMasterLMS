@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useSyncExternalStore } from "react";
 import { useSession } from "@/features/auth/session";
 import { LIVE } from "@/lib/api/config";
 import {
@@ -17,6 +17,34 @@ import { fetchCatalog, type Catalog } from "./catalog.api";
 export const catalogKey = ["catalog"] as const;
 
 const EMPTY: Catalog = { courses: [], files: [], cbts: [], owned: { fileIds: [], cbtIds: [] } };
+let mockCatalogVersion = 0;
+const mockCatalogListeners = new Set<() => void>();
+const subscribeMockCatalog = (listener: () => void) => {
+  mockCatalogListeners.add(listener);
+  return () => mockCatalogListeners.delete(listener);
+};
+const notifyMockCatalog = () => {
+  mockCatalogVersion += 1;
+  mockCatalogListeners.forEach((listener) => listener());
+};
+
+export function updateMockMaterial(
+  id: string,
+  patch: Partial<Pick<DriveFile, "name" | "category" | "subfolderSlug" | "paid" | "price">>,
+) {
+  const file = mockFiles.find((item) => item.id === id);
+  if (file) {
+    Object.assign(file, patch);
+    if (patch.paid === false) delete file.price;
+  }
+  notifyMockCatalog();
+}
+
+export function deleteMockMaterial(id: string) {
+  const index = mockFiles.findIndex((item) => item.id === id);
+  if (index >= 0) mockFiles.splice(index, 1);
+  notifyMockCatalog();
+}
 
 /** Raw catalog query (LIVE only). */
 export function useCatalogQuery() {
@@ -32,7 +60,10 @@ export function useCatalogQuery() {
 /** Refetch everything the student browses (after a purchase, upload, new CBT…). */
 export function useRefreshCatalog() {
   const qc = useQueryClient();
-  return useCallback(() => qc.invalidateQueries({ queryKey: catalogKey }), [qc]);
+  return useCallback(() => {
+    if (!LIVE) notifyMockCatalog();
+    return qc.invalidateQueries({ queryKey: catalogKey });
+  }, [qc]);
 }
 
 /**
@@ -41,6 +72,11 @@ export function useRefreshCatalog() {
  */
 export function useCatalog(overrides?: { courses?: Course[]; cbts?: Cbt[] }) {
   const q = useCatalogQuery();
+  const currentMockVersion = useSyncExternalStore(
+    subscribeMockCatalog,
+    () => mockCatalogVersion,
+    () => 0,
+  );
   const data = LIVE ? (q.data ?? EMPTY) : null;
   const courses = overrides?.courses ?? data?.courses ?? mockCourses;
   const files = data?.files ?? mockFiles;
@@ -73,5 +109,5 @@ export function useCatalog(overrides?: { courses?: Course[]; cbts?: Cbt[] }) {
       loading: LIVE && q.isPending,
       error: LIVE ? q.error : null,
     };
-  }, [courses, files, cbts, q.isPending, q.error]);
+  }, [courses, files, cbts, q.isPending, q.error, currentMockVersion]);
 }
