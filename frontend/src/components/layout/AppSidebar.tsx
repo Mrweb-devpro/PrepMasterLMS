@@ -195,13 +195,17 @@ export function AppFrame({
 
 export function Brand({
   logoSrc = "/brand/prepmaster-logo.png",
+  logoDarkSrc = "/brand/prepmaster-horizontal-dark.png",
   markSrc = "/brand/prepmaster-mark.png",
+  markDarkSrc = "/brand/prepmaster-mark-dark.png",
   name = "PrepMaster",
   sub,
   to,
 }: {
   logoSrc?: string;
+  logoDarkSrc?: string;
   markSrc?: string;
+  markDarkSrc?: string;
   name?: string;
   sub?: string;
   to: string;
@@ -211,32 +215,45 @@ export function Brand({
     <Link
       to={to}
       className={cn(
-        "group flex items-center gap-2.5 rounded-md px-1.5 py-1",
+        "group flex items-center gap-3 rounded-md px-1.5 py-1 transition-opacity hover:opacity-90",
         collapsed && "justify-center px-0",
       )}
     >
       {collapsed ? (
-        <img
-          src={markSrc}
-          alt={name}
-          className="size-8 object-contain transition-transform group-hover:scale-105"
-        />
+        <div className="flex size-8 shrink-0 items-center justify-center">
+          <img
+            src={markSrc}
+            alt={name}
+            className="size-7 object-contain transition-transform group-hover:scale-105 dark:hidden"
+          />
+          <img src={markDarkSrc} alt={name} className="hidden size-7 object-contain dark:block" />
+        </div>
       ) : sub ? (
         <div className="flex min-w-0 items-center gap-2.5">
-          <img src={markSrc} alt={name} className="size-7 shrink-0 object-contain" />
+          <div className="flex size-8 shrink-0 items-center justify-center">
+            <img src={markSrc} alt="" className="size-7 object-contain dark:hidden" />
+            <img src={markDarkSrc} alt="" className="hidden size-7 object-contain dark:block" />
+          </div>
           <div className="min-w-0">
-            <span className="block font-display text-base font-semibold leading-tight text-foreground">
+            <span className="block font-display text-base font-bold leading-tight tracking-tight text-sidebar-foreground">
               {name}
             </span>
             <span className="block text-2xs font-medium text-sidebar-muted">{sub}</span>
           </div>
         </div>
       ) : (
-        <img
-          src={logoSrc}
-          alt={name}
-          className="h-7 w-auto max-w-[170px] object-contain dark:brightness-110"
-        />
+        <div className="flex items-center">
+          <img
+            src={logoSrc}
+            alt={name}
+            className="h-8 w-auto max-w-[170px] object-contain dark:hidden"
+          />
+          <img
+            src={logoDarkSrc}
+            alt={name}
+            className="hidden h-8 w-auto max-w-[170px] object-contain dark:block"
+          />
+        </div>
       )}
     </Link>
   );

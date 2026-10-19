@@ -34,13 +34,17 @@ export function AuthLayout({
     >
       <div className="relative hidden justify-between overflow-hidden p-12 text-ink-foreground lg:flex lg:flex-col">
         <BlueprintCanvas variant={variant} />
-        <Link to="/" className="group relative z-10 flex w-fit items-center gap-2.5">
+        <Link to="/" className="group relative z-10 flex w-fit items-center">
           <img
-            src="/brand/prepmaster-mark.png"
+            src="/brand/prepmaster-logo.png"
             alt={brand}
-            className="size-8 object-contain drop-shadow-sm transition-transform group-hover:scale-105"
+            className="h-8 w-auto object-contain transition-transform group-hover:scale-105 dark:hidden"
           />
-          <span className="font-display text-lg font-semibold tracking-tight text-white">{brand}</span>
+          <img
+            src="/brand/prepmaster-horizontal-dark.png"
+            alt={brand}
+            className="hidden h-8 w-auto object-contain transition-transform group-hover:scale-105 dark:block"
+          />
         </Link>
         <div className="relative z-10 mt-auto pt-16">
           <h2 className="max-w-md text-[40px] font-semibold leading-[1.08] tracking-tight text-white drop-shadow-sm">
