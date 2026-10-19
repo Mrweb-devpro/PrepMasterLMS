@@ -96,10 +96,20 @@ export async function gradeSubmission(id: string, g: { scores: { mass: number; v
 // ---------- Questions ----------
 const Q_SELECT = "*, profiles(first_name, last_name), sw_responses(id, body, created_at)";
 
+async function withQuestionImage(row: Record<string, unknown>) {
+  const imageUrl = typeof row.image_url === "string" ? row.image_url : null;
+  return {
+    ...withNames(row),
+    ...(imageUrl
+      ? { image_url: imageUrl.startsWith("solidworks/") ? await downloadUrl(imageUrl, 900) : imageUrl }
+      : {}),
+  };
+}
+
 export async function listQuestions(user: AuthUser, mine: boolean) {
   let q = db.from("sw_questions").select(Q_SELECT).order("created_at", { ascending: false });
   if (mine || user.role !== "admin") q = q.eq("user_id", user.id);
-  return must(await q).map(withNames);
+  return Promise.all(must(await q).map(withQuestionImage));
 }
 
 async function ownQuestion(id: string, user: AuthUser) {
@@ -108,29 +118,44 @@ async function ownQuestion(id: string, user: AuthUser) {
   return row;
 }
 
-export const getQuestion = async (id: string, user: AuthUser) => withNames(await ownQuestion(id, user));
+export const getQuestion = async (id: string, user: AuthUser) => withQuestionImage(await ownQuestion(id, user));
 
-export async function createQuestion(userId: string, q: { title: string; body: string; taskIds: string[] }) {
+export async function createQuestion(userId: string, q: { title: string; body: string; taskIds: string[]; imageUrl?: string | null }) {
   await requireMember(userId);
-  return withNames(must(
-    await db.from("sw_questions").insert({ user_id: userId, title: q.title, body: q.body, task_ids: q.taskIds }).select(Q_SELECT).single(),
+  const imageUrl = q.imageUrl || null;
+  if (imageUrl?.startsWith("solidworks/") && !imageUrl.startsWith(`solidworks/${userId}/`)) {
+    throw badRequest("Upload your screenshot first.");
+  }
+  return withQuestionImage(must(
+    await db.from("sw_questions").insert({
+      user_id: userId, title: q.title, body: q.body, task_ids: q.taskIds, image_url: imageUrl,
+    }).select(Q_SELECT).single(),
   ));
 }
 
-export async function updateQuestion(id: string, user: AuthUser, q: { title?: string | undefined; body?: string | undefined; taskIds?: string[] | undefined }) {
+export async function updateQuestion(id: string, user: AuthUser, q: {
+  title?: string | undefined; body?: string | undefined; taskIds?: string[] | undefined; imageUrl?: string | null | undefined;
+}) {
   const row = await ownQuestion(id, user);
   if (row.user_id !== user.id) throw forbidden("Only the author can edit this question.");
   const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (q.title !== undefined) patch.title = q.title;
   if (q.body !== undefined) patch.body = q.body;
   if (q.taskIds !== undefined) patch.task_ids = q.taskIds;
-  return withNames(must(await db.from("sw_questions").update(patch).eq("id", id).select(Q_SELECT).single()));
+  if (q.imageUrl !== undefined) {
+    const imageUrl = q.imageUrl || null;
+    if (imageUrl?.startsWith("solidworks/") && !imageUrl.startsWith(`solidworks/${user.id}/`)) {
+      throw badRequest("Upload your screenshot first.");
+    }
+    patch.image_url = imageUrl;
+  }
+  return withQuestionImage(must(await db.from("sw_questions").update(patch).eq("id", id).select(Q_SELECT).single()));
 }
 
 export async function respond(id: string, adminId: string, body: string) {
   must(await db.from("sw_responses").insert({ question_id: id, body, responder_id: adminId }).select().single());
   await db.from("sw_questions").update({ updated_at: new Date().toISOString() }).eq("id", id);
-  return withNames(must(await db.from("sw_questions").select(Q_SELECT).eq("id", id).single()));
+  return withQuestionImage(must(await db.from("sw_questions").select(Q_SELECT).eq("id", id).single()));
 }
 
 // ---------- Members ----------

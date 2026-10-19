@@ -4,6 +4,7 @@ import type {
   NewQuestion,
   NewSubmission,
   NewTask,
+  QuestionUpdate,
   SwGrade,
   SwQuestion,
   SwSubmission,
@@ -47,6 +48,7 @@ interface QuestionRow {
   title: string;
   body: string;
   task_ids: string[];
+  image_url: string | null;
   created_at: string;
   updated_at: string;
   sw_responses: { id: string; body: string; created_at: string }[];
@@ -110,6 +112,7 @@ const toQuestion = (q: QuestionRow): SwQuestion => ({
   title: q.title,
   body: q.body,
   taskIds: q.task_ids,
+  ...(q.image_url ? { imageUrl: q.image_url } : {}),
   createdAt: q.created_at,
   updatedAt: q.updated_at,
   responses: [...(q.sw_responses ?? [])]
@@ -128,6 +131,21 @@ const taskBody = (t: NewTask) => ({
 
 /** userId given = "only mine" (students); admins list everything without it. */
 const mine = (userId?: string) => (userId ? "?mine=true" : "");
+
+async function uploadQuestionImage(file: File) {
+  if (!new Set(["image/png", "image/jpeg", "image/webp"]).has(file.type)) {
+    throw new Error("Attach a PNG, JPG, or WebP image");
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error("The screenshot must be 5 MB or smaller");
+  }
+  const { key, uploadUrl } = await api.post<{ key: string; uploadUrl: string }>("/solidworks/uploads", {
+    fileName: file.name || "question-screenshot.png",
+    contentType: file.type,
+  });
+  await uploadToSignedUrl(uploadUrl, file);
+  return key;
+}
 
 export const swApi = {
   listTasks: async () => (await api.get<TaskRow[]>("/solidworks/tasks")).map(toTask),
@@ -173,12 +191,24 @@ export const swApi = {
   listQuestions: async (userId?: string) =>
     (await api.get<QuestionRow[]>(`/solidworks/questions${mine(userId)}`)).map(toQuestion),
   getQuestion: async (id: string) => toQuestion(await api.get<QuestionRow>(`/solidworks/questions/${id}`)),
-  createQuestion: async (q: NewQuestion) =>
-    toQuestion(
-      await api.post<QuestionRow>("/solidworks/questions", { title: q.title, body: q.body, taskIds: q.taskIds }),
-    ),
-  updateQuestion: async (id: string, p: Pick<NewQuestion, "title" | "body" | "taskIds">) =>
-    toQuestion(await api.patch<QuestionRow>(`/solidworks/questions/${id}`, p)),
+  async createQuestion(q: NewQuestion) {
+    const imageUrl = q.imageFile ? await uploadQuestionImage(q.imageFile) : q.imageUrl ?? null;
+    return toQuestion(await api.post<QuestionRow>("/solidworks/questions", {
+      title: q.title,
+      body: q.body,
+      taskIds: q.taskIds,
+      imageUrl,
+    }));
+  },
+  async updateQuestion(id: string, p: QuestionUpdate) {
+    const imageUrl = p.imageFile ? await uploadQuestionImage(p.imageFile) : p.imageUrl;
+    return toQuestion(await api.patch<QuestionRow>(`/solidworks/questions/${id}`, {
+      title: p.title,
+      body: p.body,
+      taskIds: p.taskIds,
+      ...(imageUrl !== undefined ? { imageUrl } : {}),
+    }));
+  },
   respondToQuestion: async (id: string, body: string) =>
     toQuestion(await api.post<QuestionRow>(`/solidworks/questions/${id}/responses`, { body })),
 

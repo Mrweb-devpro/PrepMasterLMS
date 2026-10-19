@@ -1,6 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
+import { ImageIcon, Plus } from "lucide-react";
 import { useState } from "react";
 import { EmptyState, PageHeader } from "@/components/prep/bits";
 import { QuestionsEmptyIllustration } from "@/components/common/EmptyStateIllustration";
@@ -59,7 +59,14 @@ export function QuestionsPage() {
           >
             <span className="flex items-center justify-between gap-2">
               <span className="text-2xs text-text-muted">{formatDate(q.createdAt)}</span>
-              <AnsweredPill count={q.responses.length} />
+              <span className="flex items-center gap-2">
+                {q.imageUrl && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-2xs text-text-muted">
+                    <ImageIcon className="size-3" /> Screenshot
+                  </span>
+                )}
+                <AnsweredPill count={q.responses.length} />
+              </span>
             </span>
             <span className="mt-2 line-clamp-2 block break-words font-medium">{q.title}</span>
             <span className="mt-1 line-clamp-2 block break-words text-sm text-text-secondary">

@@ -59,6 +59,7 @@ export interface SwQuestion {
   title: string;
   body: string;
   taskIds: string[];
+  imageUrl?: string | null;
   createdAt: string;
   updatedAt: string;
   responses: SwResponse[];
@@ -77,4 +78,9 @@ export interface SwUser {
 
 export type NewTask = Omit<SwTask, "id" | "number" | "createdAt">;
 export type NewSubmission = Omit<SwSubmission, "id" | "submittedAt" | "grade">;
-export type NewQuestion = Pick<SwQuestion, "userId" | "userName" | "title" | "body" | "taskIds">;
+export type NewQuestion = Pick<SwQuestion, "userId" | "userName" | "title" | "body" | "taskIds"> & {
+  imageUrl?: string | null;
+  imageFile?: File;
+};
+
+export type QuestionUpdate = Pick<NewQuestion, "title" | "body" | "taskIds" | "imageUrl" | "imageFile">;

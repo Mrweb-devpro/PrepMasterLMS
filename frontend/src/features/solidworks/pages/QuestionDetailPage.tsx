@@ -5,6 +5,7 @@ import { Breadcrumbs, Card } from "@/components/prep/bits";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/mock-api";
 import { QuestionDialog } from "../components/QuestionDialog";
+import { QuestionImageAttachment, QuestionImageLightbox } from "../components/QuestionImageAttachment";
 import { useEditQuestion } from "../hooks/mutations";
 import { swQueries } from "../hooks/queries";
 import { useSwUser } from "../hooks/useSwUser";
@@ -16,6 +17,7 @@ export function QuestionDetailPage({ id }: { id: string }) {
   const { data: tasks } = useSuspenseQuery(swQueries.tasks());
   const edit = useEditQuestion(user.id);
   const [open, setOpen] = useState(false);
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
   return (
     <div className="max-w-3xl">
@@ -57,6 +59,7 @@ export function QuestionDetailPage({ id }: { id: string }) {
             ))}
           </div>
         )}
+        {q.imageUrl && <QuestionImageAttachment imageUrl={q.imageUrl} onZoom={setZoomedImage} />}
       </Card>
 
       <Card>
@@ -82,13 +85,19 @@ export function QuestionDetailPage({ id }: { id: string }) {
       <QuestionDialog
         open={open}
         onOpenChange={setOpen}
-        initial={{ title: q.title, body: q.body, taskIds: q.taskIds }}
+        initial={{
+          title: q.title,
+          body: q.body,
+          taskIds: q.taskIds,
+          ...(q.imageUrl !== undefined ? { imageUrl: q.imageUrl } : {}),
+        }}
         busy={edit.isPending}
         onSubmit={(data) => {
           setOpen(false);
           edit.mutate({ id: q.id, data });
         }}
       />
+      <QuestionImageLightbox imageUrl={zoomedImage} onOpenChange={() => setZoomedImage(null)} />
     </div>
   );
 }

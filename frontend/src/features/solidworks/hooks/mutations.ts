@@ -5,6 +5,7 @@ import type {
   NewQuestion,
   NewSubmission,
   NewTask,
+  QuestionUpdate,
   SwGrade,
   SwQuestion,
   SwTask,
@@ -115,7 +116,7 @@ export const useAskQuestion = (userId: string) =>
   });
 
 export const useEditQuestion = (userId?: string) =>
-  useOptimistic<{ id: string; data: Pick<NewQuestion, "title" | "body" | "taskIds"> }, SwQuestion>({
+  useOptimistic<{ id: string; data: QuestionUpdate }, SwQuestion>({
     mutationFn: ({ id, data }) => swService.updateQuestion(id, data),
     listKey: swKeys.questions(userId),
     apply: (l, { id, data }) => l.map((q) => (q.id === id ? { ...q, ...data } : q)),

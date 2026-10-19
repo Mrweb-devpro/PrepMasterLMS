@@ -186,6 +186,7 @@ create table public.sw_questions (
   title text not null,
   body text not null,
   task_ids uuid[] not null default '{}',
+  image_url text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -279,3 +280,6 @@ alter table public.profiles drop constraint if exists profiles_gender_check;
 alter table public.profiles
   add constraint profiles_gender_check
   check (gender in ('male', 'female', 'other', 'prefer_not_to_say'));
+
+-- SolidWorks question screenshot upgrade (idempotent).
+alter table public.sw_questions add column if not exists image_url text;

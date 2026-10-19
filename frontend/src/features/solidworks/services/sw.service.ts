@@ -3,7 +3,7 @@
 import { LIVE } from "@/lib/api/config";
 import { clone, delay, nowIso, uid } from "@/lib/mock-api";
 import { MAX_SCORES } from "../constants";
-import type { NewQuestion, NewSubmission, NewTask, SwGrade, SwQuestion, SwUser } from "../types";
+import type { NewQuestion, NewSubmission, NewTask, QuestionUpdate, SwGrade, SwQuestion, SwUser } from "../types";
 import { db } from "./mock-db";
 import { swApi } from "./sw.api";
 
@@ -86,15 +86,30 @@ const mockSwService = {
   },
   async createQuestion(input: NewQuestion) {
     await delay();
-    const q: SwQuestion = { ...input, id: uid("q"), createdAt: nowIso(), updatedAt: nowIso(), responses: [] };
+    const { imageFile, ...question } = input;
+    const imageUrl = imageFile ? URL.createObjectURL(imageFile) : input.imageUrl;
+    const q: SwQuestion = {
+      ...question,
+      ...(imageUrl ? { imageUrl } : {}),
+      id: uid("q"),
+      createdAt: nowIso(),
+      updatedAt: nowIso(),
+      responses: [],
+    };
     db.questions.unshift(q);
     return clone(q);
   },
-  async updateQuestion(id: string, patch: Pick<NewQuestion, "title" | "body" | "taskIds">) {
+  async updateQuestion(id: string, patch: QuestionUpdate) {
     await delay();
     const q = db.questions.find((x) => x.id === id);
     if (!q) throw notFound("Question");
-    Object.assign(q, patch, { updatedAt: nowIso() });
+    const { imageFile, imageUrl, ...question } = patch;
+    Object.assign(
+      q,
+      question,
+      ...(imageFile ? [{ imageUrl: URL.createObjectURL(imageFile) }] : imageUrl !== undefined ? [{ imageUrl }] : []),
+      { updatedAt: nowIso() },
+    );
     return clone(q);
   },
   async respondToQuestion(id: string, body: string) {
