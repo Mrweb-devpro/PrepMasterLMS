@@ -88,13 +88,18 @@ export function SidebarPanel({
   footer?: ReactNode;
   onNavigate?: () => void;
 }) {
+  const collapsed = useSidebarCollapsed();
   return (
     <div className="flex h-full flex-col">
-      <div className="shrink-0 px-3 pb-4 pt-4">{brand}</div>
-      <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto px-3 pb-4">
+      <div className={cn("shrink-0 pb-4 pt-4", collapsed ? "px-2" : "px-3")}>{brand}</div>
+      <div className={cn("scrollbar-thin min-h-0 flex-1 overflow-y-auto pb-4", collapsed ? "px-2" : "px-3")}>
         <NavLinks groups={groups} {...(onNavigate ? { onNavigate } : {})} />
       </div>
-      {footer && <div className="shrink-0 border-t border-sidebar-border p-3">{footer}</div>}
+      {footer && (
+        <div className={cn("shrink-0 border-t border-sidebar-border", collapsed ? "p-2" : "p-3")}>
+          {footer}
+        </div>
+      )}
     </div>
   );
 }
@@ -134,7 +139,7 @@ export function AppFrame({
         )}
       >
         <SidebarCollapsedContext.Provider value={collapsed}>
-          <SidebarPanel brand={brand} groups={groups} footer={collapsed ? undefined : footer} />
+          <SidebarPanel brand={brand} groups={groups} footer={footer} />
         </SidebarCollapsedContext.Provider>
         <button
           type="button"

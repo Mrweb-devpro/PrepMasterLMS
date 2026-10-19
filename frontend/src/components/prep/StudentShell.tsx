@@ -6,16 +6,56 @@ import {
   History,
   Home,
   MonitorCheck,
+  Settings,
   ShieldCheck,
-  UserRound,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { AppFrame, Brand, type NavGroup } from "@/components/layout/AppSidebar";
+import { AppFrame, Brand, type NavGroup, useSidebarCollapsed } from "@/components/layout/AppSidebar";
 import { useMainAppGuard } from "@/features/auth/hooks/useGuards";
 import { useSession } from "@/features/auth/session";
 import { fullName } from "@/features/auth/utils/profile";
 import { ProfileAvatar } from "@/features/auth/components/ProfileAvatar";
+import { cn } from "@/lib/utils";
 import { WarningNoticeDialog } from "./WarningNoticeDialog";
+
+function StudentFooter() {
+  const { user } = useSession();
+  const collapsed = useSidebarCollapsed();
+
+  return (
+    <div className="space-y-1">
+      <Link
+        to="/account"
+        title={collapsed ? (user ? fullName(user) : "Account") : undefined}
+        className={cn(
+          "flex items-center gap-2.5 rounded-md transition-colors hover:bg-surface-hover",
+          collapsed ? "justify-center p-1.5" : "p-1.5",
+        )}
+      >
+        <ProfileAvatar user={user} />
+        {!collapsed && (
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-medium">{user ? fullName(user) : ""}</span>
+            <span className="block truncate text-2xs text-sidebar-muted">{user?.email}</span>
+          </span>
+        )}
+      </Link>
+      {user?.role === "admin" && (
+        <Link
+          to="/admin"
+          title={collapsed ? "Switch to admin" : undefined}
+          className={cn(
+            "flex h-8 items-center rounded-md text-xs text-sidebar-muted transition-colors hover:bg-surface-hover hover:text-sidebar-foreground",
+            collapsed ? "justify-center px-0" : "gap-2 px-2",
+          )}
+        >
+          <ShieldCheck className="size-3.5 shrink-0" />
+          {!collapsed && <span>Switch to admin</span>}
+        </Link>
+      )}
+    </div>
+  );
+}
 
 export function StudentShell({ children }: { children: ReactNode }) {
   const ready = useMainAppGuard();
@@ -31,40 +71,15 @@ export function StudentShell({ children }: { children: ReactNode }) {
       ],
     },
     { label: "Programs", items: [{ to: "/learn-solidworks", label: "SolidWorks", icon: Box }] },
-    { label: "Account", items: [{ to: "/account", label: "Settings", icon: UserRound }] },
+    { label: "Account", items: [{ to: "/account", label: "Settings", icon: Settings }] },
   ];
-
-  const footer = (
-    <div className="space-y-1">
-      <Link
-        to="/account"
-        className="flex items-center gap-2.5 rounded-md p-1.5 transition-colors hover:bg-surface-hover"
-      >
-        <ProfileAvatar user={user} />
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-medium">{user ? fullName(user) : ""}</span>
-          <span className="block truncate text-2xs text-sidebar-muted">{user?.email}</span>
-        </span>
-      </Link>
-      {user?.role === "admin" && (
-        <Link
-          to="/admin"
-          className="flex h-8 items-center gap-2 rounded-md px-2 text-xs text-sidebar-muted transition-colors hover:bg-surface-hover hover:text-sidebar-foreground"
-        >
-          <ShieldCheck className="size-3.5" />
-          Switch to admin
-        </Link>
-      )}
-    </div>
-  );
-
   if (!ready) return null;
 
   return (
     <AppFrame
       brand={<Brand name="PrepMaster" to="/" />}
       groups={groups}
-      footer={footer}
+      footer={<StudentFooter />}
     >
       {children}
       <WarningNoticeDialog key={user?.id} />

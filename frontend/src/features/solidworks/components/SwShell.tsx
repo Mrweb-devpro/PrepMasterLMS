@@ -12,10 +12,11 @@ import {
   X,
 } from "lucide-react";
 import { Suspense, useEffect, useState, type ReactNode } from "react";
-import { AppFrame, Brand, type NavGroup } from "@/components/layout/AppSidebar";
+import { AppFrame, Brand, type NavGroup, useSidebarCollapsed } from "@/components/layout/AppSidebar";
 import { useSession } from "@/features/auth/session";
 import { fullName } from "@/features/auth/utils/profile";
 import { ProfileAvatar } from "@/features/auth/components/ProfileAvatar";
+import { cn } from "@/lib/utils";
 import { PageLoading } from "./bits";
 
 const groups: NavGroup[] = [
@@ -31,25 +32,17 @@ const groups: NavGroup[] = [
   { label: "Account", items: [{ to: "/solidworks/settings", label: "Settings", icon: Settings }] },
 ];
 
-/** Third dashboard: SolidWorks (teal accent via .theme-sw). */
-export function SwShell({ children }: { children: ReactNode }) {
+function SwFooter({ showPremium, onDismissPremium }: { showPremium: boolean; onDismissPremium: () => void }) {
   const { user } = useSession();
-  const [showPremium, setShowPremium] = useState(false);
-  useEffect(() => {
-    setShowPremium(localStorage.getItem("sw-premium-dismissed") !== "1");
-  }, []);
-  const dismissPremium = () => {
-    localStorage.setItem("sw-premium-dismissed", "1");
-    setShowPremium(false);
-  };
+  const collapsed = useSidebarCollapsed();
 
-  const footer = (
+  return (
     <div className="space-y-2">
-      {showPremium && (
+      {!collapsed && showPremium && (
         <div className="relative">
           <button
             type="button"
-            onClick={dismissPremium}
+            onClick={onDismissPremium}
             aria-label="Hide Go Premium"
             className="absolute right-1.5 top-1.5 z-10 flex size-6 items-center justify-center rounded text-text-muted transition-colors hover:bg-surface hover:text-foreground"
           >
@@ -74,23 +67,46 @@ export function SwShell({ children }: { children: ReactNode }) {
       {user && (
         <Link
           to="/solidworks/settings"
-          className="flex items-center gap-2.5 rounded-md p-1.5 transition-colors hover:bg-surface-hover"
+          title={collapsed ? fullName(user) : undefined}
+          className={cn(
+            "flex items-center gap-2.5 rounded-md transition-colors hover:bg-surface-hover",
+            collapsed ? "justify-center p-1.5" : "p-1.5",
+          )}
         >
           <ProfileAvatar user={user} />
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-sm font-medium">{fullName(user)}</span>
-            <span className="block truncate text-2xs text-sidebar-muted">{user.email}</span>
-          </span>
+          {!collapsed && (
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-medium">{fullName(user)}</span>
+              <span className="block truncate text-2xs text-sidebar-muted">{user.email}</span>
+            </span>
+          )}
         </Link>
       )}
       <Link
         to="/"
-        className="flex h-8 items-center gap-2 rounded-md px-2 text-xs text-sidebar-muted transition-colors hover:bg-surface-hover hover:text-sidebar-foreground"
+        title={collapsed ? "Open PrepMaster" : undefined}
+        className={cn(
+          "flex h-8 items-center rounded-md text-xs text-sidebar-muted transition-colors hover:bg-surface-hover hover:text-sidebar-foreground",
+          collapsed ? "justify-center px-0" : "gap-2 px-2",
+        )}
       >
-        <ArrowLeftRight className="size-3.5" /> Open PrepMaster
+        <ArrowLeftRight className="size-3.5 shrink-0" />
+        {!collapsed && <span>Open PrepMaster</span>}
       </Link>
     </div>
   );
+}
+
+/** Third dashboard: SolidWorks (teal accent via .theme-sw). */
+export function SwShell({ children }: { children: ReactNode }) {
+  const [showPremium, setShowPremium] = useState(false);
+  useEffect(() => {
+    setShowPremium(localStorage.getItem("sw-premium-dismissed") !== "1");
+  }, []);
+  const dismissPremium = () => {
+    localStorage.setItem("sw-premium-dismissed", "1");
+    setShowPremium(false);
+  };
 
   const topbar = (
     <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-2.5 py-1 text-2xs font-medium text-primary">
@@ -104,7 +120,7 @@ export function SwShell({ children }: { children: ReactNode }) {
         themeClass="theme-sw"
         brand={<Brand name="PrepMaster" sub="SolidWorks" to="/solidworks" />}
         groups={groups}
-        footer={footer}
+        footer={<SwFooter showPremium={showPremium} onDismissPremium={dismissPremium} />}
         topbar={topbar}
       >
         <Suspense fallback={<PageLoading />}>{children}</Suspense>
