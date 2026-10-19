@@ -60,6 +60,7 @@ function StudentFooter() {
 export function StudentShell({ children }: { children: ReactNode }) {
   const ready = useMainAppGuard();
   const { user } = useSession();
+  const isSwRegistered = Boolean(user?.swRegistered);
   const groups: NavGroup[] = [
     {
       items: [
@@ -70,9 +71,13 @@ export function StudentShell({ children }: { children: ReactNode }) {
         { to: "/library", label: "My Library", icon: BookMarked },
       ],
     },
-    { label: "Programs", items: [{ to: "/learn-solidworks", label: "SolidWorks", icon: Box }] },
+    {
+      label: "Programs",
+      items: [{ to: isSwRegistered ? "/solidworks" : "/learn-solidworks", label: "SolidWorks", icon: Box }],
+    },
     { label: "Account", items: [{ to: "/account", label: "Settings", icon: Settings }] },
   ];
+
   if (!ready) return null;
 
   return (
