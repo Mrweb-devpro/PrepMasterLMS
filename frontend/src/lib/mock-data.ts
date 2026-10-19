@@ -81,6 +81,7 @@ export interface Student {
   email: string;
   joinedAt: string;
   verified: boolean;
+  gender?: "male" | "female" | "other" | "prefer_not_to_say";
 }
 
 export const CATEGORIES: { slug: CategorySlug; name: string }[] = [

@@ -1,7 +1,7 @@
 export type Role = "student" | "admin";
 export type UserType = "student" | "freelancer";
 export type Provider = "email" | "google";
-export type Gender = "male" | "female";
+export type Gender = "male" | "female" | "other" | "prefer_not_to_say";
 
 export interface AccountWarning {
   id: string;

@@ -7,6 +7,7 @@ import { Choice } from "@/features/admin/components/parts";
 import {
   DobField,
   EmailPasswordFields,
+  GenderField,
   GoogleButton,
   HeardField,
   NameFields,
@@ -204,7 +205,10 @@ export function RegisterPage({ heard }: { heard?: string }) {
       {step === "names" && (
         <StepCard {...common} title="About you" onNext={go(checks.names)}>
           <NameFields value={draft} onChange={patch} />
-          <DobField value={draft} onChange={patch} />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <DobField value={draft} onChange={patch} />
+            <GenderField value={draft.gender} onChange={(gender) => patch({ gender })} />
+          </div>
         </StepCard>
       )}
       {step === "type" && (

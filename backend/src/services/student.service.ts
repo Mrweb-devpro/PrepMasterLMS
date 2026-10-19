@@ -31,7 +31,7 @@ export async function me(userId: string) {
 }
 
 export interface ProfilePatch {
-  gender?: "male" | "female" | null | undefined;
+  gender?: "male" | "female" | "other" | "prefer_not_to_say" | null | undefined;
   avatarUrl?: string | null | undefined;
   firstName?: string | undefined;
   lastName?: string | undefined;

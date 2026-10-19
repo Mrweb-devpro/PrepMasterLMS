@@ -70,6 +70,7 @@ export interface SwUser {
   name: string;
   email: string;
   userType: "student" | "freelancer";
+  gender?: "male" | "female" | "other" | "prefer_not_to_say";
   heard?: string;
   joinedAt: string;
 }

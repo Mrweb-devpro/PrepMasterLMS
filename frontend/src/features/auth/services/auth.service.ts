@@ -126,6 +126,7 @@ export const authService = {
             dob: d.dob ?? null,
             heard: d.heard ?? null,
             user_type: d.userType ?? null,
+            gender: d.gender ?? null,
           },
         },
       });

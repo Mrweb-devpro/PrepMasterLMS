@@ -12,6 +12,7 @@ import { useSession } from "@/features/auth/session";
 import { AccountModerationCard } from "@/features/auth/components/AccountModerationCard";
 import { AvatarEditor } from "@/features/auth/components/AvatarEditor";
 import { generateAvatarUrl } from "@/features/auth/utils/avatar";
+import { genderLabel } from "@/features/auth/utils/profile";
 import { Switch } from "@/components/ui/switch";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { useTransactions } from "@/features/payments/useTransactions";
@@ -192,7 +193,7 @@ function ProfileCard() {
             ["Faculty", user?.faculty || "—"],
             ["Department", user?.course || "—"],
             ["Level", levelLabel(user?.level)],
-            ["Gender", user?.gender === "male" ? "Male" : user?.gender === "female" ? "Female" : "—"],
+            ["Gender", genderLabel(user?.gender)],
           ].map(([k, v]) => (
             <div key={k} className="flex flex-col gap-0.5 py-2.5 sm:flex-row sm:justify-between">
               <dt className="text-text-muted">{k}</dt>
@@ -213,10 +214,6 @@ function ProfileCard() {
             toast.error("Choose your faculty, department and level");
             return;
           }
-          if (!d.gender) {
-            toast.error("Select your gender");
-            return;
-          }
           setSaving(true);
           try {
             await update({
@@ -225,8 +222,8 @@ function ProfileCard() {
               faculty: d.faculty,
               course: d.course,
               level: d.level,
-              gender: d.gender,
-              ...(d.gender !== user?.gender ? { avatarUrl: generateAvatarUrl(d.gender) } : {}),
+              ...(d.gender ? { gender: d.gender } : {}),
+              ...(d.gender && d.gender !== user?.gender ? { avatarUrl: generateAvatarUrl(d.gender) } : {}),
             });
             toast.success("Profile saved");
             setEditing(false);

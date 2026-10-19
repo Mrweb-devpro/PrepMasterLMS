@@ -7,10 +7,11 @@ import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Card, PageHeader } from "@/components/prep/bits";
 import { Button } from "@/components/ui/button";
 import { KV } from "@/features/admin/components/parts";
-import { NameFields } from "@/features/auth/components/fields";
+import { GenderField, NameFields, type ProfileDraft } from "@/features/auth/components/fields";
 import { heardLabel } from "@/features/auth/constants/options";
 import { useSession } from "@/features/auth/session";
 import { AvatarEditor } from "@/features/auth/components/AvatarEditor";
+import { genderLabel } from "@/features/auth/utils/profile";
 import { formatDate } from "@/lib/mock-api";
 import { useSwUser } from "../hooks/useSwUser";
 
@@ -21,7 +22,11 @@ export function SettingsPage() {
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [names, setNames] = useState({ firstName: user.firstName, lastName: user.lastName });
+  const [profile, setProfile] = useState<ProfileDraft>({
+    firstName: user.firstName,
+    lastName: user.lastName,
+    ...(user.gender ? { gender: user.gender } : {}),
+  });
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-3xl space-y-6 [&>*]:min-w-0">
@@ -43,13 +48,23 @@ export function SettingsPage() {
         </div>
         {editing ? (
           <>
-            <NameFields value={names} onChange={(p) => setNames((n) => ({ ...n, ...p }))} />
+            <NameFields value={profile} onChange={(p) => setProfile((current) => ({ ...current, ...p }))} />
+            <div className="mt-4">
+              <GenderField
+                value={profile.gender}
+                onChange={(gender) => setProfile((current) => ({ ...current, gender }))}
+              />
+            </div>
             <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <Button
                 variant="ghost"
                 disabled={saving}
                 onClick={() => {
-                  setNames({ firstName: user.firstName, lastName: user.lastName });
+                  setProfile({
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    ...(user.gender ? { gender: user.gender } : {}),
+                  });
                   setEditing(false);
                 }}
               >
@@ -58,15 +73,16 @@ export function SettingsPage() {
               <Button
                 disabled={saving}
                 onClick={async () => {
-                  if (!names.firstName?.trim() || !names.lastName?.trim()) {
+                  if (!profile.firstName?.trim() || !profile.lastName?.trim()) {
                     toast.error("Names can't be empty");
                     return;
                   }
                   setSaving(true);
                   try {
                     await update({
-                      firstName: names.firstName.trim(),
-                      lastName: names.lastName.trim(),
+                      firstName: profile.firstName.trim(),
+                      lastName: profile.lastName.trim(),
+                      ...(profile.gender ? { gender: profile.gender } : {}),
                     });
                     toast.success("Profile updated");
                     setEditing(false);
@@ -86,6 +102,7 @@ export function SettingsPage() {
           <div className="divide-y divide-border">
             <KV k="First name" v={user.firstName} />
             <KV k="Last name" v={user.lastName} />
+            <KV k="Gender" v={genderLabel(user.gender)} />
           </div>
         )}
       </Card>

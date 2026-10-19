@@ -56,6 +56,7 @@ interface MemberRow {
   first_name: string;
   last_name: string;
   email: string;
+  gender: SwUser["gender"] | null;
   user_type: SwUser["userType"] | null;
   heard: string | null;
   sw_joined_at: string | null;
@@ -187,6 +188,7 @@ export const swApi = {
       name: `${m.first_name} ${m.last_name}`.trim(),
       email: m.email,
       userType: m.user_type ?? "student",
+      ...(m.gender ? { gender: m.gender } : {}),
       joinedAt: m.sw_joined_at ?? "",
       ...(m.heard ? { heard: m.heard } : {}),
     })),

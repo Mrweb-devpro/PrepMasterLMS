@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { useAdmin } from "@/lib/admin-store";
 import { useTransactions } from "@/features/payments/useTransactions";
 import { formatNaira } from "@/lib/mock-data";
+import { genderLabel } from "@/features/auth/utils/profile";
 
 export const Route = createFileRoute("/admin/students/$studentId")({
   head: () => ({
@@ -112,6 +113,7 @@ function StudentDetail() {
                   )
                 }
               />
+              <KV k="Gender" v={genderLabel(s.gender)} />
               <KV
                 k="Total spent"
                 v={formatNaira(

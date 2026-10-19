@@ -228,11 +228,13 @@ export function GenderField({
 }) {
   return (
     <SelectField
-      label="Gender"
+      label="Gender (optional)"
       value={value}
       options={[
-        { value: "female", label: "Female" },
         { value: "male", label: "Male" },
+        { value: "female", label: "Female" },
+        { value: "other", label: "Other" },
+        { value: "prefer_not_to_say", label: "Prefer not to say" },
       ]}
       placeholder="Select your gender"
       onChange={(gender) => onChange(gender as Gender)}

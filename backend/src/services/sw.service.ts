@@ -135,5 +135,5 @@ export async function respond(id: string, adminId: string, body: string) {
 
 // ---------- Members ----------
 export const listMembers = async () =>
-  must(await db.from("profiles").select("id, first_name, last_name, email, user_type, heard, sw_joined_at")
+  must(await db.from("profiles").select("id, first_name, last_name, email, gender, user_type, heard, sw_joined_at")
     .eq("sw_registered", true).order("sw_joined_at", { ascending: false }));

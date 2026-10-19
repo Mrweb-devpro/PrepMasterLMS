@@ -44,6 +44,7 @@ interface StudentRow {
   first_name: string;
   last_name: string;
   email: string;
+  gender: "male" | "female" | "other" | "prefer_not_to_say" | null;
   created_at: string;
   suspended_at: string | null;
   suspend_reason: string | null;
@@ -92,6 +93,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           id: r.id,
           name: `${r.first_name} ${r.last_name}`.trim() || r.email,
           email: r.email,
+          ...(r.gender ? { gender: r.gender } : {}),
           joinedAt: r.created_at.slice(0, 10),
           verified: true,
         })),
