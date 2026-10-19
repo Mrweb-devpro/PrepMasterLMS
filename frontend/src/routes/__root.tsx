@@ -19,22 +19,39 @@ import { ThemeProvider, themeInitScript } from "../lib/theme";
 import { SessionProvider } from "../features/auth/session";
 import { ConfirmProvider } from "../components/common/ConfirmDialog";
 import { DemoSwitcher } from "../features/auth/components/DemoSwitcher";
+import { NotFoundIllustration } from "@/components/common/NotFoundIllustration";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
+    <div className="relative flex min-h-screen flex-col items-center justify-center bg-background px-4 py-12 text-center">
+      <Link
+        to="/"
+        className="absolute left-4 top-6 inline-flex items-center transition-opacity hover:opacity-85 sm:left-8"
+        aria-label="PrepMaster home"
+      >
+        <img
+          src="/brand/prepmaster-horizontal.png"
+          alt="PrepMaster"
+          className="h-8 w-auto object-contain dark:hidden md:h-9"
+        />
+        <img
+          src="/brand/prepmaster-horizontal-dark.png"
+          alt="PrepMaster"
+          className="hidden h-8 w-auto object-contain dark:block md:h-9"
+        />
+      </Link>
+      <NotFoundIllustration className="mb-6" />
+      <div className="max-w-md">
+        <h1 className="font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl">Page not found</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
+          Looks like this page was eaten or moved to another universe.
         </p>
         <div className="mt-6">
           <Link
             to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
           >
-            Go home
+            Back to Dashboard
           </Link>
         </div>
       </div>

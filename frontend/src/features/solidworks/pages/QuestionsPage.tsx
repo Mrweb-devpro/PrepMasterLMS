@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { EmptyState, PageHeader } from "@/components/prep/bits";
+import { QuestionsEmptyIllustration } from "@/components/common/EmptyStateIllustration";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/mock-api";
 import { QuestionDialog } from "../components/QuestionDialog";
@@ -42,8 +43,10 @@ export function QuestionsPage() {
       />
       {questions.length === 0 && (
         <EmptyState
+          illustration={<QuestionsEmptyIllustration />}
           title="No questions yet"
-          description="Your questions and replies will appear here."
+          description="Stuck on a CAD task or exercise? Ask a question to get guidance from Mr PrepMaster."
+          action={<Button onClick={() => setOpen(true)}><Plus className="size-4" /> Ask a question</Button>}
         />
       )}
       <div className="space-y-3">

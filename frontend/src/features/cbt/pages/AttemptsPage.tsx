@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ChevronRight, Loader2 } from "lucide-react";
 import { EmptyState, PageHeader } from "@/components/prep/bits";
+import { CbtEmptyIllustration } from "@/components/common/EmptyStateIllustration";
 import { Button } from "@/components/ui/button";
 import { useCatalog } from "@/features/catalog/useCatalog";
 import { usePrep } from "@/lib/prep-store";
@@ -16,14 +17,12 @@ export function AttemptsPage() {
           <Loader2 className="size-4 animate-spin" /> Loading attempts…
         </div>
       ) : attempts.length === 0 ? (
-        <div className="space-y-4">
-          <EmptyState title="No attempts yet" />
-          <div className="text-center">
-            <Button asChild>
-              <Link to="/cbts">Browse CBTs</Link>
-            </Button>
-          </div>
-        </div>
+        <EmptyState
+          illustration={<CbtEmptyIllustration />}
+          title="No attempts yet"
+          description="Every CBT you submit or practice will be tracked, timed, and graded here."
+          action={<Button asChild><Link to="/cbts">Browse CBTs</Link></Button>}
+        />
       ) : (
         <div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-surface shadow-sm">
           {attempts.map((a) => {
