@@ -1,18 +1,15 @@
 import { Link } from "@tanstack/react-router";
 import {
-  Bell,
   Box,
   BookMarked,
   FolderClosed,
   History,
   Home,
   MonitorCheck,
-  Search,
   ShieldCheck,
   UserRound,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { toast } from "sonner";
 import { AppFrame, Brand, type NavGroup } from "@/components/layout/AppSidebar";
 import { useMainAppGuard } from "@/features/auth/hooks/useGuards";
 import { useSession } from "@/features/auth/session";
@@ -61,29 +58,6 @@ export function StudentShell({ children }: { children: ReactNode }) {
     </div>
   );
 
-  const topbar = (
-    <>
-      <Link
-        to="/drive"
-        className="flex h-9 w-full min-w-0 max-w-[11rem] items-center gap-2 rounded-md border sm:max-w-sm border-border bg-surface px-3 text-sm text-text-muted transition-colors hover:border-border-strong"
-      >
-        <Search className="size-4 shrink-0" />
-        <span className="truncate">Search materials…</span>
-        <kbd className="ml-auto hidden rounded-xs border border-border px-1.5 text-2xs sm:block">
-          ⌘K
-        </kbd>
-      </Link>
-      <button
-        onClick={() => toast("You're all caught up", { description: "No new notifications." })}
-        className="relative ml-auto hidden size-9 shrink-0 items-center justify-center rounded-md border border-border bg-surface text-text-secondary transition-colors hover:text-foreground"
-        aria-label="Notifications"
-      >
-        <Bell className="size-4" />
-        <span className="absolute right-2 top-2 size-1.5 rounded-full bg-primary" />
-      </button>
-    </>
-  );
-
   if (!ready) return null;
 
   return (
@@ -91,7 +65,6 @@ export function StudentShell({ children }: { children: ReactNode }) {
       brand={<Brand name="PrepMaster" to="/" />}
       groups={groups}
       footer={footer}
-      topbar={topbar}
     >
       {children}
       <WarningNoticeDialog key={user?.id} />
