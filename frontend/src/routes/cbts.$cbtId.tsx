@@ -1,18 +1,18 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { CalendarClock, Clock3, ListChecks, Lock, RotateCcw, Trophy } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { StudentShell } from "@/components/prep/StudentShell";
 import { Breadcrumbs, Card, EmptyState, PaidPill } from "@/components/prep/bits";
 import { PurchaseDialog } from "@/features/drive/components/PurchaseDialog";
 import { Button } from "@/components/ui/button";
-import { formatDateTime, formatNaira } from "@/lib/mock-data";
-import { useCatalog } from "@/features/catalog/useCatalog";
+import { formatNaira } from "@/lib/mock-data";
+import { useCatalog, useRefreshCatalog } from "@/features/catalog/useCatalog";
 import { LIVE } from "@/lib/api/config";
 import { usePrep } from "@/lib/prep-store";
 import { cbtStatusPill } from "@/features/cbt/utils/cbt-status";
 import { useConfirm } from "@/components/common/ConfirmDialog";
-import { cn } from "@/lib/utils";
+import { formatEndTimeOnly, formatSecondsCountdown, formatSmartCbtDate } from "@/features/cbt/utils/cbt-time";
 
 export const Route = createFileRoute("/cbts/$cbtId")({
   head: () => ({
@@ -35,8 +35,28 @@ function CbtDetail() {
   const navigate = useNavigate();
   const confirm = useConfirm();
   const [buying, setBuying] = useState(false);
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  const refreshCatalog = useRefreshCatalog();
   const { getCbt, getCourse, loading } = useCatalog();
   const cbt = getCbt(cbtId);
+  const openMs = cbt?.scheduledFor ? new Date(cbt.scheduledFor).getTime() : null;
+  const closeMs = cbt?.closesAt
+    ? new Date(cbt.closesAt).getTime()
+    : openMs
+      ? openMs + (cbt?.minutes ?? 30) * 60_000
+      : null;
+
+  useEffect(() => {
+    if (!openMs && !closeMs) return;
+    const timer = window.setInterval(() => {
+      const current = Date.now();
+      setNowMs(current);
+      if (openMs && current >= openMs && current - openMs < 2_000) void refreshCatalog();
+      if (closeMs && current >= closeMs && current - closeMs < 2_000) void refreshCatalog();
+    }, 1_000);
+    return () => window.clearInterval(timer);
+  }, [closeMs, openMs, refreshCatalog]);
+
   if (loading) return <StudentShell>{null}</StudentShell>;
   if (!cbt)
     return (
@@ -46,10 +66,16 @@ function CbtDetail() {
     );
   const course = getCourse(cbt.courseSlug);
   const locked = cbt.paid && !prep.ownsCbt(cbt.id);
-  const canStart = !cbt.paused && (cbt.kind === "practice" || cbt.status === "live");
-  const isScheduled = Boolean(cbt.scheduledFor);
+  const isUpcoming = Boolean(openMs && nowMs < openMs);
+  const isLiveNow = Boolean(openMs && closeMs && nowMs >= openMs && nowMs < closeMs);
+  const isClosed = Boolean(cbt.kind === "live" && closeMs && nowMs >= closeMs);
+  const secondsToOpen = openMs ? Math.floor((openMs - nowMs) / 1000) : null;
+  const secondsToClose = closeMs ? Math.floor((closeMs - nowMs) / 1000) : null;
+  const showOpenCountdown = Boolean(isUpcoming && secondsToOpen !== null && secondsToOpen <= 60 && secondsToOpen > 0);
+  const showCloseCountdown = Boolean(isLiveNow && secondsToClose !== null && secondsToClose <= 60 && secondsToClose > 0);
+  const canStart = !cbt.paused && !isClosed && (cbt.kind === "practice" || isLiveNow || cbt.status === "live");
   const isLiveClosed =
-    cbt.kind === "live" && cbt.status !== "live" && cbt.status !== "upcoming";
+    cbt.kind === "live" && (isClosed || (cbt.status !== "live" && cbt.status !== "upcoming"));
   const completedAttempt = prep.attempts.find((attempt) => attempt.cbtId === cbt.id);
   const score =
     completedAttempt?.correct !== null && completedAttempt?.correct !== undefined && completedAttempt.total > 0
@@ -78,22 +104,53 @@ function CbtDetail() {
               { i: ListChecks, l: "Questions", v: cbt.questionCount },
               { i: Clock3, l: "Duration", v: `${cbt.minutes} min` },
               { i: RotateCcw, l: "Retakes", v: cbt.retakePolicy },
-              {
-                i: CalendarClock,
-                l: "Schedule",
-                v: cbt.scheduledFor ? formatDateTime(cbt.scheduledFor) : "Anytime",
-              },
-            ].map((s) => {
-              const isSchedule = s.l === "Schedule";
-              const highlight = isSchedule && isScheduled;
-              return (
-              <Card key={s.l} className={cn("p-4", highlight && "border-error/40 bg-error-bg/60 dark:bg-error-bg/30")}>
-                <s.i className={cn("size-4", highlight ? "text-error" : "text-primary")} />
-                <p className={cn("mt-2 text-xs", highlight ? "font-medium text-error/80" : "text-text-muted")}>{s.l}</p>
-                <p className={cn("text-sm font-semibold", highlight && "text-error")}>{s.v}</p>
+            ].map((s) => (
+              <Card key={s.l} className="p-4">
+                <s.i className="size-4 text-primary" />
+                <p className="mt-2 text-xs text-text-muted">{s.l}</p>
+                <p className="text-sm font-semibold">{s.v}</p>
               </Card>
-              );
-            })}
+            ))}
+            {cbt.kind === "practice" && !cbt.scheduledFor ? (
+              <Card className="p-4">
+                <CalendarClock className="size-4 text-primary" />
+                <p className="mt-2 text-xs text-text-muted">Schedule</p>
+                <p className="text-sm font-semibold">Anytime</p>
+              </Card>
+            ) : isLiveNow ? (
+              <Card className="border-error/40 bg-error-bg/50 p-4 text-error dark:bg-error-bg/25">
+                <div className="flex items-center gap-1.5">
+                  <span className="relative flex size-2">
+                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-error opacity-75" />
+                    <span className="relative inline-flex size-2 rounded-full bg-error" />
+                  </span>
+                  <span className="text-xs font-semibold uppercase tracking-wider">Live now</span>
+                </div>
+                <p className="mt-1.5 text-xs text-error/80">{showCloseCountdown ? "Ending soon" : "CBT is active"}</p>
+                <p className="text-sm font-bold">
+                  {showCloseCountdown
+                    ? `Ends in ${formatSecondsCountdown(secondsToClose!)}`
+                    : `Ends at ${formatEndTimeOnly(cbt.closesAt ?? (closeMs ? new Date(closeMs).toISOString() : null))}`}
+                </p>
+              </Card>
+            ) : isUpcoming ? (
+              <Card className="border-warning/30 bg-warning-bg p-4 text-warning">
+                <CalendarClock className="size-4" />
+                <p className="mt-2 text-xs text-warning/80">Scheduled</p>
+                <p className="text-sm font-semibold">
+                  {showOpenCountdown ? `Starts in ${formatSecondsCountdown(secondsToOpen!)}` : formatSmartCbtDate(cbt.scheduledFor)}
+                </p>
+                {closeMs && !showOpenCountdown && (
+                  <p className="mt-0.5 text-[11px] text-warning/80">Ends {formatEndTimeOnly(new Date(closeMs).toISOString())}</p>
+                )}
+              </Card>
+            ) : (
+              <Card className="p-4 opacity-75">
+                <CalendarClock className="size-4 text-text-muted" />
+                <p className="mt-2 text-xs text-text-muted">Status</p>
+                <p className="text-sm font-semibold text-text-secondary">Exam closed</p>
+              </Card>
+            )}
           </div>
 
           <Card className="mt-6">
@@ -128,7 +185,7 @@ function CbtDetail() {
               <p className="font-semibold">Exam ended</p>
               <p className="mt-1 text-sm text-text-secondary">
                 {cbt.closesAt
-                  ? `This live exam closed on ${formatDateTime(cbt.closesAt)}. Access and purchases are closed.`
+                  ? `This live exam closed on ${formatSmartCbtDate(cbt.closesAt)}. Access and purchases are closed.`
                   : "The testing window for this scheduled exam has ended."}
               </p>
               <Button className="mt-4 w-full" disabled>
@@ -143,6 +200,23 @@ function CbtDetail() {
                   View results
                 </Link>
               )}
+            </>
+          ) : isUpcoming ? (
+            <>
+              <p className="font-semibold">Scheduled to open soon</p>
+              <p className="mt-1 text-sm text-text-secondary">
+                This live exam opens {showOpenCountdown ? `in ${formatSecondsCountdown(secondsToOpen!)}` : formatSmartCbtDate(cbt.scheduledFor)}.
+              </p>
+              <Button className="mt-4 w-full" disabled>
+                Exam opens soon
+              </Button>
+              <Button
+                variant="outline"
+                className="mt-2 w-full"
+                onClick={() => toast.success("Reminder set", { description: "We'll notify you 30 minutes before." })}
+              >
+                Remind me
+              </Button>
             </>
           ) : locked ? (
             <>
@@ -165,7 +239,7 @@ function CbtDetail() {
             </>
           ) : (
             <>
-              <p className="font-semibold">{canStart ? "Ready when you are" : "Not open yet"}</p>
+              <p className="font-semibold">{isLiveNow ? "Live exam in progress" : canStart ? "Ready when you are" : "Not open yet"}</p>
               <p className="mt-1 text-sm text-text-secondary">
                 {canStart
                   ? `${cbt.questionCount} questions · ${cbt.minutes} minutes`
@@ -187,19 +261,6 @@ function CbtDetail() {
               >
                 {cbt.status === "live" ? "Enter exam" : "Start practice"}
               </Button>
-              {cbt.status === "upcoming" && (
-                <Button
-                  variant="outline"
-                  className="mt-2 w-full"
-                  onClick={() =>
-                    toast.success("Reminder set", {
-                      description: "We'll notify you 30 minutes before.",
-                    })
-                  }
-                >
-                  Remind me
-                </Button>
-              )}
             </>
           )}
           <Link

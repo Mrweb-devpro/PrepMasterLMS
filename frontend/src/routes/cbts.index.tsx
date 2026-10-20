@@ -5,6 +5,7 @@ import { StudentShell } from "@/components/prep/StudentShell";
 import { CbtMonitorIllustration } from "@/components/common/EmptyStateIllustration";
 import { EmptyState, PageHeader, PaidPill } from "@/components/prep/bits";
 import { cbtStatusPill } from "@/features/cbt/utils/cbt-status";
+import { isAttemptableLiveCbt, isCbtClosed } from "@/features/cbt/utils/cbt-lifecycle";
 import { formatDateTime } from "@/lib/mock-data";
 import { useCatalog } from "@/features/catalog/useCatalog";
 import { usePrep } from "@/lib/prep-store";
@@ -31,9 +32,25 @@ export const Route = createFileRoute("/cbts/")({
 function CbtsPage() {
   const prep = usePrep();
   const { cbts, getCourse, loading } = useCatalog();
-  const [tab, setTab] = useState<"all" | "practice" | "live">("all");
-  const list = tab === "all" ? cbts : cbts.filter((cbt) => cbt.kind === tab);
-  const hasLiveCbt = cbts.some((cbt) => cbt.status === "live");
+  const [tab, setTab] = useState<"all" | "practice" | "live" | "closed">("all");
+  const list = cbts
+    .filter((cbt) => {
+      const closed = isCbtClosed(cbt);
+      if (tab === "all") return true;
+      if (tab === "practice") return cbt.kind === "practice" && !closed;
+      if (tab === "live") return cbt.kind === "live" && !closed;
+      return closed;
+    })
+    .sort((a, b) => {
+      if (a.createdAt && b.createdAt) {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+      if (a.scheduledFor && b.scheduledFor) {
+        return new Date(b.scheduledFor).getTime() - new Date(a.scheduledFor).getTime();
+      }
+      return 0;
+    });
+  const hasActiveLiveCbt = cbts.some(isAttemptableLiveCbt);
 
   return (
     <StudentShell>
@@ -42,31 +59,28 @@ function CbtsPage() {
         subtitle="Practise at your own pace or join a scheduled live exam."
       />
 
-      <div className="mb-6 inline-flex rounded-md border border-border bg-surface p-1 shadow-sm">
-        {(["all", "practice", "live"] as const).map((t) => (
+      <div className="mb-6 inline-flex w-fit max-w-full flex-wrap gap-1 rounded-md border border-border bg-surface p-1 shadow-sm">
+        {[
+          { key: "all", label: "All" },
+          { key: "practice", label: "Practice sets" },
+          { key: "live", label: "Live exams", hasLive: hasActiveLiveCbt },
+          { key: "closed", label: "Closed" },
+        ].map((item) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
+            key={item.key}
+            onClick={() => setTab(item.key as typeof tab)}
             className={cn(
-              "rounded-sm px-4 py-2 text-sm font-medium transition-colors",
-              tab === t
+              "relative flex items-center gap-2 rounded-sm px-4 py-2 text-sm font-medium transition-colors",
+              tab === item.key
                 ? "bg-ink text-ink-foreground"
                 : "text-text-secondary hover:text-foreground",
             )}
           >
-            {t === "all" ? (
-              "All"
-            ) : t === "practice" ? (
-              "Practice sets"
-            ) : (
-              <span className="inline-flex items-center gap-1.5">
-                Live exams
-                {hasLiveCbt && (
-                  <span className="relative flex size-2">
-                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-error opacity-75" />
-                    <span className="relative inline-flex size-2 rounded-full bg-error" />
-                  </span>
-                )}
+            <span>{item.label}</span>
+            {item.hasLive && (
+              <span className="relative flex size-2">
+                <span className="absolute inline-flex size-full animate-ping rounded-full bg-error opacity-75" />
+                <span className="relative inline-flex size-2 rounded-full bg-error" />
               </span>
             )}
           </button>
@@ -85,41 +99,57 @@ function CbtsPage() {
               ? "No CBTs available"
               : tab === "practice"
                 ? "No practice CBTs available"
-                : "No live exams scheduled"
+                : tab === "live"
+                  ? "No live exams scheduled"
+                  : "No closed CBTs"
           }
           description={
             tab === "all"
               ? "CBTs will appear here when added."
               : tab === "practice"
                 ? "Practice CBTs will appear here when they are available."
-                : "Scheduled live exams will appear here."
+                : tab === "live"
+                  ? "Scheduled live exams will appear here."
+                  : "Finished live exams will appear here."
           }
         />
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {list.map((cbt) => {
             const course = getCourse(cbt.courseSlug);
+            const closed = isCbtClosed(cbt);
             return (
               <Link
                 key={cbt.id}
                 to="/cbts/$cbtId"
                 params={{ cbtId: cbt.id }}
-                className="card-hover group flex flex-col rounded-lg border border-border bg-surface p-5 shadow-sm"
+                className={cn(
+                  "group flex flex-col rounded-lg border p-5 shadow-sm transition-all",
+                  closed
+                    ? "border-border/60 bg-surface/50 opacity-75 hover:border-border-strong hover:bg-surface hover:opacity-100"
+                    : "card-hover border-border bg-surface",
+                )}
               >
                 <div className="mb-4 flex items-start justify-between gap-3">
                   <span
-                    className="rounded-sm px-2 py-1 text-xs font-semibold"
+                    className={cn("rounded-sm px-2 py-1 text-xs font-semibold", closed && "grayscale opacity-75")}
                     style={{ backgroundColor: `${course?.color}1a`, color: course?.color }}
                   >
                     {course?.code}
                   </span>
                   <div className="flex gap-1.5">
-                    {cbtStatusPill(cbt)}
+                    {closed ? (
+                      <span className="inline-flex h-6 items-center rounded-full border border-border bg-secondary/80 px-2 text-xs font-medium leading-none text-text-muted">
+                        Closed
+                      </span>
+                    ) : (
+                      cbtStatusPill(cbt)
+                    )}
                     <PaidPill paid={cbt.paid} owned={prep.ownsCbt(cbt.id)} />
                   </div>
                 </div>
-                <h3 className="text-lg font-semibold leading-snug">{cbt.title}</h3>
-                <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-text-secondary">
+                <h3 className={cn("text-lg font-semibold leading-snug", closed && "text-text-secondary")}>{cbt.title}</h3>
+                <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-text-muted">
                   <span className="flex items-center gap-1.5">
                     <ListChecks className="size-4" />
                     {cbt.questionCount} questions
@@ -131,12 +161,12 @@ function CbtsPage() {
                   {cbt.scheduledFor && (
                     <span className="flex items-center gap-1.5">
                       <CalendarClock className="size-4" />
-                      {formatDateTime(cbt.scheduledFor)}
+                      {closed ? "Exam ended" : formatDateTime(cbt.scheduledFor)}
                     </span>
                   )}
                 </div>
-                <span className="mt-5 flex items-center gap-1 text-sm font-medium text-primary">
-                  View details{" "}
+                <span className={cn("mt-5 flex items-center gap-1 text-sm font-medium", closed ? "text-text-muted group-hover:text-foreground" : "text-primary")}>
+                  {closed ? "View past exam" : "View details"}{" "}
                   <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
                 </span>
               </Link>

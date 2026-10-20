@@ -17,6 +17,7 @@ import { useAdminGuard } from "@/features/auth/hooks/useGuards";
 import { PageLoading } from "@/features/solidworks/components/bits";
 import { AppFrame, Brand, type NavGroup, useSidebarCollapsed } from "@/components/layout/AppSidebar";
 import { useAdmin } from "@/lib/admin-store";
+import { isAttemptableLiveCbt } from "@/features/cbt/utils/cbt-lifecycle";
 import { cn } from "@/lib/utils";
 
 function AdminFooter() {
@@ -52,7 +53,7 @@ export function AdminShell({
 }) {
   const admin = useAdmin();
   const ready = useAdminGuard();
-  const hasLiveCbt = admin.cbts.some((cbt) => cbt.status === "live");
+  const hasLiveCbt = admin.cbts.some(isAttemptableLiveCbt);
   const groups: NavGroup[] = [
     {
       items: [

@@ -16,6 +16,7 @@ import { useSession } from "@/features/auth/session";
 import { fullName } from "@/features/auth/utils/profile";
 import { ProfileAvatar } from "@/features/auth/components/ProfileAvatar";
 import { useCatalog } from "@/features/catalog/useCatalog";
+import { isAttemptableLiveCbt } from "@/features/cbt/utils/cbt-lifecycle";
 import { cn } from "@/lib/utils";
 import { WarningNoticeDialog } from "./WarningNoticeDialog";
 
@@ -63,7 +64,7 @@ export function StudentShell({ children }: { children: ReactNode }) {
   const { user } = useSession();
   const { cbts } = useCatalog();
   const isSwRegistered = Boolean(user?.swRegistered);
-  const hasLiveCbt = cbts.some((cbt) => cbt.status === "live");
+  const hasLiveCbt = cbts.some(isAttemptableLiveCbt);
   const groups: NavGroup[] = [
     {
       items: [
