@@ -48,7 +48,8 @@ interface QuestionRow {
   title: string;
   body: string;
   task_ids: string[];
-  image_url: string | null;
+  image_urls: string[] | null;
+  image_keys?: string[] | null;
   created_at: string;
   updated_at: string;
   sw_responses: { id: string; body: string; created_at: string }[];
@@ -112,7 +113,8 @@ const toQuestion = (q: QuestionRow): SwQuestion => ({
   title: q.title,
   body: q.body,
   taskIds: q.task_ids,
-  ...(q.image_url ? { imageUrl: q.image_url } : {}),
+  imageUrls: q.image_urls ?? [],
+  ...(q.image_keys ? { imageKeys: q.image_keys } : {}),
   createdAt: q.created_at,
   updatedAt: q.updated_at,
   responses: [...(q.sw_responses ?? [])]
@@ -192,21 +194,26 @@ export const swApi = {
     (await api.get<QuestionRow[]>(`/solidworks/questions${mine(userId)}`)).map(toQuestion),
   getQuestion: async (id: string) => toQuestion(await api.get<QuestionRow>(`/solidworks/questions/${id}`)),
   async createQuestion(q: NewQuestion) {
-    const imageUrl = q.imageFile ? await uploadQuestionImage(q.imageFile) : q.imageUrl ?? null;
+    const imageUrls = q.imageFiles
+      ? await Promise.all(q.imageFiles.map(uploadQuestionImage))
+      : q.imageUrls ?? [];
     return toQuestion(await api.post<QuestionRow>("/solidworks/questions", {
       title: q.title,
       body: q.body,
       taskIds: q.taskIds,
-      imageUrl,
+      imageUrls,
     }));
   },
   async updateQuestion(id: string, p: QuestionUpdate) {
-    const imageUrl = p.imageFile ? await uploadQuestionImage(p.imageFile) : p.imageUrl;
+    const uploadedKeys = p.imageFiles ? await Promise.all(p.imageFiles.map(uploadQuestionImage)) : [];
+    const imageUrls = p.imageUrls === undefined && p.imageFiles === undefined
+      ? undefined
+      : [...(p.imageKeys ?? p.imageUrls ?? []), ...uploadedKeys];
     return toQuestion(await api.patch<QuestionRow>(`/solidworks/questions/${id}`, {
       title: p.title,
       body: p.body,
       taskIds: p.taskIds,
-      ...(imageUrl !== undefined ? { imageUrl } : {}),
+      ...(imageUrls !== undefined ? { imageUrls } : {}),
     }));
   },
   respondToQuestion: async (id: string, body: string) =>

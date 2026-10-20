@@ -88,7 +88,7 @@ Avatar profile fields: `gender: "male" | "female" | "other" | "prefer_not_to_say
 - `GET /tasks`, `GET /tasks/:id`; admin `POST /tasks`, `PATCH /tasks/:id`, `DELETE /tasks/:id`.
 - `GET /submissions` (mine; admin sees all), `GET /submissions/:id`, `POST /submissions/uploads` (presigned PUT), `POST /submissions` `{ task_id, files[], note? }`, admin `PATCH /submissions/:id/grade` `{ score, feedback }`.
 - `GET /works` (graded showcase), `GET /works/:id`.
-- `GET /questions`, `GET /questions/:id`, `POST /questions` `{ title, body, taskIds, imageUrl? }`, `PATCH /questions/:id`, `POST /questions/:id/responses` `{ body }`. Question screenshots upload through `POST /uploads`; the stored private key is returned as a short-lived `image_url` for viewing.
+- `GET /questions`, `GET /questions/:id`, `POST /questions` `{ title, body, taskIds, imageUrls? }`, `PATCH /questions/:id`, `POST /questions/:id/responses` `{ body }`. Up to two question screenshots upload through `POST /uploads`; private keys are returned as `image_keys` for editing and short-lived `image_urls` for viewing.
 - Admin `GET /users`, `GET /users/:id` (profile, submissions, task count, questions).
 
 ## Admin students (`/admin/students`)

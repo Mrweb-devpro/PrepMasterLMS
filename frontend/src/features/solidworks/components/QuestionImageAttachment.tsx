@@ -1,4 +1,4 @@
-import { ImageIcon, Maximize2 } from "lucide-react";
+import { ImageIcon, Maximize2, X } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 export function QuestionImageAttachment({ imageUrl, onZoom }: { imageUrl: string; onZoom: (url: string) => void }) {
@@ -20,8 +20,10 @@ export function QuestionImageAttachment({ imageUrl, onZoom }: { imageUrl: string
           alt="Question attachment"
           className="h-28 w-44 object-cover transition-transform group-hover:scale-105"
         />
-        <span className="absolute inset-0 flex items-center justify-center gap-1 bg-foreground/30 text-xs font-medium text-primary-foreground opacity-0 transition-opacity group-hover:opacity-100">
-          <Maximize2 className="size-3.5" /> Click to expand
+        <span className="absolute inset-0 flex items-center justify-center bg-foreground/25 opacity-0 transition-colors group-hover:bg-foreground/35 group-hover:opacity-100">
+          <span className="flex items-center gap-1 rounded-full bg-background px-3 py-1 text-xs font-semibold text-foreground shadow-lg">
+            <Maximize2 className="size-3.5" /> Click to expand
+          </span>
         </span>
       </button>
     </div>
@@ -31,15 +33,21 @@ export function QuestionImageAttachment({ imageUrl, onZoom }: { imageUrl: string
 export function QuestionImageLightbox({ imageUrl, onOpenChange }: { imageUrl: string | null; onOpenChange: (open: boolean) => void }) {
   return (
     <Dialog open={Boolean(imageUrl)} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-w-4xl flex-col items-center justify-center overflow-hidden border-border/20 bg-foreground/95 p-2 backdrop-blur-md">
+      <DialogContent className="flex max-w-4xl flex-col items-center justify-center overflow-hidden border-zinc-800 bg-black/95 p-2 text-white backdrop-blur-md [&>button:last-child]:hidden sm:p-4">
         <DialogTitle className="sr-only">Enlarged question screenshot</DialogTitle>
-        <div className="relative max-h-[85vh] max-w-full overflow-auto p-1">
-          <img
-            src={imageUrl ?? ""}
-            alt="Enlarged screenshot"
-            className="max-h-[80vh] w-auto max-w-full rounded-md object-contain"
-          />
-        </div>
+        <button
+          type="button"
+          onClick={() => onOpenChange(false)}
+          aria-label="Close image preview"
+          className="absolute right-3 top-3 z-50 flex size-9 items-center justify-center rounded-full bg-red-600 text-white shadow-xl ring-2 ring-white/90 transition-all hover:bg-red-700 active:scale-95 focus:outline-none focus:ring-4 focus:ring-red-400"
+        >
+          <X className="size-5 stroke-[2.5]" />
+        </button>
+        {imageUrl && (
+          <div className="flex max-h-[82vh] items-center justify-center overflow-hidden rounded">
+            <img src={imageUrl} alt="Enlarged screenshot" className="max-h-[80vh] w-auto max-w-full rounded object-contain" />
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -105,6 +105,7 @@ export const useAskQuestion = (userId: string) =>
     apply: (l, v) => [
       {
         ...v,
+        imageUrls: v.imageUrls ?? [],
         id: "optimistic",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),

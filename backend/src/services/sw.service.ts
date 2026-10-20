@@ -96,20 +96,25 @@ export async function gradeSubmission(id: string, g: { scores: { mass: number; v
 // ---------- Questions ----------
 const Q_SELECT = "*, profiles(first_name, last_name), sw_responses(id, body, created_at)";
 
-async function withQuestionImage(row: Record<string, unknown>) {
-  const imageUrl = typeof row.image_url === "string" ? row.image_url : null;
+async function attachImageUrls(row: Record<string, unknown>) {
+  const imageUrls = Array.isArray(row.image_urls)
+    ? row.image_urls.filter((url): url is string => typeof url === "string")
+    : typeof row.image_url === "string"
+      ? [row.image_url]
+      : [];
   return {
     ...withNames(row),
-    ...(imageUrl
-      ? { image_url: imageUrl.startsWith("solidworks/") ? await downloadUrl(imageUrl, 900) : imageUrl }
-      : {}),
+    image_keys: imageUrls,
+    image_urls: await Promise.all(
+      imageUrls.map((url) => (/^https?:\/\//i.test(url) ? url : downloadUrl(url, 86_400))),
+    ),
   };
 }
 
 export async function listQuestions(user: AuthUser, mine: boolean) {
   let q = db.from("sw_questions").select(Q_SELECT).order("created_at", { ascending: false });
   if (mine || user.role !== "admin") q = q.eq("user_id", user.id);
-  return Promise.all(must(await q).map(withQuestionImage));
+  return Promise.all(must(await q).map(attachImageUrls));
 }
 
 async function ownQuestion(id: string, user: AuthUser) {
@@ -118,23 +123,23 @@ async function ownQuestion(id: string, user: AuthUser) {
   return row;
 }
 
-export const getQuestion = async (id: string, user: AuthUser) => withQuestionImage(await ownQuestion(id, user));
+export const getQuestion = async (id: string, user: AuthUser) => attachImageUrls(await ownQuestion(id, user));
 
-export async function createQuestion(userId: string, q: { title: string; body: string; taskIds: string[]; imageUrl?: string | null }) {
+export async function createQuestion(userId: string, q: { title: string; body: string; taskIds: string[]; imageUrls?: string[] }) {
   await requireMember(userId);
-  const imageUrl = q.imageUrl || null;
-  if (imageUrl?.startsWith("solidworks/") && !imageUrl.startsWith(`solidworks/${userId}/`)) {
+  const imageUrls = q.imageUrls ?? [];
+  if (imageUrls.some((url) => url.startsWith("solidworks/") && !url.startsWith(`solidworks/${userId}/`))) {
     throw badRequest("Upload your screenshot first.");
   }
-  return withQuestionImage(must(
+  return attachImageUrls(must(
     await db.from("sw_questions").insert({
-      user_id: userId, title: q.title, body: q.body, task_ids: q.taskIds, image_url: imageUrl,
+      user_id: userId, title: q.title, body: q.body, task_ids: q.taskIds, image_urls: imageUrls,
     }).select(Q_SELECT).single(),
   ));
 }
 
 export async function updateQuestion(id: string, user: AuthUser, q: {
-  title?: string | undefined; body?: string | undefined; taskIds?: string[] | undefined; imageUrl?: string | null | undefined;
+  title?: string | undefined; body?: string | undefined; taskIds?: string[] | undefined; imageUrls?: string[] | undefined;
 }) {
   const row = await ownQuestion(id, user);
   if (row.user_id !== user.id) throw forbidden("Only the author can edit this question.");
@@ -142,20 +147,19 @@ export async function updateQuestion(id: string, user: AuthUser, q: {
   if (q.title !== undefined) patch.title = q.title;
   if (q.body !== undefined) patch.body = q.body;
   if (q.taskIds !== undefined) patch.task_ids = q.taskIds;
-  if (q.imageUrl !== undefined) {
-    const imageUrl = q.imageUrl || null;
-    if (imageUrl?.startsWith("solidworks/") && !imageUrl.startsWith(`solidworks/${user.id}/`)) {
+  if (q.imageUrls !== undefined) {
+    if (q.imageUrls.some((url) => url.startsWith("solidworks/") && !url.startsWith(`solidworks/${user.id}/`))) {
       throw badRequest("Upload your screenshot first.");
     }
-    patch.image_url = imageUrl;
+    patch.image_urls = q.imageUrls;
   }
-  return withQuestionImage(must(await db.from("sw_questions").update(patch).eq("id", id).select(Q_SELECT).single()));
+  return attachImageUrls(must(await db.from("sw_questions").update(patch).eq("id", id).select(Q_SELECT).single()));
 }
 
 export async function respond(id: string, adminId: string, body: string) {
   must(await db.from("sw_responses").insert({ question_id: id, body, responder_id: adminId }).select().single());
   await db.from("sw_questions").update({ updated_at: new Date().toISOString() }).eq("id", id);
-  return withQuestionImage(must(await db.from("sw_questions").select(Q_SELECT).eq("id", id).single()));
+  return attachImageUrls(must(await db.from("sw_questions").select(Q_SELECT).eq("id", id).single()));
 }
 
 // ---------- Members ----------

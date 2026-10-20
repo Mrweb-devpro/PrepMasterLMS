@@ -86,11 +86,10 @@ const mockSwService = {
   },
   async createQuestion(input: NewQuestion) {
     await delay();
-    const { imageFile, ...question } = input;
-    const imageUrl = imageFile ? URL.createObjectURL(imageFile) : input.imageUrl;
+    const { imageFiles, imageUrls = [], ...question } = input;
     const q: SwQuestion = {
       ...question,
-      ...(imageUrl ? { imageUrl } : {}),
+      imageUrls: imageFiles ? imageFiles.map((file) => URL.createObjectURL(file)) : imageUrls,
       id: uid("q"),
       createdAt: nowIso(),
       updatedAt: nowIso(),
@@ -103,11 +102,11 @@ const mockSwService = {
     await delay();
     const q = db.questions.find((x) => x.id === id);
     if (!q) throw notFound("Question");
-    const { imageFile, imageUrl, ...question } = patch;
+    const { imageFiles, imageUrls, ...question } = patch;
     Object.assign(
       q,
       question,
-      ...(imageFile ? [{ imageUrl: URL.createObjectURL(imageFile) }] : imageUrl !== undefined ? [{ imageUrl }] : []),
+      ...(imageFiles ? [{ imageUrls: imageFiles.map((file) => URL.createObjectURL(file)) }] : imageUrls !== undefined ? [{ imageUrls }] : []),
       { updatedAt: nowIso() },
     );
     return clone(q);

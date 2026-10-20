@@ -60,9 +60,9 @@ export function QuestionsPage() {
             <span className="flex items-center justify-between gap-2">
               <span className="text-2xs text-text-muted">{formatDate(q.createdAt)}</span>
               <span className="flex items-center gap-2">
-                {q.imageUrl && (
+                {q.imageUrls.length > 0 && (
                   <span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-2xs text-text-muted">
-                    <ImageIcon className="size-3" /> Screenshot
+                    <ImageIcon className="size-3" /> {q.imageUrls.length} screenshot{q.imageUrls.length === 1 ? "" : "s"}
                   </span>
                 )}
                 <AnsweredPill count={q.responses.length} />

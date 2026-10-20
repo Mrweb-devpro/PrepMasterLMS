@@ -143,11 +143,7 @@ export const swQuestionBody = z.object({
   title: z.string().min(3).max(150),
   body: z.string().min(1).max(5000),
   taskIds: z.array(uuid).max(20).default([]),
-  imageUrl: z.union([
-    z.string().url(),
-    z.string().regex(/^solidworks\/[a-zA-Z0-9/_-]+$/).max(400),
-    z.literal(""),
-  ]).nullable().optional(),
+  imageUrls: z.array(z.string().min(1).max(500)).max(2).default([]),
 });
 export const swQuestionPatchBody = swQuestionBody.partial();
 export const swResponseBody = z.object({ body: z.string().min(1).max(5000) });

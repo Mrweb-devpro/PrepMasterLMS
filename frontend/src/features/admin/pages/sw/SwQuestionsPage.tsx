@@ -127,7 +127,9 @@ export function SwQuestionsPage() {
                       ))}
                     </div>
                   )}
-                  {x.imageUrl && <QuestionImageAttachment imageUrl={x.imageUrl} onZoom={setZoomedImage} />}
+                  {x.imageUrls.map((imageUrl) => (
+                    <QuestionImageAttachment key={imageUrl} imageUrl={imageUrl} onZoom={setZoomedImage} />
+                  ))}
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <span className="text-xs text-text-muted">
                       {answered
@@ -168,7 +170,9 @@ export function SwQuestionsPage() {
                   ))}
                 </div>
               )}
-              {active.imageUrl && <QuestionImageAttachment imageUrl={active.imageUrl} onZoom={setZoomedImage} />}
+              {active.imageUrls.map((imageUrl) => (
+                <QuestionImageAttachment key={imageUrl} imageUrl={imageUrl} onZoom={setZoomedImage} />
+              ))}
               {active.responses.map((r) => (
                 <div key={r.id} className="rounded-md bg-primary-soft p-3 text-sm">
                   {r.body}
