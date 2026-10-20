@@ -3,7 +3,7 @@ import { z } from "zod";
 import { analyzeResults } from "./insights.server";
 
 export const analyzeCbtResults = createServerFn({ method: "POST" })
-  .inputValidator((d) =>
+  .validator((d) =>
     z
       .object({
         cbtTitle: z.string(),
