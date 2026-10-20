@@ -15,6 +15,8 @@ create table public.profiles (
   last_name text not null default '',
   email text not null,
   provider text not null default 'email',       -- email | google
+  gender text check (gender in ('male', 'female', 'other', 'prefer_not_to_say')),
+  avatar_url text check (char_length(avatar_url) <= 500),
   faculty text,
   department text,
   level text,
@@ -119,7 +121,8 @@ create table public.cbt_attempts (
   submit_attempted_at timestamptz,
   status public.attempt_status not null default 'in_progress',
   score integer,
-  total integer
+  total integer,
+  flagged_question_ids text[] not null default '{}'
 );
 create index on public.cbt_attempts (user_id, cbt_id);
 create unique index one_open_attempt on public.cbt_attempts (cbt_id, user_id) where status = 'in_progress';
@@ -207,12 +210,23 @@ returns boolean language sql stable security definer set search_path = public as
 $$;
 
 -- New sign-ups get a profile + student role. Names come from sign-up metadata or Google.
+create or replace function public.dicebear_avatar_url(_id uuid, _gender text)
+returns text language sql immutable set search_path = public as $$
+  select 'https://api.dicebear.com/9.x/adventurer/svg?seed=' || _id::text
+    || '&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf'
+    || case _gender
+      when 'male' then '&hair=short01,short02,short03,short04,short05,short06,short07,short08,short09,short10,short11,short12,short13,short14,short15,short16'
+      when 'female' then '&hair=long01,long02,long03,long04,long05,long06,long07,long08,long09,long10,long11,long12,long13,long14,long15,long16,long17,long18,long19,long20'
+      else ''
+    end
+$$;
+
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
 declare
   full_name text := coalesce(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', '');
 begin
-  insert into public.profiles (id, email, first_name, last_name, provider, faculty, department, level, dob, heard, user_type, gender)
+  insert into public.profiles (id, email, first_name, last_name, provider, faculty, department, level, dob, heard, user_type, gender, avatar_url)
   values (
     new.id,
     new.email,
@@ -225,7 +239,8 @@ begin
     nullif(new.raw_user_meta_data->>'dob', '')::date,
     nullif(new.raw_user_meta_data->>'heard', ''),
     case when new.raw_user_meta_data->>'user_type' in ('student', 'freelancer') then new.raw_user_meta_data->>'user_type' end,
-    case when new.raw_user_meta_data->>'gender' in ('male', 'female', 'other', 'prefer_not_to_say') then new.raw_user_meta_data->>'gender' end
+    case when new.raw_user_meta_data->>'gender' in ('male', 'female', 'other', 'prefer_not_to_say') then new.raw_user_meta_data->>'gender' end,
+    public.dicebear_avatar_url(new.id, new.raw_user_meta_data->>'gender')
   );
   insert into public.user_roles (user_id, role) values (new.id, 'student');
   return new;
@@ -282,6 +297,51 @@ alter table public.profiles
   add constraint profiles_gender_check
   check (gender in ('male', 'female', 'other', 'prefer_not_to_say'));
 
+-- Ensure all sign-up providers receive a deterministic Adventurer avatar.
+create or replace function public.dicebear_avatar_url(_id uuid, _gender text)
+returns text language sql immutable set search_path = public as $$
+  select 'https://api.dicebear.com/9.x/adventurer/svg?seed=' || _id::text
+    || '&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf'
+    || case _gender
+      when 'male' then '&hair=short01,short02,short03,short04,short05,short06,short07,short08,short09,short10,short11,short12,short13,short14,short15,short16'
+      when 'female' then '&hair=long01,long02,long03,long04,long05,long06,long07,long08,long09,long10,long11,long12,long13,long14,long15,long16,long17,long18,long19,long20'
+      else ''
+    end
+$$;
+
+create or replace function public.handle_new_user()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare
+  full_name text := coalesce(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', '');
+begin
+  insert into public.profiles (id, email, first_name, last_name, provider, faculty, department, level, dob, heard, user_type, gender, avatar_url)
+  values (
+    new.id,
+    new.email,
+    coalesce(nullif(new.raw_user_meta_data->>'first_name', ''), split_part(full_name, ' ', 1)),
+    coalesce(nullif(new.raw_user_meta_data->>'last_name', ''), nullif(substr(full_name, length(split_part(full_name, ' ', 1)) + 2), ''), ''),
+    coalesce(new.raw_app_meta_data->>'provider', 'email'),
+    nullif(new.raw_user_meta_data->>'faculty', ''),
+    nullif(new.raw_user_meta_data->>'department', ''),
+    nullif(new.raw_user_meta_data->>'level', ''),
+    nullif(new.raw_user_meta_data->>'dob', '')::date,
+    nullif(new.raw_user_meta_data->>'heard', ''),
+    case when new.raw_user_meta_data->>'user_type' in ('student', 'freelancer') then new.raw_user_meta_data->>'user_type' end,
+    case when new.raw_user_meta_data->>'gender' in ('male', 'female', 'other', 'prefer_not_to_say') then new.raw_user_meta_data->>'gender' end,
+    public.dicebear_avatar_url(new.id, new.raw_user_meta_data->>'gender')
+  );
+  insert into public.user_roles (user_id, role) values (new.id, 'student');
+  return new;
+end $$;
+
+update public.profiles
+set avatar_url = public.dicebear_avatar_url(id, gender)
+where avatar_url is null;
+
 -- SolidWorks question screenshot upgrade (idempotent).
 alter table public.sw_questions add column if not exists image_url text;
 alter table public.sw_questions add column if not exists image_urls text[] not null default '{}';
+
+-- CBT attempt flags upgrade (idempotent).
+alter table public.cbt_attempts
+  add column if not exists flagged_question_ids text[] not null default '{}';

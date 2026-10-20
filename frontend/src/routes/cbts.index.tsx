@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, CalendarClock, Clock3, ListChecks, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { StudentShell } from "@/components/prep/StudentShell";
+import { CbtMonitorIllustration } from "@/components/common/EmptyStateIllustration";
 import { EmptyState, PageHeader, PaidPill } from "@/components/prep/bits";
 import { cbtStatusPill } from "@/features/cbt/utils/cbt-status";
 import { formatDateTime } from "@/lib/mock-data";
@@ -30,8 +31,9 @@ export const Route = createFileRoute("/cbts/")({
 function CbtsPage() {
   const prep = usePrep();
   const { cbts, getCourse, loading } = useCatalog();
-  const [tab, setTab] = useState<"practice" | "live">("practice");
-  const list = cbts.filter((c) => c.kind === tab);
+  const [tab, setTab] = useState<"all" | "practice" | "live">("all");
+  const list = tab === "all" ? cbts : cbts.filter((cbt) => cbt.kind === tab);
+  const hasLiveCbt = cbts.some((cbt) => cbt.status === "live");
 
   return (
     <StudentShell>
@@ -41,7 +43,7 @@ function CbtsPage() {
       />
 
       <div className="mb-6 inline-flex rounded-md border border-border bg-surface p-1 shadow-sm">
-        {(["practice", "live"] as const).map((t) => (
+        {(["all", "practice", "live"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -52,7 +54,21 @@ function CbtsPage() {
                 : "text-text-secondary hover:text-foreground",
             )}
           >
-            {t === "practice" ? "Practice sets" : "Live exams"}
+            {t === "all" ? (
+              "All"
+            ) : t === "practice" ? (
+              "Practice sets"
+            ) : (
+              <span className="inline-flex items-center gap-1.5">
+                Live exams
+                {hasLiveCbt && (
+                  <span className="relative flex size-2">
+                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-error opacity-75" />
+                    <span className="relative inline-flex size-2 rounded-full bg-error" />
+                  </span>
+                )}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -63,11 +79,20 @@ function CbtsPage() {
         </div>
       ) : list.length === 0 ? (
         <EmptyState
-          title={tab === "practice" ? "No practice CBTs available" : "No live CBTs scheduled"}
+          illustration={<CbtMonitorIllustration />}
+          title={
+            tab === "all"
+              ? "No CBTs available"
+              : tab === "practice"
+                ? "No practice CBTs available"
+                : "No live exams scheduled"
+          }
           description={
-            tab === "practice"
-              ? "Practice CBTs will appear here when they are available."
-              : "Your upcoming live exams will appear here once they are scheduled."
+            tab === "all"
+              ? "CBTs will appear here when added."
+              : tab === "practice"
+                ? "Practice CBTs will appear here when they are available."
+                : "Scheduled live exams will appear here."
           }
         />
       ) : (

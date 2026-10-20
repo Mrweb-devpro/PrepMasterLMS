@@ -20,6 +20,48 @@ export function CbtEmptyIllustration({ className }: IllustrationProps) {
   );
 }
 
+/** Computer-based test catalogue empty state. */
+export function CbtMonitorIllustration({ className }: IllustrationProps) {
+  return (
+    <div className={cn("relative flex size-28 items-center justify-center", className)}>
+      <svg viewBox="0 0 120 120" fill="none" className="size-full text-primary" aria-hidden="true">
+        <rect
+          x="16"
+          y="16"
+          width="88"
+          height="88"
+          rx="12"
+          className="stroke-border"
+          strokeWidth="1.2"
+          strokeDasharray="3 3"
+        />
+        <rect
+          x="26"
+          y="26"
+          width="68"
+          height="46"
+          rx="5"
+          className="fill-surface stroke-border-strong"
+          strokeWidth="1.5"
+        />
+        <path d="M60 72v8M46 80h28" className="stroke-border-strong" strokeWidth="2" strokeLinecap="round" />
+        <line x1="32" y1="34" x2="52" y2="34" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.8" />
+        <circle cx="36" cy="44" r="2" className="fill-primary" />
+        <line x1="42" y1="44" x2="68" y2="44" className="stroke-text-muted" strokeWidth="1.5" strokeLinecap="round" />
+        <circle cx="36" cy="52" r="2" className="stroke-text-muted" strokeWidth="1" />
+        <line x1="42" y1="52" x2="62" y2="52" className="stroke-text-muted" strokeWidth="1.5" strokeLinecap="round" />
+        <circle cx="36" cy="60" r="2" className="stroke-text-muted" strokeWidth="1" />
+        <line x1="42" y1="60" x2="58" y2="60" className="stroke-text-muted" strokeWidth="1.5" strokeLinecap="round" />
+        <circle cx="82" cy="74" r="15" className="fill-surface stroke-primary" strokeWidth="2" />
+        <line x1="82" y1="56" x2="82" y2="59" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        <line x1="82" y1="74" x2="82" y2="67" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        <line x1="82" y1="74" x2="88" y2="74" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        <circle cx="82" cy="74" r="1.5" className="fill-primary" />
+      </svg>
+    </div>
+  );
+}
+
 export function DriveEmptyIllustration({ className }: IllustrationProps) {
   return (
     <div className={cn("flex size-28 items-center justify-center", className)}>

@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { useSession } from "@/features/auth/session";
-import { catalogKey, useCatalogQuery } from "@/features/catalog/useCatalog";
+import { catalogKey, updateMockMaterial, useCatalogQuery } from "@/features/catalog/useCatalog";
 import { api, toKobo } from "./api/client";
 import { LIVE } from "./api/config";
 import {
@@ -10,7 +10,9 @@ import {
   courses as seedCourses,
   students as seedStudents,
   type Cbt,
+  type CategorySlug,
   type Course,
+  type Subfolder,
   type Student,
 } from "./mock-data";
 
@@ -26,6 +28,17 @@ interface AdminState {
   suspended: string[];
   /** Returns the new course's slug. */
   addCourse: (c: Course) => Promise<string>;
+  updateCourse: (
+    slugOrId: string,
+    patch: {
+      code?: string;
+      title?: string;
+      color?: string;
+      description?: string;
+      subfolders?: Record<CategorySlug, Subfolder[]>;
+    },
+  ) => Promise<void>;
+  moveMaterial: (materialId: string, targetCategory: CategorySlug, targetSubfolder: string) => Promise<void>;
   /** Returns the new CBT's id. */
   addCbt: (c: Cbt) => Promise<string>;
   toggleReveal: (id: string) => void;
@@ -120,6 +133,30 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           await refreshCatalog();
           return c.slug;
         },
+        updateCourse: async (slugOrId, patch) => {
+          const course = liveCourses.find((item) => item.id === slugOrId || item.slug === slugOrId);
+          if (!course?.id) throw new Error("Course not found");
+          const subfolders = patch.subfolders
+            ? (Object.keys(patch.subfolders) as CategorySlug[]).flatMap((category) =>
+                patch.subfolders![category].map((folder) => ({ category, slug: folder.slug, name: folder.name })),
+              )
+            : undefined;
+          await api.patch(`/courses/${course.id}`, {
+            ...(patch.code !== undefined ? { code: patch.code } : {}),
+            ...(patch.title !== undefined ? { title: patch.title } : {}),
+            ...(patch.color !== undefined ? { color: patch.color } : {}),
+            ...(patch.description !== undefined ? { description: patch.description } : {}),
+            ...(subfolders !== undefined ? { subfolders } : {}),
+          });
+          await refreshCatalog();
+        },
+        moveMaterial: async (materialId, targetCategory, targetSubfolder) => {
+          await api.patch(`/materials/${materialId}`, {
+            category: targetCategory,
+            subfolder: targetSubfolder,
+          });
+          await refreshCatalog();
+        },
         addCbt: async (c) => {
           const course = liveCourses.find((x) => x.slug === c.courseSlug);
           if (!course?.id) throw new Error("Pick a course first");
@@ -200,6 +237,16 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       addCourse: async (c) => {
         setCourses((p) => [c, ...p]);
         return c.slug;
+      },
+      updateCourse: async (slugOrId, patch) => {
+        setCourses((items) =>
+          items.map((course) =>
+            course.id === slugOrId || course.slug === slugOrId ? { ...course, ...patch } : course,
+          ),
+        );
+      },
+      moveMaterial: async (materialId, targetCategory, targetSubfolder) => {
+        updateMockMaterial(materialId, { category: targetCategory, subfolderSlug: targetSubfolder });
       },
       addCbt: async (c) => {
         setCbts((p) => [c, ...p]);

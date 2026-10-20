@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { AuthLayout } from "@/components/prep/AuthLayout";
 import {
   DobField,
+  GenderField,
   HeardField,
   NameFields,
   StudyFields,
@@ -33,7 +34,7 @@ export function OnboardingPage() {
   const steps = useMemo<StepKey[]>(() => {
     if (!user) return [];
     const s: StepKey[] = [];
-    if (!user.firstName || !user.lastName) s.push("names");
+    if (!user.firstName || !user.lastName || !user.gender) s.push("names");
     if (!user.faculty || !user.course || !user.level) s.push("study");
     if (!user.heard) s.push("heard");
     return s;
@@ -179,7 +180,10 @@ export function OnboardingPage() {
       {key === "names" && (
         <StepCard {...common} title="About you" onNext={advance(checks.names)}>
           <NameFields value={draft} onChange={patch} />
-          <DobField value={draft} onChange={patch} />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <DobField value={draft} onChange={patch} />
+            <GenderField value={draft.gender} onChange={(gender) => patch({ gender })} />
+          </div>
         </StepCard>
       )}
       {key === "study" && (

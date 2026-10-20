@@ -87,7 +87,8 @@ export const cbtApi = {
       questionId,
       selectedIndex,
     }),
-  submit: (attemptId: string) => api.post<ResultResponse>(`/attempts/${attemptId}/submit`),
+  submit: (attemptId: string, flaggedQuestionIds: string[] = []) =>
+    api.post<ResultResponse>(`/attempts/${attemptId}/submit`, { flaggedQuestionIds }),
   result: (attemptId: string) => api.get<ResultResponse>(`/attempts/${attemptId}/result`),
   mine: async () => (await api.get<AttemptRow[]>("/attempts")).map(toSummary),
 };

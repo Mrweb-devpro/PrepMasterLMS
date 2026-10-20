@@ -3,7 +3,7 @@ import { zValidator } from "@hono/zod-validator";
 import { requireAdmin } from "../middleware/auth.js";
 import * as course from "../services/course.service.js";
 import type { AppEnv } from "../models/types.js";
-import { createCourseBody, idParam, materialBody, subfolderBody, updateMaterialBody, uploadBody } from "../validators/schemas.js";
+import { createCourseBody, idParam, materialBody, subfolderBody, updateCourseBody, updateMaterialBody, uploadBody } from "../validators/schemas.js";
 
 export const catalogController = new Hono<AppEnv>()
   .get("/", async (c) => c.json(await course.catalog(c.get("user").id, c.get("user").role === "admin")));
@@ -11,6 +11,8 @@ export const catalogController = new Hono<AppEnv>()
 export const coursesController = new Hono<AppEnv>()
   .use(requireAdmin)
   .post("/", zValidator("json", createCourseBody), async (c) => c.json(await course.createCourse(c.req.valid("json")), 201))
+  .patch("/:id", zValidator("param", idParam), zValidator("json", updateCourseBody), async (c) =>
+    c.json(await course.updateCourse(c.req.valid("param").id, c.req.valid("json"))))
   .delete("/:id", zValidator("param", idParam), async (c) => c.json(await course.deleteCourse(c.req.valid("param").id)))
   .post("/:id/subfolders", zValidator("param", idParam), zValidator("json", subfolderBody), async (c) =>
     c.json(await course.addSubfolder(c.req.valid("param").id, c.req.valid("json")), 201))

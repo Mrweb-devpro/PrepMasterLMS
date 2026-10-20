@@ -67,6 +67,68 @@ export async function addSubfolder(courseId: string, s: { category: string; slug
   return must(await db.from("course_subfolders").insert({ ...s, course_id: courseId }).select().single());
 }
 
+export async function updateCourse(
+  courseId: string,
+  input: {
+    code?: string;
+    title?: string;
+    color?: string;
+    description?: string;
+    subfolders?: { category: string; slug: string; name: string }[];
+  },
+) {
+  const { subfolders, ...courseFields } = input;
+  must<{ id: string }>(
+    await db.from("courses").select("id").eq("id", courseId).maybeSingle(),
+    "Course not found.",
+  );
+
+  if (Object.keys(courseFields).length > 0) {
+    must(
+      await db.from("courses").update(courseFields).eq("id", courseId).select("id").single(),
+      "Course not found.",
+    );
+  }
+
+  if (subfolders) {
+    const existing = must<{ id: string; category: string; slug: string }[]>(
+      await db.from("course_subfolders").select("id, category, slug").eq("course_id", courseId),
+    );
+    const requested = new Set(subfolders.map((folder) => `${folder.category}:${folder.slug}`));
+    const removed = existing.filter((folder) => !requested.has(`${folder.category}:${folder.slug}`));
+
+    for (const folder of removed) {
+      const materials = must<{ id: string }[]>(
+        await db
+          .from("course_materials")
+          .select("id")
+          .eq("course_id", courseId)
+          .eq("category", folder.category)
+          .eq("subfolder", folder.slug)
+          .limit(1),
+      );
+      if (materials.length > 0) {
+        throw badRequest("Move materials out of a folder before removing it.");
+      }
+    }
+
+    if (subfolders.length > 0) {
+      const { error } = await db.from("course_subfolders").upsert(
+        subfolders.map((folder) => ({ ...folder, course_id: courseId })),
+        { onConflict: "course_id,category,slug" },
+      );
+      if (error) throw badRequest(error.message);
+    }
+
+    if (removed.length > 0) {
+      const { error } = await db.from("course_subfolders").delete().in("id", removed.map((folder) => folder.id));
+      if (error) throw badRequest(error.message);
+    }
+  }
+
+  return { success: true };
+}
+
 export async function deleteCourse(courseId: string) {
   must(await db.from("courses").delete().eq("id", courseId).select("id"));
   return { deleted: true };

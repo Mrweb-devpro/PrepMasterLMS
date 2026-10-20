@@ -44,6 +44,7 @@ Avatar profile fields: `gender: "male" | "female" | "other" | "prefer_not_to_say
 | Method | Path                      | Body                                                                                      |
 | ------ | ------------------------- | ----------------------------------------------------------------------------------------- |
 | POST   | `/courses`                | `{ title, slug, description? }`                                                           |
+| PATCH  | `/courses/:id`            | `{ code?, title?, color?, description?, subfolders? }`; removed folders must be empty.   |
 | DELETE | `/courses/:id`            | —                                                                                         |
 | POST   | `/courses/:id/subfolders` | `{ name, category }`                                                                      |
 | POST   | `/courses/:id/uploads`    | `{ filename, contentType }` → `{ uploadUrl, key }` (presigned PUT, upload directly to R2) |
@@ -63,7 +64,7 @@ Avatar profile fields: `gender: "male" | "female" | "other" | "prefer_not_to_say
 | -------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | POST                 | `/cbts/:id/start` | → `{ attempt: { id, started_at, deadline, status }, questions }`. Resumes an active attempt if one exists. Questions never include the correct answer.      |
 | POST                 | `/cbts/admin`     | Admin create `{ title, course_id, mode: "practice" \| "live", duration_minutes, status: "draft" \| "pending" \| "live", show_results, price, questions[] }` |
-| GET / PATCH / DELETE | `/cbts/admin/:id` | Admin read / edit (details + questions, any status) / delete                                                                                                |
+| GET / PATCH / DELETE | `/cbts/admin/:id` | Admin read / edit (details + questions, attempts, any status) / delete                                                                                     |
 
 ## Attempts
 
@@ -71,7 +72,7 @@ Avatar profile fields: `gender: "male" | "female" | "other" | "prefer_not_to_say
 | ------ | ----------------------- | ----------------------------------------------------------------------- |
 | GET    | `/attempts`             | Current user's attempts                                                 |
 | PUT    | `/attempts/:id/answers` | `{ question_id, option_index }` — rejected (409) after `deadline + 45s` |
-| POST   | `/attempts/:id/submit`  | → `{ score, total, status: "submitted" \| "timed_out" }`                |
+| POST   | `/attempts/:id/submit`  | `{ flaggedQuestionIds?: uuid[] }` → `{ score, total, status: "submitted" \| "timed_out" }` |
 | GET    | `/attempts/:id/result`  | Full review (options, correct, chosen). 403 when CBT hides results.     |
 
 ## Payments

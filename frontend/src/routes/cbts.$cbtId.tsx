@@ -12,6 +12,7 @@ import { LIVE } from "@/lib/api/config";
 import { usePrep } from "@/lib/prep-store";
 import { cbtStatusPill } from "@/features/cbt/utils/cbt-status";
 import { useConfirm } from "@/components/common/ConfirmDialog";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/cbts/$cbtId")({
   head: () => ({
@@ -46,6 +47,7 @@ function CbtDetail() {
   const course = getCourse(cbt.courseSlug);
   const locked = cbt.paid && !prep.ownsCbt(cbt.id);
   const canStart = !cbt.paused && (cbt.kind === "practice" || cbt.status === "live");
+  const isScheduled = Boolean(cbt.scheduledFor);
 
   return (
     <StudentShell>
@@ -74,13 +76,17 @@ function CbtDetail() {
                 l: "Schedule",
                 v: cbt.scheduledFor ? formatDateTime(cbt.scheduledFor) : "Anytime",
               },
-            ].map((s) => (
-              <Card key={s.l} className="p-4">
-                <s.i className="size-4 text-primary" />
-                <p className="mt-2 text-xs text-text-muted">{s.l}</p>
-                <p className="text-sm font-semibold">{s.v}</p>
+            ].map((s) => {
+              const isSchedule = s.l === "Schedule";
+              const highlight = isSchedule && isScheduled;
+              return (
+              <Card key={s.l} className={cn("p-4", highlight && "border-error/40 bg-error-bg/60 dark:bg-error-bg/30")}>
+                <s.i className={cn("size-4", highlight ? "text-error" : "text-primary")} />
+                <p className={cn("mt-2 text-xs", highlight ? "font-medium text-error/80" : "text-text-muted")}>{s.l}</p>
+                <p className={cn("text-sm font-semibold", highlight && "text-error")}>{s.v}</p>
               </Card>
-            ))}
+              );
+            })}
           </div>
 
           <Card className="mt-6">

@@ -11,12 +11,14 @@ import { LIVE } from "@/lib/api/config";
 import { supabase } from "@/lib/api/supabase";
 import { isMainProfileComplete } from "@/features/auth/utils/profile";
 import { EmailDeliveryNotice } from "../components/EmailDeliveryNotice";
+import { clearAuthLinkError, hasInvalidAuthLink } from "../utils/auth-link";
 
 export function ResetPasswordPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [invalidRecoveryLink, setInvalidRecoveryLink] = useState(() => LIVE && hasInvalidAuthLink());
   const [hasRecoverySession, setHasRecoverySession] = useState(!LIVE);
-  const [checking, setChecking] = useState(LIVE);
+  const [checking, setChecking] = useState(() => LIVE && !hasInvalidAuthLink());
   const [submitting, setSubmitting] = useState(false);
   const [passwordUpdated, setPasswordUpdated] = useState(false);
   const { updatePassword, refreshSession } = useAuthActions();
@@ -24,6 +26,17 @@ export function ResetPasswordPage() {
 
   useEffect(() => {
     if (!LIVE) return;
+    if (hasInvalidAuthLink()) {
+      setInvalidRecoveryLink(true);
+      setHasRecoverySession(false);
+      setChecking(false);
+      toast.error("Password reset link is invalid or expired", {
+        description: "Request a new password reset email and use the newest link.",
+        duration: 12000,
+      });
+      clearAuthLinkError();
+      return;
+    }
     let active = true;
     const auth = supabase().auth;
     const { data: { subscription } } = auth.onAuthStateChange((event, session) => {
@@ -106,7 +119,7 @@ export function ResetPasswordPage() {
             <Link to="/forgot-password">Request new password link</Link>
           </Button>
         </div>
-      ) : !hasRecoverySession ? (
+      ) : invalidRecoveryLink || !hasRecoverySession ? (
         <div role="alert" className="space-y-4 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-center text-sm text-foreground">
           <p>This reset link has expired or was already used. Please request a new one.</p>
           <Button asChild className="w-full">

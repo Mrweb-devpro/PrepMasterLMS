@@ -22,6 +22,17 @@ import { SessionProvider } from "../features/auth/session";
 import { ConfirmProvider } from "../components/common/ConfirmDialog";
 import { DemoSwitcher } from "../features/auth/components/DemoSwitcher";
 import { NotFoundIllustration } from "@/components/common/NotFoundIllustration";
+import { hasInvalidAuthLink } from "@/features/auth/utils/auth-link";
+
+function AuthLinkErrorRedirect() {
+  useEffect(() => {
+    if (!hasInvalidAuthLink()) return;
+    const path = window.location.pathname;
+    if (path === "/login" || path === "/reset-password") return;
+    window.location.replace("/login?authLink=invalid");
+  }, []);
+  return null;
+}
 
 function NotFoundComponent() {
   return (
@@ -169,6 +180,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
+        <AuthLinkErrorRedirect />
         <SessionProvider>
           <ConfirmProvider>
             <PrepProvider>

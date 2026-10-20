@@ -27,6 +27,9 @@ export const checkEmailBody = z.object({ email: z.string().trim().email().max(32
 
 // ---------- CBTs ----------
 export const saveAnswerBody = z.object({ questionId: uuid, selectedIndex: z.number().int().min(0).max(5) });
+export const submitAttemptBody = z.object({
+  flaggedQuestionIds: z.array(uuid).max(300).optional(),
+});
 
 export const createCbtBody = z.object({
   courseId: uuid,
@@ -74,6 +77,14 @@ export const createCourseBody = z.object({
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/).default("#3b6cff"),
   description: z.string().max(2000).default(""),
   subfolders: z.array(z.object({ category, slug, name: z.string().min(1).max(80) })).max(100).default([]),
+});
+
+export const updateCourseBody = z.object({
+  code: z.string().min(2).max(20).optional(),
+  title: z.string().min(3).max(150).optional(),
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  description: z.string().max(2000).optional(),
+  subfolders: z.array(z.object({ category, slug, name: z.string().min(1).max(80) })).max(100).optional(),
 });
 
 export const subfolderBody = z.object({ category, slug, name: z.string().min(1).max(80) });
