@@ -9,7 +9,11 @@ export const checks = {
         ? "Password must be at least 8 characters"
         : null,
   names: (d: ProfileDraft) =>
-    !d.firstName?.trim() || !d.lastName?.trim() ? "Enter your first and last name" : null,
+    !d.firstName?.trim() || !d.lastName?.trim()
+      ? "Enter your first and last name"
+      : !d.gender
+        ? "Select your gender"
+        : null,
   study: (d: ProfileDraft) =>
     !d.faculty
         ? "Choose your faculty"

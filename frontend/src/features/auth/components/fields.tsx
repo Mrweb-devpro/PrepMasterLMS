@@ -228,7 +228,7 @@ export function GenderField({
 }) {
   return (
     <SelectField
-      label="Gender (optional)"
+      label="Gender"
       value={value}
       options={[
         { value: "male", label: "Male" },
