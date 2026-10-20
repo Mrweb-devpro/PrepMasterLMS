@@ -50,7 +50,7 @@ Browser (TanStack Start app)
 - **Password recovery**: preserve the Supabase session after updating the password. `useAuthActions().refreshSession` invalidates and fetches `["auth", "session"]`, then updates the session context before routing to `/` or `/onboarding` using `isMainProfileComplete`. Profile reload failures stay on the reset page and can be retried without updating the password again.
 - **Email verification**: `/login` redirects once the session profile is hydrated, checking `isMainProfileComplete` before honoring the return path or admin destination. Unconfirmed email errors show a 12-second toast with spam guidance and a resend action tied to the attempted email. Expired, invalid, or already-used confirmation links route to `/login`, show dedicated guidance, and offer a resend action after the user enters their email. Expired reset links show the reset-page error card and a fresh-link action. Resent signup links return to `/login`.
 - **Stores**: `prep-store.tsx` (owned items, attempts, purchases), `admin-store.tsx` (admin data).
-- **CBT**: `features/cbt/hooks/useLiveAttempt.ts` — server deadline, autosave per answer, auto-submit at zero, resume on refresh. Question flags are persisted with submission as question IDs, then mapped to positions for the admin attempt history.
+- **CBT**: Live CBTs require an opening and closing timestamp. The server caps each attempt deadline at the closing time, blocks starts, answer saves, and new purchases after closure, and finalizes an in-progress attempt when an answer arrives after the live window. `useCatalog()` refetches at the next live close so live badges and student actions update without a reload. Question flags are persisted with submission as question IDs, then mapped to positions for the admin attempt history.
 - **Files**: `features/drive/utils/files.ts` `loadViewable` → `/materials/:id/download` (signed URL) → `FileViewer`.
 - **Payments**: `payments.api.ts` `startCheckout` (saves return path) → Paystack → `/payment/callback?reference=` → `POST /payments/:ref/verify`.
 - **AI**: TanStack server functions in `src/lib/ai/` (only server code touches keys).
@@ -79,7 +79,7 @@ Rule: controllers validate and call services; services own logic and database ac
 
 ## Key decisions
 
-1. **Server owns the CBT clock**: deadline stored at start, 45s grace, late answers rejected, expiry sweep closes abandoned attempts.
+1. **Server owns the CBT clock**: deadline stored at start, capped by the live CBT close time, with 45s grace for ordinary deadline expiry. A closed live window immediately blocks starts, answer saves, and purchases; expiry sweep closes abandoned attempts.
 2. **Server-priced payments**: the client never sends amounts; payment verified server-side (webhook is backup).
 3. **Private files**: R2 is private; only short-lived signed URLs leave the server.
 4. **Direct Supabase SDK, no ORM.** No load balancer, no raw WebSockets (~300 users; Supabase Realtime if needed).

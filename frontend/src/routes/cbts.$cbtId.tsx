@@ -48,6 +48,13 @@ function CbtDetail() {
   const locked = cbt.paid && !prep.ownsCbt(cbt.id);
   const canStart = !cbt.paused && (cbt.kind === "practice" || cbt.status === "live");
   const isScheduled = Boolean(cbt.scheduledFor);
+  const isLiveClosed =
+    cbt.kind === "live" && cbt.status !== "live" && cbt.status !== "upcoming";
+  const completedAttempt = prep.attempts.find((attempt) => attempt.cbtId === cbt.id);
+  const score =
+    completedAttempt?.correct !== null && completedAttempt?.correct !== undefined && completedAttempt.total > 0
+      ? Math.round((completedAttempt.correct / completedAttempt.total) * 100)
+      : null;
 
   return (
     <StudentShell>
@@ -104,19 +111,40 @@ function CbtDetail() {
             </ul>
           </Card>
 
-          {cbt.status === "past-results-shown" && (
+          {cbt.status === "past-results-shown" && score !== null && (
             <Card className="mt-6 flex items-center gap-4 border-success/30 bg-success-bg">
               <Trophy className="size-8 text-success" />
               <div>
                 <p className="text-sm text-text-secondary">Your score</p>
-                <p className="font-display text-2xl font-semibold">{cbt.score}%</p>
+                <p className="font-display text-2xl font-semibold">{score}%</p>
               </div>
             </Card>
           )}
         </div>
 
         <Card className="h-fit lg:sticky lg:top-24">
-          {locked ? (
+          {isLiveClosed ? (
+            <>
+              <p className="font-semibold">Exam ended</p>
+              <p className="mt-1 text-sm text-text-secondary">
+                {cbt.closesAt
+                  ? `This live exam closed on ${formatDateTime(cbt.closesAt)}. Access and purchases are closed.`
+                  : "The testing window for this scheduled exam has ended."}
+              </p>
+              <Button className="mt-4 w-full" disabled>
+                Exam closed
+              </Button>
+              {cbt.status === "past-results-shown" && completedAttempt && (
+                <Link
+                  to="/attempts/$attemptId"
+                  params={{ attemptId: completedAttempt.id }}
+                  className="mt-3 block text-center text-sm font-medium text-primary hover:underline"
+                >
+                  View results
+                </Link>
+              )}
+            </>
+          ) : locked ? (
             <>
               <span className="flex size-10 items-center justify-center rounded-full bg-gold-bg text-gold-text">
                 <Lock className="size-5" />

@@ -15,6 +15,7 @@ import { useMainAppGuard } from "@/features/auth/hooks/useGuards";
 import { useSession } from "@/features/auth/session";
 import { fullName } from "@/features/auth/utils/profile";
 import { ProfileAvatar } from "@/features/auth/components/ProfileAvatar";
+import { useCatalog } from "@/features/catalog/useCatalog";
 import { cn } from "@/lib/utils";
 import { WarningNoticeDialog } from "./WarningNoticeDialog";
 
@@ -60,13 +61,15 @@ function StudentFooter() {
 export function StudentShell({ children }: { children: ReactNode }) {
   const ready = useMainAppGuard();
   const { user } = useSession();
+  const { cbts } = useCatalog();
   const isSwRegistered = Boolean(user?.swRegistered);
+  const hasLiveCbt = cbts.some((cbt) => cbt.status === "live");
   const groups: NavGroup[] = [
     {
       items: [
         { to: "/", label: "Home", icon: Home, exact: true },
         { to: "/drive", label: "Drive", icon: FolderClosed },
-        { to: "/cbts", label: "CBTs", icon: MonitorCheck },
+        { to: "/cbts", label: "CBTs", icon: MonitorCheck, liveIndicator: hasLiveCbt },
         { to: "/attempts", label: "My attempts", icon: History },
         { to: "/library", label: "My Library", icon: BookMarked },
       ],

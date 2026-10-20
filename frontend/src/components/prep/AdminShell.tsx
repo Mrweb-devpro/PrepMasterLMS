@@ -52,12 +52,19 @@ export function AdminShell({
 }) {
   const admin = useAdmin();
   const ready = useAdminGuard();
+  const hasLiveCbt = admin.cbts.some((cbt) => cbt.status === "live");
   const groups: NavGroup[] = [
     {
       items: [
         { to: "/admin", label: "Overview", icon: LayoutDashboard, exact: true },
         { to: "/admin/courses", label: "Courses", icon: FolderKanban, badge: admin.courses.length },
-        { to: "/admin/cbts", label: "CBTs", icon: MonitorCheck, badge: admin.cbts.length },
+        {
+          to: "/admin/cbts",
+          label: "CBTs",
+          icon: MonitorCheck,
+          badge: admin.cbts.length,
+          liveIndicator: hasLiveCbt,
+        },
         { to: "/admin/students", label: "Students", icon: Users },
         { to: "/admin/payments", label: "Payments", icon: CreditCard },
       ],

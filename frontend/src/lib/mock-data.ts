@@ -55,6 +55,8 @@ export interface Cbt {
   retakePolicy: string;
   status?: CbtStatus;
   scheduledFor?: string;
+    /** Live CBT only: the end of its testing and purchase window. */
+    closesAt?: string;
   revealResults?: boolean;
   score?: number;
   /** Real backend only: hidden from students until published. */

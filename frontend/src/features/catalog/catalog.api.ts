@@ -86,7 +86,13 @@ export function toCbt(c: CbtRow, courseSlug: string): Cbt {
     published: c.published,
     paused: !!c.paused,
     myAttempts: c.my_attempts,
-    ...(c.mode === "live" ? { status: liveStatus(c), scheduledFor: c.opens_at } : {}),
+    ...(c.mode === "live"
+      ? {
+          status: liveStatus(c),
+          scheduledFor: c.opens_at,
+          ...(c.closes_at ? { closesAt: c.closes_at } : {}),
+        }
+      : {}),
     questions: [], // questions only arrive when an attempt starts
   };
 }

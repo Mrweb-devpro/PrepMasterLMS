@@ -12,6 +12,7 @@ export interface NavItem {
   icon: LucideIcon;
   exact?: boolean;
   badge?: string | number;
+  liveIndicator?: boolean;
 }
 export interface NavGroup {
   label?: string;
@@ -53,7 +54,7 @@ function NavLinks({ groups, onNavigate }: { groups: NavGroup[]; onNavigate?: () 
                   onClick={onNavigate}
                   title={collapsed ? item.label : undefined}
                   className={cn(
-                    "group flex h-9 items-center gap-2.5 rounded-md px-2.5 text-sm transition-colors",
+                    "group relative flex h-9 items-center gap-2.5 rounded-md px-2.5 text-sm transition-colors",
                     collapsed && "justify-center px-0",
                     active
                       ? "bg-sidebar-active font-medium text-sidebar-foreground shadow-sm ring-1 ring-sidebar-border"
@@ -62,7 +63,28 @@ function NavLinks({ groups, onNavigate }: { groups: NavGroup[]; onNavigate?: () 
                 >
                   <item.icon className={cn("size-4 shrink-0", active && "text-primary")} />
                   {!collapsed && <span className="truncate">{item.label}</span>}
-                  {!collapsed && item.badge !== undefined && (
+                  {item.liveIndicator && (
+                    <span
+                      className={cn("flex items-center", collapsed ? "absolute right-1.5 top-1.5" : "ml-auto")}
+                      title="Live exam active"
+                    >
+                      {collapsed ? (
+                        <span className="relative flex size-2">
+                          <span className="absolute inline-flex size-full animate-ping rounded-full bg-error opacity-75" />
+                          <span className="relative inline-flex size-2 rounded-full bg-error" />
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-error/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-error">
+                          <span className="relative flex size-1.5">
+                            <span className="absolute inline-flex size-full animate-ping rounded-full bg-error opacity-75" />
+                            <span className="relative inline-flex size-1.5 rounded-full bg-error" />
+                          </span>
+                          Live
+                        </span>
+                      )}
+                    </span>
+                  )}
+                  {!collapsed && !item.liveIndicator && item.badge !== undefined && (
                     <span className="ml-auto rounded-full bg-primary-soft px-1.5 text-2xs font-medium text-primary">
                       {item.badge}
                     </span>
