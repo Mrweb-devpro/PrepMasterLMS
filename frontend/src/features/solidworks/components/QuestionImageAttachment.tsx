@@ -1,32 +1,27 @@
-import { ImageIcon, Maximize2, X } from "lucide-react";
+import { Maximize2, X } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 export function QuestionImageAttachment({ imageUrl, onZoom }: { imageUrl: string; onZoom: (url: string) => void }) {
   return (
-    <div className="pt-1">
-      <p className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-text-muted">
-        <ImageIcon className="size-3.5" /> Attached screenshot
-      </p>
-      <button
-        type="button"
-        onClick={(event) => {
-          event.stopPropagation();
-          onZoom(imageUrl);
-        }}
-        className="group relative inline-block cursor-zoom-in overflow-hidden rounded-lg border border-border bg-surface-subtle transition-all hover:border-primary/50 hover:shadow-md"
-      >
-        <img
-          src={imageUrl}
-          alt="Question attachment"
-          className="h-28 w-44 object-cover transition-transform group-hover:scale-105"
-        />
-        <span className="absolute inset-0 flex items-center justify-center bg-foreground/25 opacity-0 transition-colors group-hover:bg-foreground/35 group-hover:opacity-100">
-          <span className="flex items-center gap-1 rounded-full bg-background px-3 py-1 text-xs font-semibold text-foreground shadow-lg">
-            <Maximize2 className="size-3.5" /> Click to expand
-          </span>
+    <button
+      type="button"
+      onClick={(event) => {
+        event.stopPropagation();
+        onZoom(imageUrl);
+      }}
+      className="group relative h-20 w-20 shrink-0 cursor-zoom-in overflow-hidden rounded-lg border border-border bg-muted transition-all hover:border-primary/50 hover:shadow-md sm:h-24 sm:w-24"
+    >
+      <img
+        src={imageUrl}
+        alt="Question attachment"
+        className="h-full w-full object-cover transition-transform group-hover:scale-105"
+      />
+      <span className="absolute inset-0 flex items-center justify-center bg-foreground/25 opacity-0 transition-colors group-hover:bg-foreground/35 group-hover:opacity-100">
+        <span className="flex items-center gap-1 rounded-full bg-background px-2 py-1 text-2xs font-semibold text-foreground shadow-lg">
+          <Maximize2 className="size-3" /> Expand
         </span>
-      </button>
-    </div>
+      </span>
+    </button>
   );
 }
 

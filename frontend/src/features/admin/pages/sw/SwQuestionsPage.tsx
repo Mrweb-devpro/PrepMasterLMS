@@ -127,9 +127,16 @@ export function SwQuestionsPage() {
                       ))}
                     </div>
                   )}
-                  {x.imageUrls.map((imageUrl) => (
-                    <QuestionImageAttachment key={imageUrl} imageUrl={imageUrl} onZoom={setZoomedImage} />
-                  ))}
+                  {x.imageUrls.length > 0 && (
+                    <div>
+                      <p className="mb-1.5 text-xs font-medium text-text-muted">Attached screenshots</p>
+                      <div className="flex flex-wrap gap-3">
+                        {x.imageUrls.map((imageUrl) => (
+                          <QuestionImageAttachment key={imageUrl} imageUrl={imageUrl} onZoom={setZoomedImage} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <span className="text-xs text-text-muted">
                       {answered
@@ -170,9 +177,16 @@ export function SwQuestionsPage() {
                   ))}
                 </div>
               )}
-              {active.imageUrls.map((imageUrl) => (
-                <QuestionImageAttachment key={imageUrl} imageUrl={imageUrl} onZoom={setZoomedImage} />
-              ))}
+              {active.imageUrls.length > 0 && (
+                <div>
+                  <p className="mb-1.5 text-xs font-medium text-text-muted">Attached screenshots</p>
+                  <div className="flex flex-wrap gap-3">
+                    {active.imageUrls.map((imageUrl) => (
+                      <QuestionImageAttachment key={imageUrl} imageUrl={imageUrl} onZoom={setZoomedImage} />
+                    ))}
+                  </div>
+                </div>
+              )}
               {active.responses.map((r) => (
                 <div key={r.id} className="rounded-md bg-primary-soft p-3 text-sm">
                   {r.body}
