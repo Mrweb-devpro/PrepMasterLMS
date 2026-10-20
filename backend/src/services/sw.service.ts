@@ -36,10 +36,16 @@ export async function deleteTask(id: string) {
 // ---------- Submissions ----------
 const SUB_SELECT = "*, profiles(first_name, last_name)";
 
-/** Step 1: signed upload link for a model file. */
-export async function prepareUpload(userId: string, fileName: string, contentType: string) {
+/** Step 1: signed upload link for a SolidWorks file. */
+export async function prepareUpload(
+  userId: string,
+  fileName: string,
+  contentType: string,
+  type: "submission" | "question" = "submission",
+) {
   await requireMember(userId);
-  const key = `solidworks/${userId}/${randomUUID()}-${safeName(fileName)}`;
+  const folder = type === "question" ? "questions" : "submissions";
+  const key = `solidworks/${folder}/${userId}/${randomUUID()}-${safeName(fileName)}`;
   return { key, uploadUrl: await uploadUrl(key, contentType) };
 }
 
@@ -47,7 +53,10 @@ export async function createSubmission(userId: string, input: {
   taskId: string; mass: string; volume: string; difficulty: string; challenge: string; files: SwFileRow[];
 }) {
   await requireMember(userId);
-  if (input.files.some((f) => !f.r2Key.startsWith(`solidworks/${userId}/`))) throw badRequest("Upload your files first.");
+  if (input.files.some((f) =>
+    !f.r2Key.startsWith(`solidworks/submissions/${userId}/`) &&
+    !f.r2Key.startsWith(`solidworks/${userId}/`),
+  )) throw badRequest("Upload your files first.");
   const { data, error } = await db.from("sw_submissions").insert({
     task_id: input.taskId, user_id: userId, files: input.files, mass: input.mass, volume: input.volume,
     difficulty: input.difficulty, challenge: input.challenge,
@@ -125,11 +134,17 @@ async function ownQuestion(id: string, user: AuthUser) {
 
 export const getQuestion = async (id: string, user: AuthUser) => attachImageUrls(await ownQuestion(id, user));
 
+function hasInvalidQuestionImagePath(imageUrls: string[], userId: string) {
+  return imageUrls.some((key) => key.startsWith("solidworks/") &&
+    !key.startsWith(`solidworks/questions/${userId}/`) &&
+    !key.startsWith(`solidworks/${userId}/`));
+}
+
 export async function createQuestion(userId: string, q: { title: string; body: string; taskIds: string[]; imageUrls?: string[] }) {
   await requireMember(userId);
   const imageUrls = q.imageUrls ?? [];
-  if (imageUrls.some((url) => url.startsWith("solidworks/") && !url.startsWith(`solidworks/${userId}/`))) {
-    throw badRequest("Upload your screenshot first.");
+  if (hasInvalidQuestionImagePath(imageUrls, userId)) {
+    throw badRequest("Invalid image upload path.");
   }
   return attachImageUrls(must(
     await db.from("sw_questions").insert({
@@ -148,8 +163,8 @@ export async function updateQuestion(id: string, user: AuthUser, q: {
   if (q.body !== undefined) patch.body = q.body;
   if (q.taskIds !== undefined) patch.task_ids = q.taskIds;
   if (q.imageUrls !== undefined) {
-    if (q.imageUrls.some((url) => url.startsWith("solidworks/") && !url.startsWith(`solidworks/${user.id}/`))) {
-      throw badRequest("Upload your screenshot first.");
+    if (hasInvalidQuestionImagePath(q.imageUrls, user.id)) {
+      throw badRequest("Invalid image upload path.");
     }
     patch.image_urls = q.imageUrls;
   }

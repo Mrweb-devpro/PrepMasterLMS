@@ -78,7 +78,11 @@ export const createCourseBody = z.object({
 
 export const subfolderBody = z.object({ category, slug, name: z.string().min(1).max(80) });
 
-export const uploadBody = z.object({ fileName: z.string().min(1).max(200), contentType: z.string().min(1).max(100) });
+export const uploadBody = z.object({
+  fileName: z.string().min(1).max(200),
+  contentType: z.string().min(1).max(100),
+  type: z.enum(["submission", "question"]).default("submission"),
+});
 
 export const materialBody = z.object({
   category,

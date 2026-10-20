@@ -1,6 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { ImageIcon, Plus } from "lucide-react";
+import { ImageIcon, Loader2, Plus } from "lucide-react";
 import { useState } from "react";
 import { EmptyState, PageHeader } from "@/components/prep/bits";
 import { QuestionsEmptyIllustration } from "@/components/common/EmptyStateIllustration";
@@ -50,13 +50,10 @@ export function QuestionsPage() {
         />
       )}
       <div className="space-y-3">
-        {questions.map((q) => (
-          <Link
-            key={q.id}
-            to="/solidworks/questions/$id"
-            params={{ id: q.id }}
-            className="block min-w-0 rounded-lg border border-border bg-surface p-4 shadow-sm transition-colors hover:border-border-strong"
-          >
+        {questions.map((q) => {
+          const isOptimistic = q.id === "optimistic";
+          const cardContent = (
+            <>
             <span className="flex items-center justify-between gap-2">
               <span className="text-2xs text-text-muted">{formatDate(q.createdAt)}</span>
               <span className="flex items-center gap-2">
@@ -65,7 +62,14 @@ export function QuestionsPage() {
                     <ImageIcon className="size-3" /> {q.imageUrls.length} screenshot{q.imageUrls.length === 1 ? "" : "s"}
                   </span>
                 )}
-                <AnsweredPill count={q.responses.length} />
+                {isOptimistic ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                    <Loader2 className="size-3 animate-spin" />
+                    Posting...
+                  </span>
+                ) : (
+                  <AnsweredPill count={q.responses.length} />
+                )}
               </span>
             </span>
             <span className="mt-2 line-clamp-2 block break-words font-medium">{q.title}</span>
@@ -84,8 +88,34 @@ export function QuestionsPage() {
                 ))}
               </span>
             )}
+            </>
+          );
+
+          const cardClasses = "block min-w-0 rounded-lg border border-border bg-surface p-4 shadow-sm transition-colors";
+
+          if (isOptimistic) {
+            return (
+              <div
+                key={q.id}
+                className={`${cardClasses} cursor-wait select-none border-dashed border-primary/40 opacity-85`}
+                title="Posting question and attachments..."
+              >
+                {cardContent}
+              </div>
+            );
+          }
+
+          return (
+            <Link
+              key={q.id}
+              to="/solidworks/questions/$id"
+              params={{ id: q.id }}
+              className={`${cardClasses} hover:border-border-strong`}
+            >
+              {cardContent}
           </Link>
-        ))}
+          );
+        })}
       </div>
       <QuestionDialog
         open={open}

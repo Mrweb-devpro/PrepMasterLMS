@@ -134,7 +134,7 @@ const taskBody = (t: NewTask) => ({
 /** userId given = "only mine" (students); admins list everything without it. */
 const mine = (userId?: string) => (userId ? "?mine=true" : "");
 
-async function uploadQuestionImage(file: File) {
+export async function uploadQuestionImage(file: File): Promise<string> {
   if (!new Set(["image/png", "image/jpeg", "image/webp"]).has(file.type)) {
     throw new Error("Attach a PNG, JPG, or WebP image");
   }
@@ -144,6 +144,7 @@ async function uploadQuestionImage(file: File) {
   const { key, uploadUrl } = await api.post<{ key: string; uploadUrl: string }>("/solidworks/uploads", {
     fileName: file.name || "question-screenshot.png",
     contentType: file.type,
+    type: "question",
   });
   await uploadToSignedUrl(uploadUrl, file);
   return key;
@@ -170,7 +171,7 @@ export const swApi = {
         const contentType = f.file.type || "application/octet-stream";
         const { key, uploadUrl } = await api.post<{ key: string; uploadUrl: string }>(
           "/solidworks/uploads",
-          { fileName: f.name, contentType },
+          { fileName: f.name, contentType, type: "submission" },
         );
         await uploadToSignedUrl(uploadUrl, f.file);
         return { name: f.name, size: f.size, mime: contentType, r2Key: key };

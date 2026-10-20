@@ -86,7 +86,7 @@ Avatar profile fields: `gender: "male" | "female" | "other" | "prefer_not_to_say
 ## SolidWorks (`/solidworks`)
 
 - `GET /tasks`, `GET /tasks/:id`; admin `POST /tasks`, `PATCH /tasks/:id`, `DELETE /tasks/:id`.
-- `GET /submissions` (mine; admin sees all), `GET /submissions/:id`, `POST /submissions/uploads` (presigned PUT), `POST /submissions` `{ task_id, files[], note? }`, admin `PATCH /submissions/:id/grade` `{ score, feedback }`.
+- `GET /submissions` (mine; admin sees all), `GET /submissions/:id`, `POST /uploads` `{ fileName, contentType, type: "submission" | "question" }` (presigned PUT), `POST /submissions` `{ task_id, files[], note? }`, admin `PATCH /submissions/:id/grade` `{ score, feedback }`. New submission and question uploads are stored under `solidworks/submissions/<userId>/` and `solidworks/questions/<userId>/`; legacy `solidworks/<userId>/` keys remain supported.
 - `GET /works` (graded showcase), `GET /works/:id`.
 - `GET /questions`, `GET /questions/:id`, `POST /questions` `{ title, body, taskIds, imageUrls? }`, `PATCH /questions/:id`, `POST /questions/:id/responses` `{ body }`. Up to two question screenshots upload through `POST /uploads`; private keys are returned as `image_keys` for editing and short-lived `image_urls` for viewing.
 - Admin `GET /users`, `GET /users/:id` (profile, submissions, task count, questions).
