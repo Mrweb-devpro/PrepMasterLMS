@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { LIVE } from "@/lib/api/config";
 import { authService } from "../services/auth.service";
 import type { Profile } from "../types";
+import { EmailDeliveryNotice } from "./EmailDeliveryNotice";
 
 /**
  * Shown after email/password sign-up. LIVE: "I've verified" signs in once the
@@ -34,7 +35,7 @@ export function VerifyEmail({
   const resend = async () => {
     try {
       await authService.resendVerification(email);
-      toast.success("Link sent again", { description: email });
+      toast.success("Verification email resent! Please check your inbox and spam folder.");
     } catch (e) {
       toast.error((e as Error).message);
     }
@@ -50,6 +51,7 @@ export function VerifyEmail({
         We sent a link to <span className="font-medium text-foreground">{email}</span>. Open it to
         activate your account.
       </p>
+      <EmailDeliveryNotice verification />
       <div className="mt-6 space-y-2">
         <Button className="w-full" onClick={verified} disabled={busy}>
           {busy ? "Checking…" : "I've verified my email"}

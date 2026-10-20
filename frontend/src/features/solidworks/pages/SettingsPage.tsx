@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Info } from "lucide-react";
+import { Info, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useConfirm } from "@/components/common/ConfirmDialog";
@@ -7,9 +7,11 @@ import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Card, PageHeader } from "@/components/prep/bits";
 import { Button } from "@/components/ui/button";
 import { KV } from "@/features/admin/components/parts";
-import { NameFields } from "@/features/auth/components/fields";
+import { GenderField, NameFields, type ProfileDraft } from "@/features/auth/components/fields";
 import { heardLabel } from "@/features/auth/constants/options";
 import { useSession } from "@/features/auth/session";
+import { AvatarEditor } from "@/features/auth/components/AvatarEditor";
+import { genderLabel } from "@/features/auth/utils/profile";
 import { formatDate } from "@/lib/mock-api";
 import { useSwUser } from "../hooks/useSwUser";
 
@@ -19,11 +21,21 @@ export function SettingsPage() {
   const confirm = useConfirm();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
-  const [names, setNames] = useState({ firstName: user.firstName, lastName: user.lastName });
+  const [saving, setSaving] = useState(false);
+  const [profile, setProfile] = useState<ProfileDraft>({
+    firstName: user.firstName,
+    lastName: user.lastName,
+    ...(user.gender ? { gender: user.gender } : {}),
+  });
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-3xl space-y-6 [&>*]:min-w-0">
       <PageHeader title="Settings" subtitle="Your account details and preferences." />
+
+      <Card>
+        <h2 className="mb-4 text-sm font-semibold">Avatar</h2>
+        <AvatarEditor />
+      </Card>
 
       <Card>
         <div className="mb-4 flex items-center justify-between gap-3">
@@ -36,29 +48,53 @@ export function SettingsPage() {
         </div>
         {editing ? (
           <>
-            <NameFields value={names} onChange={(p) => setNames((n) => ({ ...n, ...p }))} />
+            <NameFields value={profile} onChange={(p) => setProfile((current) => ({ ...current, ...p }))} />
+            <div className="mt-4">
+              <GenderField
+                value={profile.gender}
+                onChange={(gender) => setProfile((current) => ({ ...current, gender }))}
+              />
+            </div>
             <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <Button
                 variant="ghost"
+                disabled={saving}
                 onClick={() => {
-                  setNames({ firstName: user.firstName, lastName: user.lastName });
+                  setProfile({
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    ...(user.gender ? { gender: user.gender } : {}),
+                  });
                   setEditing(false);
                 }}
               >
                 Cancel
               </Button>
               <Button
-                onClick={() => {
-                  if (!names.firstName?.trim() || !names.lastName?.trim()) {
+                disabled={saving}
+                onClick={async () => {
+                  if (!profile.firstName?.trim() || !profile.lastName?.trim()) {
                     toast.error("Names can't be empty");
                     return;
                   }
-                  update({ firstName: names.firstName.trim(), lastName: names.lastName.trim() });
-                  toast.success("Profile updated");
-                  setEditing(false);
+                  setSaving(true);
+                  try {
+                    await update({
+                      firstName: profile.firstName.trim(),
+                      lastName: profile.lastName.trim(),
+                      ...(profile.gender ? { gender: profile.gender } : {}),
+                    });
+                    toast.success("Profile updated");
+                    setEditing(false);
+                  } catch {
+                    // The session provider has already shown the save error.
+                  } finally {
+                    setSaving(false);
+                  }
                 }}
               >
-                Save changes
+                {saving && <Loader2 className="size-4 animate-spin" />}
+                {saving ? "Saving changes..." : "Save changes"}
               </Button>
             </div>
           </>
@@ -66,6 +102,7 @@ export function SettingsPage() {
           <div className="divide-y divide-border">
             <KV k="First name" v={user.firstName} />
             <KV k="Last name" v={user.lastName} />
+            <KV k="Gender" v={genderLabel(user.gender)} />
           </div>
         )}
       </Card>

@@ -4,7 +4,7 @@ import { SwUsersPage } from "@/features/admin/pages/sw/SwUsersPage";
 import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/admin/sw-users/")({
-  head: () => pageHead("SW users", "Everyone registered for SolidWorks."),
+  head: () => pageHead("Users", "Everyone registered for SolidWorks.", "SolidWorks Admin"),
   component: () => (
     <AdminShell title="SolidWorks users" description="Everyone who has joined SolidWorks.">
       <SwUsersPage />

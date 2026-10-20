@@ -8,6 +8,7 @@ import { useCatalog } from "@/features/catalog/useCatalog";
 import { LIVE } from "@/lib/api/config";
 import { StudentShell } from "@/components/prep/StudentShell";
 import { Breadcrumbs, EmptyState, FileIcon, PageHeader, PaidPill } from "@/components/prep/bits";
+import { DriveEmptyIllustration } from "@/components/common/EmptyStateIllustration";
 import { PurchaseDialog } from "@/features/drive/components/PurchaseDialog";
 import type { CategorySlug, DriveFile } from "@/lib/mock-data";
 import { usePrep } from "@/lib/prep-store";
@@ -15,9 +16,9 @@ import { usePrep } from "@/lib/prep-store";
 export const Route = createFileRoute("/drive/$course/$category/$subfolder")({
   head: () => ({
     meta: [
-      { title: "Files — PrepMaster Drive" },
+      { title: "Files | PrepMaster" },
       { name: "description", content: "Open, preview or unlock the materials in this folder." },
-      { property: "og:title", content: "Files — PrepMaster Drive" },
+      { property: "og:title", content: "Files | PrepMaster" },
       {
         property: "og:description",
         content: "Open, preview or unlock the materials in this folder.",
@@ -81,7 +82,13 @@ function SubfolderPage() {
 
       <div className="overflow-hidden rounded-lg border border-border bg-surface shadow-sm">
         {list.length === 0 && (
-          <p className="px-5 py-10 text-center text-sm text-text-muted">This folder is empty.</p>
+          <div className="p-4">
+            <EmptyState
+              illustration={<DriveEmptyIllustration />}
+              title="This folder is empty"
+              description="No documents or materials have been uploaded to this section yet."
+            />
+          </div>
         )}
         {list.map((file) => {
           const locked = file.paid && !prep.ownsFile(file.id);

@@ -4,6 +4,6 @@ import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/onboarding")({
   head: () =>
-    pageHead("Finish setting up", "Complete your PrepMaster profile to open your dashboard."),
+    pageHead("Onboarding", "Complete your PrepMaster profile to open your dashboard."),
   component: OnboardingPage,
 });

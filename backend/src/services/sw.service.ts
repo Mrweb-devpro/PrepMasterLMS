@@ -36,10 +36,16 @@ export async function deleteTask(id: string) {
 // ---------- Submissions ----------
 const SUB_SELECT = "*, profiles(first_name, last_name)";
 
-/** Step 1: signed upload link for a model file. */
-export async function prepareUpload(userId: string, fileName: string, contentType: string) {
+/** Step 1: signed upload link for a SolidWorks file. */
+export async function prepareUpload(
+  userId: string,
+  fileName: string,
+  contentType: string,
+  type: "submission" | "question" = "submission",
+) {
   await requireMember(userId);
-  const key = `solidworks/${userId}/${randomUUID()}-${safeName(fileName)}`;
+  const folder = type === "question" ? "questions" : "submissions";
+  const key = `solidworks/${folder}/${userId}/${randomUUID()}-${safeName(fileName)}`;
   return { key, uploadUrl: await uploadUrl(key, contentType) };
 }
 
@@ -47,7 +53,10 @@ export async function createSubmission(userId: string, input: {
   taskId: string; mass: string; volume: string; difficulty: string; challenge: string; files: SwFileRow[];
 }) {
   await requireMember(userId);
-  if (input.files.some((f) => !f.r2Key.startsWith(`solidworks/${userId}/`))) throw badRequest("Upload your files first.");
+  if (input.files.some((f) =>
+    !f.r2Key.startsWith(`solidworks/submissions/${userId}/`) &&
+    !f.r2Key.startsWith(`solidworks/${userId}/`),
+  )) throw badRequest("Upload your files first.");
   const { data, error } = await db.from("sw_submissions").insert({
     task_id: input.taskId, user_id: userId, files: input.files, mass: input.mass, volume: input.volume,
     difficulty: input.difficulty, challenge: input.challenge,
@@ -96,10 +105,25 @@ export async function gradeSubmission(id: string, g: { scores: { mass: number; v
 // ---------- Questions ----------
 const Q_SELECT = "*, profiles(first_name, last_name), sw_responses(id, body, created_at)";
 
+async function attachImageUrls(row: Record<string, unknown>) {
+  const imageUrls = Array.isArray(row.image_urls)
+    ? row.image_urls.filter((url): url is string => typeof url === "string")
+    : typeof row.image_url === "string"
+      ? [row.image_url]
+      : [];
+  return {
+    ...withNames(row),
+    image_keys: imageUrls,
+    image_urls: await Promise.all(
+      imageUrls.map((url) => (/^https?:\/\//i.test(url) ? url : downloadUrl(url, 86_400))),
+    ),
+  };
+}
+
 export async function listQuestions(user: AuthUser, mine: boolean) {
   let q = db.from("sw_questions").select(Q_SELECT).order("created_at", { ascending: false });
   if (mine || user.role !== "admin") q = q.eq("user_id", user.id);
-  return must(await q).map(withNames);
+  return Promise.all(must(await q).map(attachImageUrls));
 }
 
 async function ownQuestion(id: string, user: AuthUser) {
@@ -108,32 +132,52 @@ async function ownQuestion(id: string, user: AuthUser) {
   return row;
 }
 
-export const getQuestion = async (id: string, user: AuthUser) => withNames(await ownQuestion(id, user));
+export const getQuestion = async (id: string, user: AuthUser) => attachImageUrls(await ownQuestion(id, user));
 
-export async function createQuestion(userId: string, q: { title: string; body: string; taskIds: string[] }) {
+function hasInvalidQuestionImagePath(imageUrls: string[], userId: string) {
+  return imageUrls.some((key) => key.startsWith("solidworks/") &&
+    !key.startsWith(`solidworks/questions/${userId}/`) &&
+    !key.startsWith(`solidworks/${userId}/`));
+}
+
+export async function createQuestion(userId: string, q: { title: string; body: string; taskIds: string[]; imageUrls?: string[] }) {
   await requireMember(userId);
-  return withNames(must(
-    await db.from("sw_questions").insert({ user_id: userId, title: q.title, body: q.body, task_ids: q.taskIds }).select(Q_SELECT).single(),
+  const imageUrls = q.imageUrls ?? [];
+  if (hasInvalidQuestionImagePath(imageUrls, userId)) {
+    throw badRequest("Invalid image upload path.");
+  }
+  return attachImageUrls(must(
+    await db.from("sw_questions").insert({
+      user_id: userId, title: q.title, body: q.body, task_ids: q.taskIds, image_urls: imageUrls,
+    }).select(Q_SELECT).single(),
   ));
 }
 
-export async function updateQuestion(id: string, user: AuthUser, q: { title?: string | undefined; body?: string | undefined; taskIds?: string[] | undefined }) {
+export async function updateQuestion(id: string, user: AuthUser, q: {
+  title?: string | undefined; body?: string | undefined; taskIds?: string[] | undefined; imageUrls?: string[] | undefined;
+}) {
   const row = await ownQuestion(id, user);
   if (row.user_id !== user.id) throw forbidden("Only the author can edit this question.");
   const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (q.title !== undefined) patch.title = q.title;
   if (q.body !== undefined) patch.body = q.body;
   if (q.taskIds !== undefined) patch.task_ids = q.taskIds;
-  return withNames(must(await db.from("sw_questions").update(patch).eq("id", id).select(Q_SELECT).single()));
+  if (q.imageUrls !== undefined) {
+    if (hasInvalidQuestionImagePath(q.imageUrls, user.id)) {
+      throw badRequest("Invalid image upload path.");
+    }
+    patch.image_urls = q.imageUrls;
+  }
+  return attachImageUrls(must(await db.from("sw_questions").update(patch).eq("id", id).select(Q_SELECT).single()));
 }
 
 export async function respond(id: string, adminId: string, body: string) {
   must(await db.from("sw_responses").insert({ question_id: id, body, responder_id: adminId }).select().single());
   await db.from("sw_questions").update({ updated_at: new Date().toISOString() }).eq("id", id);
-  return withNames(must(await db.from("sw_questions").select(Q_SELECT).eq("id", id).single()));
+  return attachImageUrls(must(await db.from("sw_questions").select(Q_SELECT).eq("id", id).single()));
 }
 
 // ---------- Members ----------
 export const listMembers = async () =>
-  must(await db.from("profiles").select("id, first_name, last_name, email, user_type, heard, sw_joined_at")
+  must(await db.from("profiles").select("id, first_name, last_name, email, gender, user_type, heard, sw_joined_at")
     .eq("sw_registered", true).order("sw_joined_at", { ascending: false }));

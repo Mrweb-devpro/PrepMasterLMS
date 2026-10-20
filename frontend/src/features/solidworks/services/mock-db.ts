@@ -154,6 +154,7 @@ export const db: {
       title: "How do I make an involute tooth profile?",
       body: "For the spur gear task, is it okay to approximate the tooth with arcs, or should I use the Toolbox gear?",
       taskIds: ["task-gear"],
+      imageUrls: [],
       createdAt: "2026-09-23T12:00:00Z",
       updatedAt: "2026-09-23T12:00:00Z",
       responses: [
@@ -171,6 +172,7 @@ export const db: {
       title: "Which density should I use for ABS?",
       body: "SolidWorks gives 1020 kg/m³ but my textbook says 1050.",
       taskIds: ["task-housing"],
+      imageUrls: [],
       createdAt: "2026-10-09T09:15:00Z",
       updatedAt: "2026-10-09T09:15:00Z",
       responses: [],
@@ -182,6 +184,7 @@ export const db: {
       title: "Can I submit a STEP file instead?",
       body: "I'm on SolidWorks 2022 — will you be able to open my files?",
       taskIds: [],
+      imageUrls: [],
       createdAt: "2026-10-05T19:00:00Z",
       updatedAt: "2026-10-05T19:00:00Z",
       responses: [],

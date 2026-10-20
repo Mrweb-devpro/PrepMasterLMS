@@ -2,6 +2,17 @@ import { must } from "../lib/errors.js";
 import { db } from "../lib/supabase.js";
 import type { Profile } from "../models/types.js";
 
+/** Public sign-up check. The caller has already validated the email shape. */
+export async function isEmailAvailable(email: string) {
+  const { data, error } = await db
+    .from("profiles")
+    .select("id")
+    .ilike("email", email.trim().toLowerCase())
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return !data;
+}
+
 export async function me(userId: string) {
   const [profile, warnings] = await Promise.all([
     must<Profile>(
@@ -11,7 +22,7 @@ export async function me(userId: string) {
     must(
       await db
         .from("warnings")
-        .select("reason, created_at")
+        .select("id, reason, created_at")
         .eq("user_id", userId)
         .order("created_at", { ascending: false }),
     ),
@@ -20,6 +31,8 @@ export async function me(userId: string) {
 }
 
 export interface ProfilePatch {
+  gender?: "male" | "female" | "other" | "prefer_not_to_say" | null | undefined;
+  avatarUrl?: string | null | undefined;
   firstName?: string | undefined;
   lastName?: string | undefined;
   faculty?: string | null | undefined;
@@ -31,6 +44,8 @@ export interface ProfilePatch {
 }
 
 const COLUMNS: Record<keyof ProfilePatch, string> = {
+  gender: "gender",
+  avatarUrl: "avatar_url",
   firstName: "first_name",
   lastName: "last_name",
   faculty: "faculty",

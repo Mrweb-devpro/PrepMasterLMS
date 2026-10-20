@@ -13,13 +13,14 @@ import { Button } from "@/components/ui/button";
 import { useAdmin } from "@/lib/admin-store";
 import { useTransactions } from "@/features/payments/useTransactions";
 import { formatNaira } from "@/lib/mock-data";
+import { genderLabel } from "@/features/auth/utils/profile";
 
 export const Route = createFileRoute("/admin/students/$studentId")({
   head: () => ({
     meta: [
-      { title: "Student profile — PrepMaster Admin" },
+      { title: "Student profile | PrepMaster Admin" },
       { name: "description", content: "A student's details, payments and account status." },
-      { property: "og:title", content: "Student profile — PrepMaster Admin" },
+      { property: "og:title", content: "Student profile | PrepMaster Admin" },
       { property: "og:description", content: "A student's details, payments and account status." },
     ],
   }),
@@ -112,6 +113,7 @@ function StudentDetail() {
                   )
                 }
               />
+              <KV k="Gender" v={genderLabel(s.gender)} />
               <KV
                 k="Total spent"
                 v={formatNaira(

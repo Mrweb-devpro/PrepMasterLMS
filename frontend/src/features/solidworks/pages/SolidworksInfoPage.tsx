@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
   ArrowRight,
   Box,
@@ -7,6 +7,7 @@ import {
   MessageCircleQuestion,
   Upload,
 } from "lucide-react";
+import { useEffect } from "react";
 import { PageHeader } from "@/components/prep/bits";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/features/auth/session";
@@ -39,9 +40,17 @@ const POINTS = [
 
 /** Shown inside the student dashboard: explains SolidWorks and lets the student join in one click. */
 export function SolidworksInfoPage() {
-  const { user, update } = useSession();
+  const { user, update, hydrated } = useSession();
+  const navigate = useNavigate();
   const register = useRegisterSw();
-  if (!user) return null;
+
+  useEffect(() => {
+    if (hydrated && user?.swRegistered) {
+      void navigate({ to: "/solidworks", replace: true });
+    }
+  }, [hydrated, navigate, user?.swRegistered]);
+
+  if (!user || (hydrated && user.swRegistered)) return null;
   const joined = user.swRegistered;
 
   return (
@@ -97,7 +106,7 @@ export function SolidworksInfoPage() {
                     userType: user.userType ?? "student",
                     heard: "prepmaster-app",
                   },
-                  { onSuccess: () => update({ swRegistered: true }) },
+                  { onSuccess: () => void update({ swRegistered: true }).catch(() => undefined) },
                 )
               }
             >

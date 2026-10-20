@@ -6,6 +6,7 @@ import { AuthLayout } from "@/components/prep/AuthLayout";
 import {
   DobField,
   EmailPasswordFields,
+  GenderField,
   GoogleButton,
   HeardField,
   NameFields,
@@ -17,6 +18,7 @@ import { StepCard } from "../components/StepCard";
 import { VerifyEmail } from "../components/VerifyEmail";
 import { useAuthActions } from "../hooks/useAuthActions";
 import { useSession } from "../session";
+import { authService } from "../services/auth.service";
 import { checks } from "../utils/validate";
 
 const TOTAL = 4;
@@ -28,6 +30,7 @@ export function SignupPage() {
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<ProfileDraft>({});
   const [verifying, setVerifying] = useState(false);
+  const [checkingEmail, setCheckingEmail] = useState(false);
   const patch = (p: ProfileDraft) => setDraft((d) => ({ ...d, ...p }));
 
   const next = (check?: (d: ProfileDraft) => string | null) => () => {
@@ -39,6 +42,28 @@ export function SignupPage() {
     setStep((s) => s + 1);
   };
   const back = () => setStep((s) => s - 1);
+
+  const handleAccountNext = async () => {
+    if (checkingEmail) return;
+    const error = checks.account(draft);
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    setCheckingEmail(true);
+    try {
+      const available = await authService.checkEmailAvailable(draft.email ?? "");
+      if (!available) {
+        toast.error("This email is already in use. Please sign in or use a different email.");
+        return;
+      }
+      setStep(1);
+    } catch (error) {
+      toast.error((error as Error).message || "Unable to verify email availability. Please try again.");
+    } finally {
+      setCheckingEmail(false);
+    }
+  };
 
   const finish = () => emailSignUp.mutate(draft, { onSuccess: () => setVerifying(true) });
 
@@ -53,7 +78,7 @@ export function SignupPage() {
 
   if (verifying) {
     return (
-      <AuthLayout>
+      <AuthLayout variant="signup">
         <VerifyEmail
           email={draft.email ?? ""}
           onVerified={(live) => {
@@ -69,14 +94,15 @@ export function SignupPage() {
   }
 
   return (
-    <AuthLayout footer={footer}>
+    <AuthLayout variant="signup" footer={footer}>
       {step === 0 && (
         <StepCard
           step={0}
           total={TOTAL}
           title="Create your account"
           subtitle="It's free — unlock paid items only when you need them."
-          onNext={next(checks.account)}
+          onNext={handleAccountNext}
+          busy={checkingEmail}
         >
           <GoogleButton
             label="Sign up with Google"
@@ -97,7 +123,10 @@ export function SignupPage() {
           onNext={next(checks.names)}
         >
           <NameFields value={draft} onChange={patch} />
-          <DobField value={draft} onChange={patch} />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <DobField value={draft} onChange={patch} />
+            <GenderField value={draft.gender} onChange={(gender) => patch({ gender })} />
+          </div>
         </StepCard>
       )}
       {step === 2 && (

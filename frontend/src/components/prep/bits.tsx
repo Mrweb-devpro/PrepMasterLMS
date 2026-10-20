@@ -141,11 +141,25 @@ export function Breadcrumbs({ items }: { items: Crumb[] }) {
   );
 }
 
-export function EmptyState({ title, description }: { title: string; description?: string }) {
+export function EmptyState({
+  title,
+  description,
+  illustration,
+  action,
+  className,
+}: {
+  title: string;
+  description?: string;
+  illustration?: ReactNode;
+  action?: ReactNode;
+  className?: string;
+}) {
   return (
-    <div className="rounded-md border border-dashed border-border-strong bg-surface-subtle px-6 py-12 text-center">
-      <p className="text-sm font-medium">{title}</p>
-      {description && <p className="mt-1 text-sm text-text-muted">{description}</p>}
+    <div className={cn("flex flex-col items-center justify-center rounded-xl border border-dashed border-border-strong bg-surface-subtle/50 px-6 py-10 text-center", className)}>
+      {illustration && <div className="mb-3 flex items-center justify-center">{illustration}</div>}
+      <p className="font-display text-base font-semibold text-foreground">{title}</p>
+      {description && <p className="mt-1 max-w-sm text-sm text-text-muted">{description}</p>}
+      {action && <div className="mt-4">{action}</div>}
     </div>
   );
 }

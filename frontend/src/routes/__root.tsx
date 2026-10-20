@@ -3,12 +3,14 @@ import {
   Outlet,
   Link,
   createRootRouteWithContext,
+  isNotFound,
   useRouter,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { LayoutDashboard } from "lucide-react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -19,22 +21,40 @@ import { ThemeProvider, themeInitScript } from "../lib/theme";
 import { SessionProvider } from "../features/auth/session";
 import { ConfirmProvider } from "../components/common/ConfirmDialog";
 import { DemoSwitcher } from "../features/auth/components/DemoSwitcher";
+import { NotFoundIllustration } from "@/components/common/NotFoundIllustration";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
+    <div className="relative flex min-h-screen flex-col items-center justify-center bg-background px-4 py-12 text-center">
+      <Link
+        to="/"
+        className="absolute left-4 top-6 inline-flex items-center transition-opacity hover:opacity-85 sm:left-8"
+        aria-label="PrepMaster home"
+      >
+        <img
+          src="/brand/prepmaster-horizontal.png"
+          alt="PrepMaster"
+          className="h-8 w-auto object-contain dark:hidden md:h-9"
+        />
+        <img
+          src="/brand/prepmaster-horizontal-dark.png"
+          alt="PrepMaster"
+          className="hidden h-8 w-auto object-contain dark:block md:h-9"
+        />
+      </Link>
+      <NotFoundIllustration className="mb-6" />
+      <div className="max-w-md">
+        <h1 className="font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl">Page not found</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
+          Looks like this page was eaten or moved to another universe.
         </p>
         <div className="mt-6">
           <Link
             to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
           >
-            Go home
+            <LayoutDashboard className="size-4" />
+            <span>Back to Dashboard</span>
           </Link>
         </div>
       </div>
@@ -48,6 +68,17 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
+
+  const errorDetails = error as { status?: number; statusCode?: number; message?: string };
+  const is404 =
+    isNotFound(error) ||
+    errorDetails.status === 404 ||
+    errorDetails.statusCode === 404 ||
+    /not found/i.test(errorDetails.message ?? "");
+
+  if (is404) {
+    return <NotFoundComponent />;
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -85,7 +116,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "PrepMaster — Study materials & practice exams" },
+      { title: "PrepMaster" },
       {
         name: "description",
         content:
@@ -107,7 +138,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Space+Grotesk:wght@500;600;700&display=swap",
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.ico", sizes: "any" },
+      { rel: "shortcut icon", href: "/favicon.ico" },
     ],
   }),
   shellComponent: RootShell,

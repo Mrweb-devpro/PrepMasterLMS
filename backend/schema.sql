@@ -186,6 +186,8 @@ create table public.sw_questions (
   title text not null,
   body text not null,
   task_ids uuid[] not null default '{}',
+  image_url text,
+  image_urls text[] not null default '{}',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -210,7 +212,7 @@ returns trigger language plpgsql security definer set search_path = public as $$
 declare
   full_name text := coalesce(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', '');
 begin
-  insert into public.profiles (id, email, first_name, last_name, provider, faculty, department, level, dob, heard, user_type)
+  insert into public.profiles (id, email, first_name, last_name, provider, faculty, department, level, dob, heard, user_type, gender)
   values (
     new.id,
     new.email,
@@ -222,7 +224,8 @@ begin
     nullif(new.raw_user_meta_data->>'level', ''),
     nullif(new.raw_user_meta_data->>'dob', '')::date,
     nullif(new.raw_user_meta_data->>'heard', ''),
-    case when new.raw_user_meta_data->>'user_type' in ('student', 'freelancer') then new.raw_user_meta_data->>'user_type' end
+    case when new.raw_user_meta_data->>'user_type' in ('student', 'freelancer') then new.raw_user_meta_data->>'user_type' end,
+    case when new.raw_user_meta_data->>'gender' in ('male', 'female', 'other', 'prefer_not_to_say') then new.raw_user_meta_data->>'gender' end
   );
   insert into public.user_roles (user_id, role) values (new.id, 'student');
   return new;
@@ -268,3 +271,17 @@ create policy "read sw tasks" on public.sw_tasks for select to authenticated usi
 
 -- Upgrading an existing database? Run once:
 -- alter table public.cbts add column if not exists paused boolean not null default false;
+
+-- Avatar profile upgrade (idempotent): run this block on existing databases.
+alter table public.profiles
+  add column if not exists gender text,
+  add column if not exists avatar_url text check (char_length(avatar_url) <= 500);
+
+alter table public.profiles drop constraint if exists profiles_gender_check;
+alter table public.profiles
+  add constraint profiles_gender_check
+  check (gender in ('male', 'female', 'other', 'prefer_not_to_say'));
+
+-- SolidWorks question screenshot upgrade (idempotent).
+alter table public.sw_questions add column if not exists image_url text;
+alter table public.sw_questions add column if not exists image_urls text[] not null default '{}';

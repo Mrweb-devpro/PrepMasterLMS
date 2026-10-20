@@ -4,7 +4,7 @@ import { SwUserDetailPage } from "@/features/admin/pages/sw/SwUserDetailPage";
 import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/admin/sw-users/$userId")({
-  head: () => pageHead("SW member", "Submissions, grades and questions for this member."),
+  head: () => pageHead("User profile", "Submissions, grades and questions for this member.", "SolidWorks Admin"),
   component: Page,
 });
 

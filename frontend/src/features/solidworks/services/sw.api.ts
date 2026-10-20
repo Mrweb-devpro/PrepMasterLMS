@@ -4,6 +4,7 @@ import type {
   NewQuestion,
   NewSubmission,
   NewTask,
+  QuestionUpdate,
   SwGrade,
   SwQuestion,
   SwSubmission,
@@ -47,6 +48,8 @@ interface QuestionRow {
   title: string;
   body: string;
   task_ids: string[];
+  image_urls: string[] | null;
+  image_keys?: string[] | null;
   created_at: string;
   updated_at: string;
   sw_responses: { id: string; body: string; created_at: string }[];
@@ -56,6 +59,7 @@ interface MemberRow {
   first_name: string;
   last_name: string;
   email: string;
+  gender: SwUser["gender"] | null;
   user_type: SwUser["userType"] | null;
   heard: string | null;
   sw_joined_at: string | null;
@@ -109,6 +113,8 @@ const toQuestion = (q: QuestionRow): SwQuestion => ({
   title: q.title,
   body: q.body,
   taskIds: q.task_ids,
+  imageUrls: q.image_urls ?? [],
+  ...(q.image_keys ? { imageKeys: q.image_keys } : {}),
   createdAt: q.created_at,
   updatedAt: q.updated_at,
   responses: [...(q.sw_responses ?? [])]
@@ -127,6 +133,22 @@ const taskBody = (t: NewTask) => ({
 
 /** userId given = "only mine" (students); admins list everything without it. */
 const mine = (userId?: string) => (userId ? "?mine=true" : "");
+
+export async function uploadQuestionImage(file: File): Promise<string> {
+  if (!new Set(["image/png", "image/jpeg", "image/webp"]).has(file.type)) {
+    throw new Error("Attach a PNG, JPG, or WebP image");
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error("The screenshot must be 5 MB or smaller");
+  }
+  const { key, uploadUrl } = await api.post<{ key: string; uploadUrl: string }>("/solidworks/uploads", {
+    fileName: file.name || "question-screenshot.png",
+    contentType: file.type,
+    type: "question",
+  });
+  await uploadToSignedUrl(uploadUrl, file);
+  return key;
+}
 
 export const swApi = {
   listTasks: async () => (await api.get<TaskRow[]>("/solidworks/tasks")).map(toTask),
@@ -149,7 +171,7 @@ export const swApi = {
         const contentType = f.file.type || "application/octet-stream";
         const { key, uploadUrl } = await api.post<{ key: string; uploadUrl: string }>(
           "/solidworks/uploads",
-          { fileName: f.name, contentType },
+          { fileName: f.name, contentType, type: "submission" },
         );
         await uploadToSignedUrl(uploadUrl, f.file);
         return { name: f.name, size: f.size, mime: contentType, r2Key: key };
@@ -172,12 +194,29 @@ export const swApi = {
   listQuestions: async (userId?: string) =>
     (await api.get<QuestionRow[]>(`/solidworks/questions${mine(userId)}`)).map(toQuestion),
   getQuestion: async (id: string) => toQuestion(await api.get<QuestionRow>(`/solidworks/questions/${id}`)),
-  createQuestion: async (q: NewQuestion) =>
-    toQuestion(
-      await api.post<QuestionRow>("/solidworks/questions", { title: q.title, body: q.body, taskIds: q.taskIds }),
-    ),
-  updateQuestion: async (id: string, p: Pick<NewQuestion, "title" | "body" | "taskIds">) =>
-    toQuestion(await api.patch<QuestionRow>(`/solidworks/questions/${id}`, p)),
+  async createQuestion(q: NewQuestion) {
+    const imageUrls = q.imageFiles
+      ? await Promise.all(q.imageFiles.map(uploadQuestionImage))
+      : q.imageUrls ?? [];
+    return toQuestion(await api.post<QuestionRow>("/solidworks/questions", {
+      title: q.title,
+      body: q.body,
+      taskIds: q.taskIds,
+      imageUrls,
+    }));
+  },
+  async updateQuestion(id: string, p: QuestionUpdate) {
+    const uploadedKeys = p.imageFiles ? await Promise.all(p.imageFiles.map(uploadQuestionImage)) : [];
+    const imageUrls = p.imageUrls === undefined && p.imageFiles === undefined
+      ? undefined
+      : [...(p.imageKeys ?? p.imageUrls ?? []), ...uploadedKeys];
+    return toQuestion(await api.patch<QuestionRow>(`/solidworks/questions/${id}`, {
+      title: p.title,
+      body: p.body,
+      taskIds: p.taskIds,
+      ...(imageUrls !== undefined ? { imageUrls } : {}),
+    }));
+  },
   respondToQuestion: async (id: string, body: string) =>
     toQuestion(await api.post<QuestionRow>(`/solidworks/questions/${id}/responses`, { body })),
 
@@ -187,6 +226,7 @@ export const swApi = {
       name: `${m.first_name} ${m.last_name}`.trim(),
       email: m.email,
       userType: m.user_type ?? "student",
+      ...(m.gender ? { gender: m.gender } : {}),
       joinedAt: m.sw_joined_at ?? "",
       ...(m.heard ? { heard: m.heard } : {}),
     })),

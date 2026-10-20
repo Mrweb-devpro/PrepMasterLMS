@@ -5,7 +5,7 @@ import { SwTasksActions, SwTasksPage } from "@/features/admin/pages/sw/SwTasksPa
 import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/admin/sw-tasks")({
-  head: () => pageHead("SW tasks", "Create, edit and delete SolidWorks tasks."),
+  head: () => pageHead("Tasks", "Create, edit and delete SolidWorks tasks.", "SolidWorks Admin"),
   component: SwTasksRoute,
 });
 

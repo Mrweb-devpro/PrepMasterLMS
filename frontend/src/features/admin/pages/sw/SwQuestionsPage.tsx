@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useRespondToQuestion } from "@/features/solidworks/hooks/mutations";
 import { swQueries } from "@/features/solidworks/hooks/queries";
+import { QuestionImageAttachment, QuestionImageLightbox } from "@/features/solidworks/components/QuestionImageAttachment";
 import { AnsweredPill } from "@/features/solidworks/pages/QuestionsPage";
 import { formatDate } from "@/lib/mock-api";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,7 @@ export function SwQuestionsPage() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [reply, setReply] = useState("");
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const active = questions.find((x) => x.id === openId);
   const list = questions.filter(
     (x) =>
@@ -125,6 +127,16 @@ export function SwQuestionsPage() {
                       ))}
                     </div>
                   )}
+                  {x.imageUrls.length > 0 && (
+                    <div>
+                      <p className="mb-1.5 text-xs font-medium text-text-muted">Attached screenshots</p>
+                      <div className="flex flex-wrap gap-3">
+                        {x.imageUrls.map((imageUrl) => (
+                          <QuestionImageAttachment key={imageUrl} imageUrl={imageUrl} onZoom={setZoomedImage} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <span className="text-xs text-text-muted">
                       {answered
@@ -165,6 +177,16 @@ export function SwQuestionsPage() {
                   ))}
                 </div>
               )}
+              {active.imageUrls.length > 0 && (
+                <div>
+                  <p className="mb-1.5 text-xs font-medium text-text-muted">Attached screenshots</p>
+                  <div className="flex flex-wrap gap-3">
+                    {active.imageUrls.map((imageUrl) => (
+                      <QuestionImageAttachment key={imageUrl} imageUrl={imageUrl} onZoom={setZoomedImage} />
+                    ))}
+                  </div>
+                </div>
+              )}
               {active.responses.map((r) => (
                 <div key={r.id} className="rounded-md bg-primary-soft p-3 text-sm">
                   {r.body}
@@ -197,6 +219,7 @@ export function SwQuestionsPage() {
           )}
         </DialogContent>
       </Dialog>
+      <QuestionImageLightbox imageUrl={zoomedImage} onOpenChange={() => setZoomedImage(null)} />
     </>
   );
 }

@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { BadgeCheck, LogOut, MailWarning } from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { BadgeCheck, Loader2, LogOut, MailWarning } from "lucide-react";
 import { toast } from "sonner";
 import { StudentShell } from "@/components/prep/StudentShell";
 import { Card, PageHeader, StatusPill } from "@/components/prep/bits";
@@ -7,8 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
-import { StudyFields, type ProfileDraft } from "@/features/auth/components/fields";
+import { GenderField, StudyFields, type ProfileDraft } from "@/features/auth/components/fields";
 import { useSession } from "@/features/auth/session";
+import { AccountModerationCard } from "@/features/auth/components/AccountModerationCard";
+import { AvatarEditor } from "@/features/auth/components/AvatarEditor";
+import { generateAvatarUrl } from "@/features/auth/utils/avatar";
+import { genderLabel } from "@/features/auth/utils/profile";
 import { Switch } from "@/components/ui/switch";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { useTransactions } from "@/features/payments/useTransactions";
@@ -19,9 +23,9 @@ import { usePrep } from "@/lib/prep-store";
 export const Route = createFileRoute("/account")({
   head: () => ({
     meta: [
-      { title: "Account — PrepMaster" },
+      { title: "Account | PrepMaster" },
       { name: "description", content: "Manage your profile, notifications and payment history." },
-      { property: "og:title", content: "Account — PrepMaster" },
+      { property: "og:title", content: "Account | PrepMaster" },
       {
         property: "og:description",
         content: "Manage your profile, notifications and payment history.",
@@ -32,6 +36,8 @@ export const Route = createFileRoute("/account")({
 });
 
 function AccountPage() {
+  const { signOut } = useSession();
+  const navigate = useNavigate();
   const prep = usePrep();
   const tx = useTransactions("mine");
   const mine = LIVE ? tx : tx.filter((t) => t.student === prep.name);
@@ -60,9 +66,7 @@ function AccountPage() {
 
       <div className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-[320px_minmax(0,1fr)] [&>*]:min-w-0">
         <Card className="h-fit text-center">
-          <span className="mx-auto flex size-20 items-center justify-center rounded-full bg-ink-gradient font-display text-2xl font-semibold text-ink-foreground">
-            {prep.initials}
-          </span>
+          <AvatarEditor />
           <p className="mt-4 font-display text-lg font-semibold">{prep.name}</p>
           <p className="flex items-center justify-center gap-1 text-sm text-text-secondary">
             {prep.email}
@@ -78,16 +82,23 @@ function AccountPage() {
               <p className="text-xs text-text-muted">CBTs</p>
             </div>
           </div>
-          <Button variant="outline" className="mt-5 w-full" asChild>
-            <Link to="/login">
-              <LogOut className="size-4" />
-              Sign out
-            </Link>
+          <Button
+            variant="destructive"
+            className="mt-5 w-full font-medium"
+            onClick={() => {
+              signOut();
+              toast.success("Signed out successfully");
+              navigate({ to: "/login" });
+            }}
+          >
+            <LogOut className="size-4" />
+            Sign out
           </Button>
         </Card>
 
         <div className="min-w-0 space-y-6">
           <ProfileCard />
+          <AccountModerationCard />
 
           <Card>
             <h2 className="text-lg font-semibold">Appearance</h2>
@@ -149,9 +160,11 @@ function ProfileCard() {
     faculty: user?.faculty ?? "",
     course: user?.course ?? "",
     level: user?.level ?? "",
+    ...(user?.gender ? { gender: user.gender } : {}),
   }));
   const patch = (p: ProfileDraft) => setD((x) => ({ ...x, ...p }));
   const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
   const reset = () =>
     setD({
       firstName: user?.firstName ?? "",
@@ -159,6 +172,7 @@ function ProfileCard() {
       faculty: user?.faculty ?? "",
       course: user?.course ?? "",
       level: user?.level ?? "",
+      ...(user?.gender ? { gender: user.gender } : {}),
     });
   const levelLabel = (l?: string) => (!l ? "—" : l === "Postgraduate" ? l : `${l} level`);
   return (
@@ -179,6 +193,7 @@ function ProfileCard() {
             ["Faculty", user?.faculty || "—"],
             ["Department", user?.course || "—"],
             ["Level", levelLabel(user?.level)],
+            ["Gender", genderLabel(user?.gender)],
           ].map(([k, v]) => (
             <div key={k} className="flex flex-col gap-0.5 py-2.5 sm:flex-row sm:justify-between">
               <dt className="text-text-muted">{k}</dt>
@@ -189,26 +204,34 @@ function ProfileCard() {
       ) : (
       <form
         className="mt-4 space-y-4"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
           if (!d.firstName?.trim() || !d.lastName?.trim()) {
             toast.error("Enter your names");
             return;
           }
-          if (!d.faculty || !d.course || !d.level)
-          {
+          if (!d.faculty || !d.course || !d.level) {
             toast.error("Choose your faculty, department and level");
             return;
           }
-          update({
-            firstName: d.firstName.trim(),
-            lastName: d.lastName.trim(),
-            faculty: d.faculty,
-            course: d.course,
-            level: d.level,
-          });
-          toast.success("Profile saved");
-          setEditing(false);
+          setSaving(true);
+          try {
+            await update({
+              firstName: d.firstName.trim(),
+              lastName: d.lastName.trim(),
+              faculty: d.faculty,
+              course: d.course,
+              level: d.level,
+              ...(d.gender ? { gender: d.gender } : {}),
+              ...(d.gender && d.gender !== user?.gender ? { avatarUrl: generateAvatarUrl(d.gender) } : {}),
+            });
+            toast.success("Profile saved");
+            setEditing(false);
+          } catch {
+            // The session provider has already shown the save error.
+          } finally {
+            setSaving(false);
+          }
         }}
       >
         <div className="grid gap-4 sm:grid-cols-2">
@@ -226,11 +249,16 @@ function ProfileCard() {
           </div>
         </div>
         <StudyFields value={d} onChange={patch} />
+        <GenderField value={d.gender} onChange={(gender) => patch({ gender })} />
         <div className="flex flex-col-reverse gap-2 sm:flex-row">
-          <Button type="submit">Save changes</Button>
+          <Button type="submit" disabled={saving}>
+            {saving && <Loader2 className="size-4 animate-spin" />}
+            {saving ? "Saving changes..." : "Save changes"}
+          </Button>
           <Button
             type="button"
             variant="ghost"
+            disabled={saving}
             onClick={() => {
               reset();
               setEditing(false);

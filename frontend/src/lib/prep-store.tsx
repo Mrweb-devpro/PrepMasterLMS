@@ -15,7 +15,8 @@ export interface SavedAttempt {
   cbtId: string;
   /** Picked options (dummy mode only — the real review is loaded from the server). */
   answers: Record<string, number>;
-  correct: number;
+  /** Null while results are not available to the student. */
+  correct: number | null;
   total: number;
   submittedAt: string;
   /** true when the server auto-submitted it at the deadline. */
@@ -84,7 +85,7 @@ export function PrepProvider({ children }: { children: ReactNode }) {
             id: a.id,
             cbtId: a.cbtId,
             answers: {},
-            correct: a.correct ?? 0,
+            correct: a.correct,
             total: a.total,
             submittedAt: a.submittedAt ?? a.startedAt,
             autoSubmitted: a.status === "expired",

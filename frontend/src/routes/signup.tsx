@@ -5,7 +5,7 @@ import { pageHead } from "@/lib/seo";
 export const Route = createFileRoute("/signup")({
   head: () =>
     pageHead(
-      "Create account",
+      "Sign up",
       "Create a free PrepMaster account to access study materials and CBTs.",
     ),
   component: SignupPage,

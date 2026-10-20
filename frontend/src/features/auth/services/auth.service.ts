@@ -7,7 +7,7 @@ import { delay, nowIso, uid } from "@/lib/mock-api";
 import { PERSONAS } from "../constants/personas";
 import type { ProfileDraft } from "../components/fields";
 import type { Profile } from "../types";
-import { toProfile, type MeResponse } from "./profile.mapper";
+import { toProfile, toProfilePatch, type MeResponse } from "./profile.mapper";
 
 const base = (d: ProfileDraft, provider: Profile["provider"]): Profile => ({
   id: uid("usr"),
@@ -31,6 +31,23 @@ const base = (d: ProfileDraft, provider: Profile["provider"]): Profile => ({
 let pending: { email: string; password: string } | null = null;
 
 export const authService = {
+  async checkEmailAvailable(email: string): Promise<boolean> {
+    const clean = email.trim().toLowerCase();
+    if (!clean) return false;
+    if (LIVE) {
+      const result = await api.post<{ available: boolean }>("/auth/check-email", { email: clean });
+      return result.available;
+    }
+    await delay(400);
+    const mockTaken = ["admin@prepmaster.app", "david@unilag.edu.ng", "student@prepmaster.app"];
+    return !mockTaken.includes(clean);
+  },
+
+  async updateProfile(patch: Partial<Profile>): Promise<void> {
+    if (!LIVE) return;
+    const body = toProfilePatch(patch);
+    if (Object.keys(body).length) await api.patch("/me", body);
+  },
   /** Loads the signed-in user's profile from the API (null when signed out). */
   async currentUser(): Promise<Profile | null> {
     const { data } = await supabase().auth.getSession();
@@ -42,7 +59,7 @@ export const authService = {
   async signInWithEmail(email: string, password: string): Promise<Profile> {
     if (LIVE) {
       const { error } = await supabase().auth.signInWithPassword({ email, password });
-      if (error) throw new Error(error.message);
+      if (error) throw error;
       const p = await this.currentUser();
       if (!p) throw new Error("Couldn't sign you in. Try again.");
       return p;
@@ -53,6 +70,26 @@ export const authService = {
     if (/admin/i.test(email)) return { ...PERSONAS.admin.profile, email };
     const known = Object.values(PERSONAS).find((p) => p.profile?.email === email)?.profile;
     return known ?? { ...PERSONAS.student.profile, email };
+  },
+
+  async resetPassword(email: string): Promise<void> {
+    if (LIVE) {
+      const { error } = await supabase().auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw new Error(error.message);
+      return;
+    }
+    await delay(500);
+  },
+
+  async updatePassword(password: string): Promise<void> {
+    if (LIVE) {
+      const { error } = await supabase().auth.updateUser({ password });
+      if (error) throw new Error(error.message);
+      return;
+    }
+    await delay(500);
   },
 
   /** Google gives us name + email only; the rest is collected afterwards. */
@@ -89,6 +126,7 @@ export const authService = {
             dob: d.dob ?? null,
             heard: d.heard ?? null,
             user_type: d.userType ?? null,
+            gender: d.gender ?? null,
           },
         },
       });
@@ -121,7 +159,11 @@ export const authService = {
 
   async resendVerification(email: string) {
     if (!LIVE) return;
-    const { error } = await supabase().auth.resend({ type: "signup", email });
+    const { error } = await supabase().auth.resend({
+      type: "signup",
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/` },
+    });
     if (error) throw new Error(error.message);
   },
 

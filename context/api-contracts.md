@@ -16,6 +16,7 @@ Base URL: `VITE_API_URL` (e.g. `http://localhost:4000/v1`). All routes below are
 | Method | Path                 | Notes                                                                            |
 | ------ | -------------------- | -------------------------------------------------------------------------------- |
 | GET    | `/health`            | `{ ok: true }`                                                                   |
+| POST   | `/auth/check-email`  | `{ email }` → `{ available, inUse }`; used before sign-up advances beyond account details. |
 | POST   | `/webhooks/paystack` | Paystack signature (`x-paystack-signature`) verified. Backup to verify endpoint. |
 
 ## Me (current user)
@@ -23,13 +24,15 @@ Base URL: `VITE_API_URL` (e.g. `http://localhost:4000/v1`). All routes below are
 | Method | Path             | Body                                                                                   | Returns                                    |
 | ------ | ---------------- | -------------------------------------------------------------------------------------- | ------------------------------------------ |
 | GET    | `/me`            | —                                                                                      | `{ profile, warnings }` — 403 if suspended |
-| PATCH  | `/me`            | `{ first_name?, last_name?, faculty?, department?, level?, matric_no?, dob?, heard? }` | `{ profile }`                              |
+| PATCH  | `/me`            | `{ firstName?, lastName?, faculty?, department?, level?, dob?, heard?, gender?, avatarUrl? }` | `{ profile }`                              |
 | POST   | `/me/solidworks` | `{ user_type: "student" \| "freelancer", ... }`                                        | `{ profile }` (sw_registered = true)       |
 | GET    | `/me/library`    | —                                                                                      | owned materials + CBTs                     |
 | GET    | `/me/payments`   | —                                                                                      | `Payment[]`                                |
 
 `profile` shape: `{ id, first_name, last_name, email, role, faculty, department, level, sw_registered, suspended, created_at }`.
 `warning` shape: `{ id, reason, created_at, issued_by }`.
+
+Avatar profile fields: `gender: "male" | "female" | "other" | "prefer_not_to_say" | null` and `avatar_url: string | null` are returned in `profile`. `PATCH /me` accepts camelCase `{ gender?, avatarUrl? }`, including null to clear; avatar URLs must be valid URLs of at most 500 characters. The service maps `avatarUrl` to `avatar_url`.
 
 ## Catalog
 
@@ -51,6 +54,7 @@ Base URL: `VITE_API_URL` (e.g. `http://localhost:4000/v1`). All routes below are
 | Method | Path                      | Notes                                                                         |
 | ------ | ------------------------- | ----------------------------------------------------------------------------- |
 | GET    | `/materials/:id/download` | Access-checked → `{ url }` short-lived signed URL. 403 if paid and not owned. |
+| PATCH  | `/materials/:id`          | Admin. `{ title?, category?, subfolder?, priceKobo? }`                                    |
 | DELETE | `/materials/:id`          | Admin.                                                                        |
 
 ## CBTs
@@ -82,9 +86,9 @@ Base URL: `VITE_API_URL` (e.g. `http://localhost:4000/v1`). All routes below are
 ## SolidWorks (`/solidworks`)
 
 - `GET /tasks`, `GET /tasks/:id`; admin `POST /tasks`, `PATCH /tasks/:id`, `DELETE /tasks/:id`.
-- `GET /submissions` (mine; admin sees all), `GET /submissions/:id`, `POST /submissions/uploads` (presigned PUT), `POST /submissions` `{ task_id, files[], note? }`, admin `PATCH /submissions/:id/grade` `{ score, feedback }`.
+- `GET /submissions` (mine; admin sees all), `GET /submissions/:id`, `POST /uploads` `{ fileName, contentType, type: "submission" | "question" }` (presigned PUT), `POST /submissions` `{ task_id, files[], note? }`, admin `PATCH /submissions/:id/grade` `{ score, feedback }`. New submission and question uploads are stored under `solidworks/submissions/<userId>/` and `solidworks/questions/<userId>/`; legacy `solidworks/<userId>/` keys remain supported.
 - `GET /works` (graded showcase), `GET /works/:id`.
-- `GET /questions`, `GET /questions/:id`, `POST /questions` `{ title, body, task_id? }`, `PATCH /questions/:id`, `POST /questions/:id/responses` `{ body }`.
+- `GET /questions`, `GET /questions/:id`, `POST /questions` `{ title, body, taskIds, imageUrls? }`, `PATCH /questions/:id`, `POST /questions/:id/responses` `{ body }`. Up to two question screenshots upload through `POST /uploads`; private keys are returned as `image_keys` for editing and short-lived `image_urls` for viewing.
 - Admin `GET /users`, `GET /users/:id` (profile, submissions, task count, questions).
 
 ## Admin students (`/admin/students`)

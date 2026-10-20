@@ -20,6 +20,9 @@ export async function catalog(userId: string, isAdmin: boolean) {
     library(userId),
     must<{ cbt_id: string }[]>(await db.from("cbt_attempts").select("cbt_id").eq("user_id", userId)),
   ]);
+  subfolders.sort((a, b) =>
+    a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" }),
+  );
   const used = new Map<string, number>();
   for (const a of attempts) used.set(a.cbt_id, (used.get(a.cbt_id) ?? 0) + 1);
   return {
@@ -93,4 +96,21 @@ export async function addMaterial(input: {
 export async function deleteMaterial(materialId: string) {
   must(await db.from("course_materials").delete().eq("id", materialId).select("id"));
   return { deleted: true };
+}
+
+export async function updateMaterial(
+  materialId: string,
+  patch: { title?: string; category?: string; subfolder?: string; priceKobo?: number },
+) {
+  const updateData: Record<string, unknown> = {};
+  if (patch.title !== undefined) updateData.title = patch.title;
+  if (patch.category !== undefined) updateData.category = patch.category;
+  if (patch.subfolder !== undefined) updateData.subfolder = patch.subfolder;
+  if (patch.priceKobo !== undefined) updateData.price_kobo = patch.priceKobo;
+
+  const { r2_key: _key, ...row } = must<Material>(
+    await db.from("course_materials").update(updateData).eq("id", materialId).select().single(),
+    "File not found.",
+  );
+  return row;
 }

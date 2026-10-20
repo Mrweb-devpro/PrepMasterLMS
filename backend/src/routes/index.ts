@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { authController } from "../controllers/auth.controller.js";
 import { attemptsController, cbtsController } from "../controllers/cbts.controller.js";
 import { catalogController, coursesController, materialsController } from "../controllers/courses.controller.js";
 import { paymentsController, paystackWebhook } from "../controllers/payments.controller.js";
@@ -21,5 +22,6 @@ const protectedRoutes = new Hono<AppEnv>()
 
 export const routes = new Hono()
   .get("/health", (c) => c.json({ ok: true, serverNow: new Date().toISOString() }))
+  .route("/auth", authController)
   .route("/webhooks/paystack", paystackWebhook)
   .route("/", protectedRoutes);

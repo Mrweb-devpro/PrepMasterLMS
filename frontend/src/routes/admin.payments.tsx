@@ -9,9 +9,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/admin/payments")({
   head: () => ({
     meta: [
-      { title: "Payments — PrepMaster Admin" },
+      { title: "Payments | PrepMaster Admin" },
       { name: "description", content: "Track verified, pending and failed student payments." },
-      { property: "og:title", content: "Payments — PrepMaster Admin" },
+      { property: "og:title", content: "Payments | PrepMaster Admin" },
       {
         property: "og:description",
         content: "Track verified, pending and failed student payments.",

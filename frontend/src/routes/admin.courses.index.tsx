@@ -10,9 +10,9 @@ import { useCatalog } from "@/features/catalog/useCatalog";
 export const Route = createFileRoute("/admin/courses/")({
   head: () => ({
     meta: [
-      { title: "Courses — PrepMaster Admin" },
+      { title: "Courses | PrepMaster Admin" },
       { name: "description", content: "Manage course folders and see their materials." },
-      { property: "og:title", content: "Courses — PrepMaster Admin" },
+      { property: "og:title", content: "Courses | PrepMaster Admin" },
       { property: "og:description", content: "Manage course folders and see their materials." },
     ],
   }),

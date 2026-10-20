@@ -59,6 +59,9 @@ export interface SwQuestion {
   title: string;
   body: string;
   taskIds: string[];
+  imageUrls: string[];
+  /** Private storage keys used to preserve existing attachments during editing. */
+  imageKeys?: string[];
   createdAt: string;
   updatedAt: string;
   responses: SwResponse[];
@@ -70,10 +73,17 @@ export interface SwUser {
   name: string;
   email: string;
   userType: "student" | "freelancer";
+  gender?: "male" | "female" | "other" | "prefer_not_to_say";
   heard?: string;
   joinedAt: string;
 }
 
 export type NewTask = Omit<SwTask, "id" | "number" | "createdAt">;
 export type NewSubmission = Omit<SwSubmission, "id" | "submittedAt" | "grade">;
-export type NewQuestion = Pick<SwQuestion, "userId" | "userName" | "title" | "body" | "taskIds">;
+export type NewQuestion = Pick<SwQuestion, "userId" | "userName" | "title" | "body" | "taskIds"> & {
+  imageUrls?: string[];
+  imageKeys?: string[];
+  imageFiles?: File[];
+};
+
+export type QuestionUpdate = Pick<NewQuestion, "title" | "body" | "taskIds" | "imageUrls" | "imageKeys" | "imageFiles">;

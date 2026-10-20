@@ -15,6 +15,8 @@ export interface Profile {
   last_name: string;
   email: string;
   provider: string;
+  gender: "male" | "female" | "other" | "prefer_not_to_say" | null;
+  avatar_url: string | null;
   faculty: string | null;
   department: string | null;
   level: string | null;

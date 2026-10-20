@@ -8,6 +8,8 @@ const slug = z.string().regex(/^[a-z0-9-]+$/).max(60);
 // ---------- Profile ----------
 const optionalText = (max: number) => z.string().max(max).nullable().optional();
 export const updateMeBody = z.object({
+  gender: z.enum(["male", "female", "other", "prefer_not_to_say"]).nullable().optional(),
+  avatarUrl: z.string().url().max(500).nullable().optional(),
   firstName: z.string().min(1).max(60).optional(),
   lastName: z.string().min(1).max(60).optional(),
   faculty: optionalText(100),
@@ -21,6 +23,7 @@ export const swRegisterBody = z.object({
   userType: z.enum(["student", "freelancer"]),
   heard: optionalText(60),
 });
+export const checkEmailBody = z.object({ email: z.string().trim().email().max(320) });
 
 // ---------- CBTs ----------
 export const saveAnswerBody = z.object({ questionId: uuid, selectedIndex: z.number().int().min(0).max(5) });
@@ -75,7 +78,11 @@ export const createCourseBody = z.object({
 
 export const subfolderBody = z.object({ category, slug, name: z.string().min(1).max(80) });
 
-export const uploadBody = z.object({ fileName: z.string().min(1).max(200), contentType: z.string().min(1).max(100) });
+export const uploadBody = z.object({
+  fileName: z.string().min(1).max(200),
+  contentType: z.string().min(1).max(100),
+  type: z.enum(["submission", "question"]).default("submission"),
+});
 
 export const materialBody = z.object({
   category,
@@ -85,6 +92,13 @@ export const materialBody = z.object({
   r2Key: z.string().min(1),
   sizeBytes: z.number().int().min(0),
   priceKobo: z.number().int().min(0).default(0),
+});
+
+export const updateMaterialBody = z.object({
+  title: z.string().min(1).max(200).optional(),
+  category: category.optional(),
+  subfolder: z.string().max(100).optional(),
+  priceKobo: z.number().int().min(0).optional(),
 });
 
 // ---------- Moderation ----------
@@ -133,6 +147,7 @@ export const swQuestionBody = z.object({
   title: z.string().min(3).max(150),
   body: z.string().min(1).max(5000),
   taskIds: z.array(uuid).max(20).default([]),
+  imageUrls: z.array(z.string().min(1).max(500)).max(2).default([]),
 });
 export const swQuestionPatchBody = swQuestionBody.partial();
 export const swResponseBody = z.object({ body: z.string().min(1).max(5000) });

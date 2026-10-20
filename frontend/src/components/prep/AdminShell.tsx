@@ -10,14 +10,32 @@ import {
   LayoutDashboard,
   MonitorCheck,
   Plus,
-  ShieldCheck,
   Users,
 } from "lucide-react";
 import { Suspense, type ReactNode } from "react";
 import { useAdminGuard } from "@/features/auth/hooks/useGuards";
 import { PageLoading } from "@/features/solidworks/components/bits";
-import { AppFrame, Brand, type NavGroup } from "@/components/layout/AppSidebar";
+import { AppFrame, Brand, type NavGroup, useSidebarCollapsed } from "@/components/layout/AppSidebar";
 import { useAdmin } from "@/lib/admin-store";
+import { cn } from "@/lib/utils";
+
+function AdminFooter() {
+  const collapsed = useSidebarCollapsed();
+
+  return (
+    <Link
+      to="/"
+      title={collapsed ? "Back to student view" : undefined}
+      className={cn(
+        "flex h-9 items-center rounded-md text-sm text-sidebar-muted transition-colors hover:bg-surface-hover hover:text-sidebar-foreground",
+        collapsed ? "justify-center px-0" : "gap-2 px-2.5",
+      )}
+    >
+      <ArrowLeft className="size-4 shrink-0" />
+      {!collapsed && <span>Back to student view</span>}
+    </Link>
+  );
+}
 
 export function AdminShell({
   title,
@@ -62,16 +80,6 @@ export function AdminShell({
     },
   ];
 
-  const footer = (
-    <Link
-      to="/"
-      className="flex h-9 items-center gap-2 rounded-md px-2.5 text-sm text-sidebar-muted transition-colors hover:bg-surface-hover hover:text-sidebar-foreground"
-    >
-      <ArrowLeft className="size-4" />
-      Back to student view
-    </Link>
-  );
-
   const topbar = (
     <div className="flex w-full items-center gap-2">
       <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-2.5 py-1 text-2xs font-medium text-primary">
@@ -87,9 +95,9 @@ export function AdminShell({
     <div className="theme-admin">
       <AppFrame
         themeClass="theme-admin"
-        brand={<Brand icon={ShieldCheck} name="PrepMaster" sub="Admin console" to="/admin" />}
+        brand={<Brand name="PrepMaster" sub="Admin console" to="/admin" />}
         groups={groups}
-        footer={footer}
+        footer={<AdminFooter />}
         topbar={topbar}
       >
         {back && (

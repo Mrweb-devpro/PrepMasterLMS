@@ -6,7 +6,7 @@ import { pageHead } from "@/lib/seo";
 export const Route = createFileRoute("/learn-solidworks")({
   head: () =>
     pageHead(
-      "SolidWorks with MrPrepMaster",
+      "Learn SolidWorks",
       "Do the task from each video, submit your SolidWorks files and get graded.",
     ),
   component: () => (

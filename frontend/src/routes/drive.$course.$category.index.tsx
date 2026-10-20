@@ -11,9 +11,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/drive/$course/$category/")({
   head: () => ({
     meta: [
-      { title: "Category — PrepMaster Drive" },
+      { title: "Folder | PrepMaster" },
       { name: "description", content: "Sub-folders and files inside this course category." },
-      { property: "og:title", content: "Category — PrepMaster Drive" },
+      { property: "og:title", content: "Folder | PrepMaster" },
       { property: "og:description", content: "Sub-folders and files inside this course category." },
     ],
   }),
@@ -37,7 +37,9 @@ function CategoryPage() {
     );
   }
 
-  const subfolders = course.subfolders[category.slug];
+  const subfolders = [...(course.subfolders[category.slug] ?? [])].sort((a, b) =>
+    a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" }),
+  );
   const allFiles = filesIn(course.slug, category.slug);
 
   return (

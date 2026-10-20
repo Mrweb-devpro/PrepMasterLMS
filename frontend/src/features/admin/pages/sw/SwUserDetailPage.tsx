@@ -6,6 +6,7 @@ import { GradeBadge } from "@/features/solidworks/components/bits";
 import { swQueries } from "@/features/solidworks/hooks/queries";
 import { AnsweredPill } from "@/features/solidworks/pages/QuestionsPage";
 import { formatDate } from "@/lib/mock-api";
+import { genderLabel } from "@/features/auth/utils/profile";
 import { KV, Panel, PanelHeader, StatStrip } from "../../components/parts";
 
 export function SwUserDetailPage({ userId }: { userId: string }) {
@@ -45,6 +46,7 @@ export function SwUserDetailPage({ userId }: { userId: string }) {
             <KV k="Name" v={user.name} />
             <KV k="Email" v={<span className="break-all">{user.email}</span>} />
             <KV k="Type" v={<span className="capitalize">{user.userType}</span>} />
+            <KV k="Gender" v={genderLabel(user.gender)} />
             <KV k="Heard from" v={heardLabel(user.heard)} />
             <KV k="Joined" v={formatDate(user.joinedAt)} />
           </div>

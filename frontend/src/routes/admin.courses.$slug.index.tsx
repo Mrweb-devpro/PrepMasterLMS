@@ -1,27 +1,26 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Folder } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import { AdminShell } from "@/components/prep/AdminShell";
 import { EmptyState, FileIcon, PaidPill } from "@/components/prep/bits";
 import { Panel, Td, Th } from "@/features/admin/components/parts";
 import { useAdmin } from "@/lib/admin-store";
-import { CATEGORIES, formatNaira, type CategorySlug } from "@/lib/mock-data";
+import { CATEGORIES, type CategorySlug } from "@/lib/mock-data";
 import { useCatalog } from "@/features/catalog/useCatalog";
 import { UploadMaterialDialog } from "@/features/admin/components/UploadMaterialDialog";
 import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/admin/courses/$slug")({
+export const Route = createFileRoute("/admin/courses/$slug/")({
   head: () => ({
     meta: [
-      { title: "Course materials — PrepMaster Admin" },
+      { title: "Course materials | PrepMaster Admin" },
       {
         name: "description",
         content: "Every material inside this course, by category and folder.",
       },
-      { property: "og:title", content: "Course materials — PrepMaster Admin" },
+      { property: "og:title", content: "Course materials | PrepMaster Admin" },
       {
         property: "og:description",
         content: "Every material inside this course, by category and folder.",
@@ -46,7 +45,9 @@ function CourseDetail() {
       </AdminShell>
     );
   const list = filesIn(course.slug, cat, sub ?? undefined);
-  const subs = course.subfolders[cat] ?? [];
+  const subs = [...(course.subfolders[cat] ?? [])].sort((a, b) =>
+    a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" }),
+  );
 
   return (
     <AdminShell
@@ -124,23 +125,25 @@ function CourseDetail() {
             </thead>
             <tbody className="divide-y divide-border">
               {list.map((f) => (
-                <tr
-                  key={f.id}
-                  onClick={() =>
-                    toast(f.name, {
-                      description: `${f.size} · ${f.paid ? formatNaira(f.price ?? 0) : "Free"}`,
-                    })
-                  }
-                  className="cursor-pointer hover:bg-surface-hover"
-                >
+                <tr key={f.id} className="cursor-pointer transition-colors hover:bg-surface-hover">
                   <Td>
-                    <span className="flex items-center gap-2.5">
+                    <Link
+                      to="/admin/courses/$slug/materials/$fileId"
+                      params={{ slug: course.slug, fileId: f.id }}
+                      className="group flex items-center gap-2.5"
+                    >
                       <FileIcon type={f.type} />
-                      <span className="font-medium">{f.name}</span>
-                    </span>
+                      <span className="font-medium text-foreground transition-colors group-hover:text-primary">{f.name}</span>
+                    </Link>
                   </Td>
                   <Td className="text-text-secondary">
-                    {subs.find((s) => s.slug === f.subfolderSlug)?.name}
+                    <Link
+                      to="/admin/courses/$slug/materials/$fileId"
+                      params={{ slug: course.slug, fileId: f.id }}
+                      className="block"
+                    >
+                      {subs.find((s) => s.slug === f.subfolderSlug)?.name ?? "—"}
+                    </Link>
                   </Td>
                   <Td className="text-text-muted">{f.size}</Td>
                   <Td>

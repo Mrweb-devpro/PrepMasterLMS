@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, Check, Folder, Plus, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Folder, Loader2, Plus, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { AdminShell } from "@/components/prep/AdminShell";
@@ -13,9 +13,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/admin/courses/new")({
   head: () => ({
     meta: [
-      { title: "Create course — PrepMaster Admin" },
+      { title: "Create course | PrepMaster Admin" },
       { name: "description", content: "Set up a new course and its folders." },
-      { property: "og:title", content: "Create course — PrepMaster Admin" },
+      { property: "og:title", content: "Create course | PrepMaster Admin" },
       { property: "og:description", content: "Set up a new course and its folders." },
     ],
   }),
@@ -43,6 +43,7 @@ function NewCourse() {
     textbooks: [{ slug: "core-texts", name: "Core Texts" }],
   });
   const [draft, setDraft] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
 
   const addFolder = (cat: CategorySlug) => {
     const name = (draft[cat] ?? "").trim();
@@ -60,11 +61,14 @@ function NewCourse() {
   };
 
   const create = async () => {
+    if (saving) return;
+    setSaving(true);
     const slug = `${slugify(code)}-${Date.now().toString(36)}`;
     try {
       await admin.addCourse({ slug, code: code.toUpperCase(), title, color, subfolders: folders });
     } catch (e) {
       toast.error("Couldn't create the course", { description: (e as Error).message });
+      setSaving(false);
       return;
     }
     toast.success("Course created", { description: `${code.toUpperCase()} — ${title}` });
@@ -218,19 +222,28 @@ function NewCourse() {
       )}
 
       <div className="sticky bottom-4 mt-6 flex items-center justify-between rounded-lg border border-border bg-surface/90 p-3 shadow-md backdrop-blur">
-        <Button variant="ghost" disabled={step === 0} onClick={() => setStep((s) => s - 1)}>
+        <Button variant="ghost" disabled={step === 0 || saving} onClick={() => setStep((s) => s - 1)}>
           <ArrowLeft />
           Back
         </Button>
         {step < 2 ? (
-          <Button onClick={next}>
+          <Button disabled={saving} onClick={next}>
             Continue
             <ArrowRight />
           </Button>
         ) : (
-          <Button onClick={create}>
-            <Check />
-            Create course
+          <Button disabled={saving} onClick={create}>
+            {saving ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                Creating course...
+              </>
+            ) : (
+              <>
+                <Check className="size-4" />
+                Create course
+              </>
+            )}
           </Button>
         )}
       </div>

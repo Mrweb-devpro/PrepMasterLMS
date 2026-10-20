@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,18 +8,43 @@ import { AuthLayout } from "@/components/prep/AuthLayout";
 import { Field } from "@/features/admin/components/parts";
 import { GoogleButton, OrDivider } from "../components/fields";
 import { useAuthActions } from "../hooks/useAuthActions";
+import { useSession } from "../session";
+import { isMainProfileComplete } from "../utils/profile";
 
 export function LoginPage({ redirect }: { redirect?: string }) {
   const navigate = useNavigate();
-  const { emailSignIn, google } = useAuthActions();
+  const { hydrated, user } = useSession();
+  const { emailSignIn, google, resendVerification } = useAuthActions({
+    onEmailSignInError: (error, attemptedEmail) => {
+      if (("code" in error && error.code === "email_not_confirmed") ||
+          error.message.toLowerCase().includes("email not confirmed")) {
+        toast.error("Email not verified yet", {
+          description: "You haven't verified your email yet. Please check your inbox and your Spam folder before signing in.",
+          duration: 12000,
+          action: {
+            label: "Resend Link",
+            onClick: () => resendVerification.mutate(attemptedEmail),
+          },
+        });
+        return;
+      }
+      toast.error(error.message || "Something went wrong");
+    },
+  });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const go = (role: string) =>
-    navigate({ to: role === "admin" && !redirect ? "/admin" : (redirect ?? "/") });
+  useEffect(() => {
+    if (!hydrated || !user) return;
+    const destination = !isMainProfileComplete(user)
+      ? "/onboarding"
+      : redirect ?? (user.role === "admin" ? "/admin" : "/");
+    void navigate({ to: destination, replace: true });
+  }, [hydrated, user, redirect, navigate]);
 
   return (
     <AuthLayout
+      variant="login"
       title="Welcome back"
       subtitle="Sign in to continue. Admins sign in here too."
       footer={
@@ -31,17 +56,17 @@ export function LoginPage({ redirect }: { redirect?: string }) {
         </>
       }
     >
-      <GoogleButton onClick={() => google.mutate(undefined, { onSuccess: (p) => go(p.role) })} />
+      <GoogleButton onClick={() => google.mutate()} />
       <OrDivider />
       <form
         className="space-y-4"
         onSubmit={(e) => {
           e.preventDefault();
-          if (!email) {
+          if (!email.trim()) {
             toast.error("Enter your email");
             return;
           }
-          emailSignIn.mutate({ email, password }, { onSuccess: (p) => go(p.role) });
+          emailSignIn.mutate({ email: email.trim(), password });
         }}
       >
         <Field label="Email">
@@ -55,13 +80,9 @@ export function LoginPage({ redirect }: { redirect?: string }) {
         <div className="space-y-1.5">
           <div className="flex justify-between">
             <span className="text-sm font-medium">Password</span>
-            <button
-              type="button"
-              className="text-xs text-primary"
-              onClick={() => toast("Reset link sent", { description: "Demo: no email is sent." })}
-            >
+            <Link to="/forgot-password" className="text-xs text-primary hover:underline">
               Forgot?
-            </button>
+            </Link>
           </div>
           <Input
             type="password"
@@ -74,9 +95,6 @@ export function LoginPage({ redirect }: { redirect?: string }) {
           {emailSignIn.isPending && <Loader2 className="size-4 animate-spin" />}
           Sign in
         </Button>
-        <p className="text-center text-2xs text-text-muted">
-          Demo: any email with “admin” in it opens the admin console.
-        </p>
       </form>
     </AuthLayout>
   );

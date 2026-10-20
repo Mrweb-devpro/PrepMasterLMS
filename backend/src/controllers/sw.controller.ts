@@ -20,8 +20,8 @@ export const swController = new Hono<AppEnv>()
   .delete("/tasks/:id", requireAdmin, zValidator("param", idParam), async (c) => c.json(await sw.deleteTask(c.req.valid("param").id)))
   // Submissions
   .post("/uploads", zValidator("json", uploadBody), async (c) => {
-    const { fileName, contentType } = c.req.valid("json");
-    return c.json(await sw.prepareUpload(c.get("user").id, fileName, contentType));
+    const { fileName, contentType, type } = c.req.valid("json");
+    return c.json(await sw.prepareUpload(c.get("user").id, fileName, contentType, type));
   })
   .get("/submissions", zValidator("query", mineQuery), async (c) =>
     c.json(await sw.listSubmissions(c.get("user"), c.req.valid("query").mine === "true")))

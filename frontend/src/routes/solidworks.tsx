@@ -10,7 +10,7 @@ export const Route = createFileRoute("/solidworks")({
     return heard ? { heard } : {};
   },
   head: () =>
-    pageHead("SolidWorks", "Practise SolidWorks with MrPrepMaster: tasks, submissions and grades."),
+    pageHead("SolidWorks", "Practise SolidWorks with MrPrepMaster: tasks, submissions and grades.", "SolidWorks"),
   component: SolidworksLayout,
 });
 

@@ -32,9 +32,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/attempt/$cbtId")({
   head: () => ({
     meta: [
-      { title: "Exam in progress — PrepMaster" },
+      { title: "Exam in progress | PrepMaster" },
       { name: "description", content: "Answer questions, flag for review and submit your CBT." },
-      { property: "og:title", content: "Exam in progress — PrepMaster" },
+      { property: "og:title", content: "Exam in progress | PrepMaster" },
       {
         property: "og:description",
         content: "Answer questions, flag for review and submit your CBT.",

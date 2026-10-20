@@ -3,7 +3,7 @@ import { zValidator } from "@hono/zod-validator";
 import { requireAdmin } from "../middleware/auth.js";
 import * as course from "../services/course.service.js";
 import type { AppEnv } from "../models/types.js";
-import { createCourseBody, idParam, materialBody, subfolderBody, uploadBody } from "../validators/schemas.js";
+import { createCourseBody, idParam, materialBody, subfolderBody, updateMaterialBody, uploadBody } from "../validators/schemas.js";
 
 export const catalogController = new Hono<AppEnv>()
   .get("/", async (c) => c.json(await course.catalog(c.get("user").id, c.get("user").role === "admin")));
@@ -26,5 +26,7 @@ export const materialsController = new Hono<AppEnv>()
     const u = c.get("user");
     return c.json(await course.getDownloadLink(c.req.valid("param").id, u.id, u.role === "admin"));
   })
+  .patch("/:id", requireAdmin, zValidator("param", idParam), zValidator("json", updateMaterialBody), async (c) =>
+    c.json(await course.updateMaterial(c.req.valid("param").id, c.req.valid("json"))))
   .delete("/:id", requireAdmin, zValidator("param", idParam), async (c) =>
     c.json(await course.deleteMaterial(c.req.valid("param").id)));
