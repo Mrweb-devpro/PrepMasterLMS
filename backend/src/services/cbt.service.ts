@@ -166,13 +166,16 @@ export async function saveAnswer(
 }
 
 /** Submit. Late submits are still graded, but only on answers saved before the deadline + grace. */
-export async function submitAttempt(attemptId: string, userId: string) {
+export async function submitAttempt(attemptId: string, userId: string, flaggedQuestionIds?: string[]) {
   const attempt = await getOwnAttempt(attemptId, userId);
   const { reveal_results } = await getCbt(attempt.cbt_id);
   if (attempt.status !== "in_progress") return result(attempt, reveal_results);
   await db
     .from("cbt_attempts")
-    .update({ submit_attempted_at: new Date().toISOString() })
+    .update({
+      submit_attempted_at: new Date().toISOString(),
+      ...(flaggedQuestionIds !== undefined ? { flagged_question_ids: flaggedQuestionIds } : {}),
+    })
     .eq("id", attemptId);
   return result(await finalize(attempt), reveal_results);
 }
@@ -394,7 +397,7 @@ export async function adminGetCbt(cbtId: string) {
     must(
       await db
         .from("cbt_attempts")
-        .select("*, profiles(first_name, last_name, email)")
+        .select("*, profiles(id, first_name, last_name, email)")
         .eq("cbt_id", cbtId)
         .order("started_at", { ascending: false }),
     ),

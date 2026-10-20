@@ -70,6 +70,7 @@ export interface Attempt {
   status: "in_progress" | "submitted" | "expired";
   score: number | null;
   total: number | null;
+  flagged_question_ids: string[];
 }
 
 export interface Material {

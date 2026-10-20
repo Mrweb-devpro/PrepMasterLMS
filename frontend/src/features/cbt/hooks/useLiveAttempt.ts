@@ -53,9 +53,9 @@ export function useLiveAttempt(cbtId: string) {
     });
   };
 
-  const submit = (): Promise<ResultResponse> => {
+  const submit = (flaggedQuestionIds: string[] = []): Promise<ResultResponse> => {
     if (!state) return Promise.reject(new Error("Exam not started"));
-    return cbtApi.submit(state.attemptId);
+    return cbtApi.submit(state.attemptId, flaggedQuestionIds);
   };
 
   return { state, error, save, submit };

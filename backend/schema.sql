@@ -121,7 +121,8 @@ create table public.cbt_attempts (
   submit_attempted_at timestamptz,
   status public.attempt_status not null default 'in_progress',
   score integer,
-  total integer
+  total integer,
+  flagged_question_ids text[] not null default '{}'
 );
 create index on public.cbt_attempts (user_id, cbt_id);
 create unique index one_open_attempt on public.cbt_attempts (cbt_id, user_id) where status = 'in_progress';
@@ -340,3 +341,7 @@ where avatar_url is null;
 -- SolidWorks question screenshot upgrade (idempotent).
 alter table public.sw_questions add column if not exists image_url text;
 alter table public.sw_questions add column if not exists image_urls text[] not null default '{}';
+
+-- CBT attempt flags upgrade (idempotent).
+alter table public.cbt_attempts
+  add column if not exists flagged_question_ids text[] not null default '{}';

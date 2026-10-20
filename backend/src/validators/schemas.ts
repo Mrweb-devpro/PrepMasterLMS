@@ -27,6 +27,9 @@ export const checkEmailBody = z.object({ email: z.string().trim().email().max(32
 
 // ---------- CBTs ----------
 export const saveAnswerBody = z.object({ questionId: uuid, selectedIndex: z.number().int().min(0).max(5) });
+export const submitAttemptBody = z.object({
+  flaggedQuestionIds: z.array(uuid).max(300).optional(),
+});
 
 export const createCbtBody = z.object({
   courseId: uuid,

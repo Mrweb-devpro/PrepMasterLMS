@@ -82,7 +82,7 @@ function AttemptPage() {
     if (submitting) return;
     setSubmitting(true);
     live
-      .submit()
+      .submit(flagged)
       .then((r) => {
         prep.completeAttempt(cbtId);
         if (r.autoSubmitted) toast.info("Time was up — your saved answers were submitted.");
