@@ -31,11 +31,6 @@ export function AvatarEditor() {
         {saving ? <Loader2 className="size-4 animate-spin" /> : <Dices className="size-4" />}
         Shuffle avatar
       </Button>
-      <p className="text-center text-2xs text-text-muted">
-        <a href="https://www.dicebear.com/styles/adventurer/" target="_blank" rel="noreferrer" className="underline">Adventurer by Lisa Wischofsky</a>
-        {" · "}<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer" className="underline">CC BY 4.0</a>
-        {" · Customized with DiceBear"}
-      </p>
     </div>
   );
 }
