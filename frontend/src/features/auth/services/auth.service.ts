@@ -162,7 +162,7 @@ export const authService = {
     const { error } = await supabase().auth.resend({
       type: "signup",
       email,
-      options: { emailRedirectTo: `${window.location.origin}/` },
+      options: { emailRedirectTo: `${window.location.origin}/login` },
     });
     if (error) throw new Error(error.message);
   },

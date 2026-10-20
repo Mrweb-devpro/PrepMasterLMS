@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { GoogleButton, OrDivider } from "../components/fields";
 import { useAuthActions } from "../hooks/useAuthActions";
 import { useSession } from "../session";
 import { isMainProfileComplete } from "../utils/profile";
+import { clearAuthLinkError, hasInvalidAuthLink } from "../utils/auth-link";
 
 export function LoginPage({ redirect }: { redirect?: string }) {
   const navigate = useNavigate();
@@ -33,6 +34,18 @@ export function LoginPage({ redirect }: { redirect?: string }) {
   });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [invalidVerificationLink, setInvalidVerificationLink] = useState(() => hasInvalidAuthLink());
+  const showedInvalidLink = useRef(false);
+
+  useEffect(() => {
+    if (!invalidVerificationLink || showedInvalidLink.current) return;
+    showedInvalidLink.current = true;
+    toast.error("Verification link is invalid or expired", {
+      description: "Request a new verification email below, then use only the newest link.",
+      duration: 12000,
+    });
+    clearAuthLinkError();
+  }, [invalidVerificationLink]);
 
   useEffect(() => {
     if (!hydrated || !user) return;
@@ -96,6 +109,22 @@ export function LoginPage({ redirect }: { redirect?: string }) {
           Sign in
         </Button>
       </form>
+      {invalidVerificationLink && (
+        <div role="alert" className="mt-4 space-y-3 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-foreground">
+          <p>Your verification link is invalid, expired, or has already been used.</p>
+          <p className="text-xs text-text-secondary">Enter your email above to receive a new verification link.</p>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            disabled={!email.trim() || resendVerification.isPending}
+            onClick={() => resendVerification.mutate(email.trim().toLowerCase())}
+          >
+            {resendVerification.isPending && <Loader2 className="size-4 animate-spin" />}
+            Send new verification email
+          </Button>
+        </div>
+      )}
     </AuthLayout>
   );
 }
