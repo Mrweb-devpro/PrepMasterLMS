@@ -54,6 +54,7 @@ import { Route as SolidworksTasksTaskIdRouteImport } from './routes/solidworks.t
 import { Route as SolidworksWorksIndexRouteImport } from './routes/solidworks.works.index'
 import { Route as SolidworksWorksIdRouteImport } from './routes/solidworks.works.$id'
 import { Route as AdminCoursesSlugIndexRouteImport } from './routes/admin.courses.$slug.index'
+import { Route as AdminCoursesSlugEditRouteImport } from './routes/admin.courses.$slug_.edit'
 import { Route as DriveCourseCategoryIndexRouteImport } from './routes/drive.$course.$category.index'
 import { Route as DriveCourseCategorySubfolderRouteImport } from './routes/drive.$course.$category.$subfolder'
 import { Route as AdminCoursesSlugMaterialsFileIdRouteImport } from './routes/admin.courses.$slug_.materials.$fileId'
@@ -284,6 +285,11 @@ const AdminCoursesSlugIndexRoute = AdminCoursesSlugIndexRouteImport.update({
   path: '/admin/courses/$slug/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCoursesSlugEditRoute = AdminCoursesSlugEditRouteImport.update({
+  id: '/admin/courses/$slug_/edit',
+  path: '/admin/courses/$slug/edit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DriveCourseCategoryIndexRoute =
   DriveCourseCategoryIndexRouteImport.update({
     id: '/drive/$course/$category/',
@@ -348,6 +354,7 @@ export interface FileRoutesByFullPath {
   '/solidworks/questions/': typeof SolidworksQuestionsIndexRoute
   '/solidworks/tasks/': typeof SolidworksTasksIndexRoute
   '/solidworks/works/': typeof SolidworksWorksIndexRoute
+  '/admin/courses/$slug/edit': typeof AdminCoursesSlugEditRoute
   '/drive/$course/$category/$subfolder': typeof DriveCourseCategorySubfolderRoute
   '/admin/courses/$slug/': typeof AdminCoursesSlugIndexRoute
   '/drive/$course/$category/': typeof DriveCourseCategoryIndexRoute
@@ -397,6 +404,7 @@ export interface FileRoutesByTo {
   '/solidworks/questions': typeof SolidworksQuestionsIndexRoute
   '/solidworks/tasks': typeof SolidworksTasksIndexRoute
   '/solidworks/works': typeof SolidworksWorksIndexRoute
+  '/admin/courses/$slug/edit': typeof AdminCoursesSlugEditRoute
   '/drive/$course/$category/$subfolder': typeof DriveCourseCategorySubfolderRoute
   '/admin/courses/$slug': typeof AdminCoursesSlugIndexRoute
   '/drive/$course/$category': typeof DriveCourseCategoryIndexRoute
@@ -448,6 +456,7 @@ export interface FileRoutesById {
   '/solidworks/questions/': typeof SolidworksQuestionsIndexRoute
   '/solidworks/tasks/': typeof SolidworksTasksIndexRoute
   '/solidworks/works/': typeof SolidworksWorksIndexRoute
+  '/admin/courses/$slug_/edit': typeof AdminCoursesSlugEditRoute
   '/drive/$course/$category/$subfolder': typeof DriveCourseCategorySubfolderRoute
   '/admin/courses/$slug/': typeof AdminCoursesSlugIndexRoute
   '/drive/$course/$category/': typeof DriveCourseCategoryIndexRoute
@@ -500,6 +509,7 @@ export interface FileRouteTypes {
     | '/solidworks/questions/'
     | '/solidworks/tasks/'
     | '/solidworks/works/'
+    | '/admin/courses/$slug/edit'
     | '/drive/$course/$category/$subfolder'
     | '/admin/courses/$slug/'
     | '/drive/$course/$category/'
@@ -549,6 +559,7 @@ export interface FileRouteTypes {
     | '/solidworks/questions'
     | '/solidworks/tasks'
     | '/solidworks/works'
+    | '/admin/courses/$slug/edit'
     | '/drive/$course/$category/$subfolder'
     | '/admin/courses/$slug'
     | '/drive/$course/$category'
@@ -599,6 +610,7 @@ export interface FileRouteTypes {
     | '/solidworks/questions/'
     | '/solidworks/tasks/'
     | '/solidworks/works/'
+    | '/admin/courses/$slug_/edit'
     | '/drive/$course/$category/$subfolder'
     | '/admin/courses/$slug/'
     | '/drive/$course/$category/'
@@ -640,6 +652,7 @@ export interface RootRouteChildren {
   AdminSwSubmissionsIndexRoute: typeof AdminSwSubmissionsIndexRoute
   AdminSwUsersIndexRoute: typeof AdminSwUsersIndexRoute
   DriveCourseIndexRoute: typeof DriveCourseIndexRoute
+  AdminCoursesSlugEditRoute: typeof AdminCoursesSlugEditRoute
   DriveCourseCategorySubfolderRoute: typeof DriveCourseCategorySubfolderRoute
   AdminCoursesSlugIndexRoute: typeof AdminCoursesSlugIndexRoute
   DriveCourseCategoryIndexRoute: typeof DriveCourseCategoryIndexRoute
@@ -963,6 +976,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCoursesSlugIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/courses/$slug_/edit': {
+      id: '/admin/courses/$slug_/edit'
+      path: '/admin/courses/$slug/edit'
+      fullPath: '/admin/courses/$slug/edit'
+      preLoaderRoute: typeof AdminCoursesSlugEditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/drive/$course/$category/': {
       id: '/drive/$course/$category/'
       path: '/drive/$course/$category'
@@ -1052,6 +1072,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminSwSubmissionsIndexRoute: AdminSwSubmissionsIndexRoute,
   AdminSwUsersIndexRoute: AdminSwUsersIndexRoute,
   DriveCourseIndexRoute: DriveCourseIndexRoute,
+  AdminCoursesSlugEditRoute: AdminCoursesSlugEditRoute,
   DriveCourseCategorySubfolderRoute: DriveCourseCategorySubfolderRoute,
   AdminCoursesSlugIndexRoute: AdminCoursesSlugIndexRoute,
   DriveCourseCategoryIndexRoute: DriveCourseCategoryIndexRoute,

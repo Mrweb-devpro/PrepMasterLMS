@@ -76,6 +76,14 @@ export const createCourseBody = z.object({
   subfolders: z.array(z.object({ category, slug, name: z.string().min(1).max(80) })).max(100).default([]),
 });
 
+export const updateCourseBody = z.object({
+  code: z.string().min(2).max(20).optional(),
+  title: z.string().min(3).max(150).optional(),
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  description: z.string().max(2000).optional(),
+  subfolders: z.array(z.object({ category, slug, name: z.string().min(1).max(80) })).max(100).optional(),
+});
+
 export const subfolderBody = z.object({ category, slug, name: z.string().min(1).max(80) });
 
 export const uploadBody = z.object({

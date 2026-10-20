@@ -44,6 +44,7 @@ Avatar profile fields: `gender: "male" | "female" | "other" | "prefer_not_to_say
 | Method | Path                      | Body                                                                                      |
 | ------ | ------------------------- | ----------------------------------------------------------------------------------------- |
 | POST   | `/courses`                | `{ title, slug, description? }`                                                           |
+| PATCH  | `/courses/:id`            | `{ code?, title?, color?, description?, subfolders? }`; removed folders must be empty.   |
 | DELETE | `/courses/:id`            | —                                                                                         |
 | POST   | `/courses/:id/subfolders` | `{ name, category }`                                                                      |
 | POST   | `/courses/:id/uploads`    | `{ filename, contentType }` → `{ uploadUrl, key }` (presigned PUT, upload directly to R2) |
