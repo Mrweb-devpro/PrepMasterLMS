@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, CalendarClock, Clock3, ListChecks, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { StudentShell } from "@/components/prep/StudentShell";
+import { CbtEmptyIllustration } from "@/components/common/EmptyStateIllustration";
 import { EmptyState, PageHeader, PaidPill } from "@/components/prep/bits";
 import { cbtStatusPill } from "@/features/cbt/utils/cbt-status";
 import { formatDateTime } from "@/lib/mock-data";
@@ -63,6 +64,7 @@ function CbtsPage() {
         </div>
       ) : list.length === 0 ? (
         <EmptyState
+          illustration={<CbtEmptyIllustration />}
           title={tab === "practice" ? "No practice CBTs available" : "No live CBTs scheduled"}
           description={
             tab === "practice"

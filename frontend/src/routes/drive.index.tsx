@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Folder, Loader2, Search } from "lucide-react";
 import { useState } from "react";
 import { StudentShell } from "@/components/prep/StudentShell";
+import { DriveEmptyIllustration } from "@/components/common/EmptyStateIllustration";
 import { Breadcrumbs, EmptyState, FileIcon, PageHeader, PaidPill } from "@/components/prep/bits";
 import { Input } from "@/components/ui/input";
 import { useCatalog } from "@/features/catalog/useCatalog";
@@ -80,6 +81,7 @@ function DrivePage() {
         </div>
       ) : courses.length === 0 ? (
         <EmptyState
+          illustration={<DriveEmptyIllustration />}
           title="No course materials yet"
           description="Your courses and study materials will appear here when they are available."
         />
