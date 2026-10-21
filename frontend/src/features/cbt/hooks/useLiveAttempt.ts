@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ApiError } from "@/lib/api/client";
 import { LIVE } from "@/lib/api/config";
@@ -17,7 +17,54 @@ export function useLiveAttempt(cbtId: string) {
     deadline: number; // in local clock time
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [offline, setOffline] = useState(
+    () => typeof navigator !== "undefined" && !navigator.onLine,
+  );
   const started = useRef(false);
+  const stateRef = useRef<typeof state>(null);
+  const pendingAnswers = useRef(new Map<string, number>());
+  const flushing = useRef(false);
+  const onTimeUpRef = useRef<() => void>(() => {});
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
+  const flushPendingAnswers = useCallback(async () => {
+    if (
+      typeof navigator === "undefined" ||
+      !navigator.onLine ||
+      !stateRef.current ||
+      flushing.current
+    )
+      return;
+    flushing.current = true;
+    try {
+      for (const [questionId, selectedIndex] of Array.from(pendingAnswers.current)) {
+        try {
+          await cbtApi.saveAnswer(stateRef.current.attemptId, questionId, selectedIndex);
+          if (pendingAnswers.current.get(questionId) === selectedIndex) {
+            pendingAnswers.current.delete(questionId);
+          }
+          setOffline(false);
+        } catch (error) {
+          if (error instanceof ApiError && (error.status === 403 || error.status === 409)) {
+            pendingAnswers.current.clear();
+            onTimeUpRef.current();
+            return;
+          }
+          if (error instanceof ApiError && error.status === 0) {
+            setOffline(true);
+            return;
+          }
+          pendingAnswers.current.delete(questionId);
+          toast.error("Answer not saved", { description: (error as Error).message });
+        }
+      }
+    } finally {
+      flushing.current = false;
+    }
+  }, []);
 
   useEffect(() => {
     if (!LIVE || started.current) return;
@@ -45,12 +92,25 @@ export function useLiveAttempt(cbtId: string) {
       .catch((e: Error) => setError(e.message));
   }, [cbtId]);
 
+  useEffect(() => {
+    const handleOnline = () => {
+      setOffline(false);
+      void flushPendingAnswers();
+    };
+    const handleOffline = () => setOffline(true);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, [flushPendingAnswers]);
+
   const save = (questionId: string, index: number, onTimeUp: () => void) => {
     if (!state) return;
-    cbtApi.saveAnswer(state.attemptId, questionId, index).catch((e: Error) => {
-      if (e instanceof ApiError && e.status === 409) onTimeUp();
-      else toast.error("Answer not saved — check your connection", { description: e.message });
-    });
+    onTimeUpRef.current = onTimeUp;
+    pendingAnswers.current.set(questionId, index);
+    void flushPendingAnswers();
   };
 
   const submit = (flaggedQuestionIds: string[] = []): Promise<ResultResponse> => {
@@ -58,5 +118,5 @@ export function useLiveAttempt(cbtId: string) {
     return cbtApi.submit(state.attemptId, flaggedQuestionIds);
   };
 
-  return { state, error, save, submit };
+  return { state, error, offline, save, submit };
 }

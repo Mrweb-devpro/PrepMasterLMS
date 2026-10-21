@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { AdminShell } from "@/components/prep/AdminShell";
 import { Choice, Field, KV, Panel, PanelHeader, Stepper } from "@/features/admin/components/parts";
 import { QuestionCard } from "@/features/cbt/components/QuestionCard";
+import { localDateTime } from "@/features/cbt/utils/cbt-time";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -33,10 +34,6 @@ export const Route = createFileRoute("/admin/cbts/new")({
 
 const STEPS = ["Settings", "Questions", "Preview"];
 const letters = ["A", "B", "C", "D"];
-const localDateTime = (date: Date) => {
-  const offset = date.getTimezoneOffset() * 60_000;
-  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
-};
 
 interface Settings {
   title: string;

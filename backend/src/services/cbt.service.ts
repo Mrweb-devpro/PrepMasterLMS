@@ -441,7 +441,8 @@ export interface CbtPatch {
 /** Edits settings and (optionally) replaces the question list. Works whether the CBT is live or not. */
 export async function updateCbt(cbtId: string, patch: CbtPatch) {
   const existing = await getCbt(cbtId);
-  if (existing.mode === "live") {
+  const touchesWindow = patch.opensAt !== undefined || patch.closesAt !== undefined;
+  if (existing.mode === "live" && touchesWindow) {
     const closesAt = patch.closesAt !== undefined ? patch.closesAt : existing.closes_at;
     const opensAt = patch.opensAt ?? existing.opens_at;
     if (!closesAt) throw badRequest("Live CBTs need a closing time.");

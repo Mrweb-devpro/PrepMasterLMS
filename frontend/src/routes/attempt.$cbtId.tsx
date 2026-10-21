@@ -229,6 +229,14 @@ function AttemptPage() {
           {mm}:{ss}
         </div>
       </header>
+      {LIVE && live.offline && (
+        <div
+          role="status"
+          className="border-b border-warning/30 bg-warning-bg px-4 py-2 text-center text-xs font-medium text-warning"
+        >
+          Connection lost. Keep this page open; your selected answers will sync when you reconnect.
+        </div>
+      )}
       <div className="h-1 bg-border">
         <div
           className="h-full bg-primary transition-all"

@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { localDateTime } from "@/features/cbt/utils/cbt-time";
 import type { Cbt, Question } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
@@ -134,7 +135,7 @@ export function CbtEditDialog({
                     <Label>Starts at</Label>
                     <Input
                       type="datetime-local"
-                      value={d.scheduledFor ? d.scheduledFor.slice(0, 16) : ""}
+                      value={d.scheduledFor ? localDateTime(new Date(d.scheduledFor)) : ""}
                       onChange={(e) => setD({ ...d, scheduledFor: e.target.value })}
                     />
                   </div>
@@ -142,7 +143,7 @@ export function CbtEditDialog({
                     <Label>Closes at</Label>
                     <Input
                       type="datetime-local"
-                      value={d.closesAt ? d.closesAt.slice(0, 16) : ""}
+                      value={d.closesAt ? localDateTime(new Date(d.closesAt)) : ""}
                       onChange={(e) => setD({ ...d, closesAt: e.target.value })}
                     />
                   </div>

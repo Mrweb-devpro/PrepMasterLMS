@@ -1,3 +1,9 @@
+/** Converts an instant to the local value expected by a datetime-local input. */
+export function localDateTime(date: Date): string {
+  const offset = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+}
+
 /** Formats a CBT timestamp with a concise, student-friendly 24-hour date and time. */
 export function formatSmartCbtDate(dateStr?: string | null): string {
   if (!dateStr) return "Anytime";
