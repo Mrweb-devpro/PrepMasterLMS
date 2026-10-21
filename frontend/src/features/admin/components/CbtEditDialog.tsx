@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { localDateTime } from "@/features/cbt/utils/cbt-time";
 import type { Cbt, Question } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
@@ -48,6 +49,14 @@ export function CbtEditDialog({
   const save = async (): Promise<void> => {
     if (d.title.trim().length < 3) { toast.error("Give the CBT a title"); return; }
     if (!d.minutes || d.minutes < 1) { toast.error("Duration must be at least 1 minute"); return; }
+    if (d.kind === "live" && (!d.scheduledFor || !d.closesAt)) {
+      toast.error("Live CBTs need opening and closing times");
+      return;
+    }
+    if (d.kind === "live" && new Date(d.closesAt!).getTime() <= new Date(d.scheduledFor!).getTime()) {
+      toast.error("Closing time must be after the opening time");
+      return;
+    }
     if (d.paid && !(d.price && d.price > 0)) { toast.error("Enter a price"); return; }
     if (d.questions.length === 0) { toast.error("Add at least one question"); return; }
     const bad = d.questions.findIndex((q) => !q.text.trim() || q.options.some((o) => !o.trim()));
@@ -65,6 +74,7 @@ export function CbtEditDialog({
         price: d.paid ? (d.price ?? 0) : 0,
         retakePolicy: d.retakePolicy,
         ...(d.scheduledFor ? { scheduledFor: d.scheduledFor } : {}),
+        ...(d.closesAt ? { closesAt: d.closesAt } : {}),
         questions: d.questions,
       });
       toast.success("CBT updated");
@@ -120,14 +130,24 @@ export function CbtEditDialog({
                 />
               </div>
               {d.kind === "live" ? (
-                <div className="space-y-1.5">
-                  <Label>Starts at</Label>
-                  <Input
-                    type="datetime-local"
-                    value={d.scheduledFor ? d.scheduledFor.slice(0, 16) : ""}
-                    onChange={(e) => setD({ ...d, scheduledFor: e.target.value })}
-                  />
-                </div>
+                <>
+                  <div className="space-y-1.5">
+                    <Label>Starts at</Label>
+                    <Input
+                      type="datetime-local"
+                      value={d.scheduledFor ? localDateTime(new Date(d.scheduledFor)) : ""}
+                      onChange={(e) => setD({ ...d, scheduledFor: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Closes at</Label>
+                    <Input
+                      type="datetime-local"
+                      value={d.closesAt ? localDateTime(new Date(d.closesAt)) : ""}
+                      onChange={(e) => setD({ ...d, closesAt: e.target.value })}
+                    />
+                  </div>
+                </>
               ) : (
                 <div className="space-y-1.5">
                   <Label>Retakes</Label>

@@ -55,6 +55,10 @@ export interface Cbt {
   retakePolicy: string;
   status?: CbtStatus;
   scheduledFor?: string;
+  /** Live CBT only: the end of its testing and purchase window. */
+  closesAt?: string;
+  /** Creation time used to keep CBT lists newest-first. */
+  createdAt?: string;
   revealResults?: boolean;
   score?: number;
   /** Real backend only: hidden from students until published. */
@@ -531,6 +535,7 @@ export const cbts: Cbt[] = [
     questionCount: bioQuestions.length,
     minutes: 10,
     retakePolicy: "Unlimited retakes",
+    createdAt: "2026-10-10T09:00:00Z",
     questions: bioQuestions,
   },
   {
@@ -543,6 +548,7 @@ export const cbts: Cbt[] = [
     questionCount: bioQuestions.length,
     minutes: 15,
     retakePolicy: "3 attempts",
+    createdAt: "2026-10-12T09:00:00Z",
     questions: bioQuestions,
   },
   {
@@ -554,6 +560,7 @@ export const cbts: Cbt[] = [
     questionCount: chmQuestions.length,
     minutes: 8,
     retakePolicy: "Unlimited retakes",
+    createdAt: "2026-10-11T09:00:00Z",
     questions: chmQuestions,
   },
   {
@@ -565,6 +572,7 @@ export const cbts: Cbt[] = [
     questionCount: phyQuestions.length,
     minutes: 10,
     retakePolicy: "Unlimited retakes",
+    createdAt: "2026-10-13T09:00:00Z",
     questions: phyQuestions,
   },
   {
@@ -577,6 +585,7 @@ export const cbts: Cbt[] = [
     questionCount: mthQuestions.length,
     minutes: 12,
     retakePolicy: "2 attempts",
+    createdAt: "2026-10-14T09:00:00Z",
     questions: mthQuestions,
   },
   {
@@ -591,6 +600,8 @@ export const cbts: Cbt[] = [
     retakePolicy: "Single attempt",
     status: "live",
     scheduledFor: "2026-09-27T09:00:00Z",
+    closesAt: "2026-09-27T10:00:00Z",
+    createdAt: "2026-10-15T09:00:00Z",
     revealResults: true,
     questions: bioQuestions,
   },
@@ -605,6 +616,8 @@ export const cbts: Cbt[] = [
     retakePolicy: "Single attempt",
     status: "upcoming",
     scheduledFor: "2026-10-02T14:00:00Z",
+    closesAt: "2026-10-02T15:30:00Z",
+    createdAt: "2026-10-16T09:00:00Z",
     revealResults: false,
     questions: chmQuestions,
   },
@@ -619,6 +632,7 @@ export const cbts: Cbt[] = [
     minutes: 40,
     retakePolicy: "Single attempt",
     status: "past-results-held",
+    createdAt: "2026-10-17T09:00:00Z",
     scheduledFor: "2026-09-18T10:00:00Z",
     revealResults: false,
     questions: phyQuestions,
@@ -636,6 +650,7 @@ export const cbts: Cbt[] = [
     scheduledFor: "2026-09-12T11:00:00Z",
     revealResults: true,
     score: 75,
+    createdAt: "2026-10-18T09:00:00Z",
     questions: mthQuestions,
   },
 ];

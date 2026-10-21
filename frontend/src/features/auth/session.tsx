@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -11,11 +12,15 @@ import { toast } from "sonner";
 import { flushSync } from "react-dom";
 import { LIVE } from "@/lib/api/config";
 import { supabase } from "@/lib/api/supabase";
+import { ApiError } from "@/lib/api/client";
 import { DEFAULT_PERSONA, PERSONAS, type PersonaKey } from "./constants/personas";
 import { authService } from "./services/auth.service";
 import type { Profile } from "./types";
 
 const KEY = "prepmaster-session";
+
+const isAuthFailure = (error: unknown) =>
+  error instanceof ApiError && (error.status === 401 || error.status === 403);
 
 interface SessionState {
   /** false until the session has been read in the browser — guards wait for this. */
@@ -38,6 +43,7 @@ const Ctx = (g.__prepSessionCtx ??= createContext<SessionState | null>(null));
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
   const [user, setUser] = useState<Profile | null>(null);
+  const connectionNoticeShown = useRef(false);
 
   // Load the session once in the browser.
   useEffect(() => {
@@ -51,14 +57,27 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     const load = () =>
       authService
         .currentUser()
-        .then(setUser)
+        .then((profile) => {
+          connectionNoticeShown.current = false;
+          setUser(profile);
+        })
         .catch((e: Error) => {
           // A profile request must never invalidate a password recovery session.
           if (window.location.pathname.includes("reset-password")) return;
-          // e.g. suspended account or API down: sign out with a clear message.
-          toast.error(e.message);
-          void authService.signOut();
-          setUser(null);
+          // Only a confirmed invalid or suspended session may sign the user out.
+          if (isAuthFailure(e)) {
+            toast.error(e.message);
+            void authService.signOut();
+            setUser(null);
+            return;
+          }
+          // Network and temporary server errors must preserve the active session.
+          if (!connectionNoticeShown.current) {
+            connectionNoticeShown.current = true;
+            toast.error("Connection lost", {
+              description: "Your session is still active. We'll reconnect when you're back online.",
+            });
+          }
         })
         .finally(() => setHydrated(true));
     if (window.location.pathname.includes("reset-password")) setHydrated(true);
@@ -69,7 +88,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       if (window.location.pathname.includes("reset-password")) return;
       if (event === "SIGNED_IN" || event === "USER_UPDATED") void load();
     });
-    return () => data.subscription.unsubscribe();
+    const retryWhenOnline = () => void load();
+    window.addEventListener("online", retryWhenOnline);
+    return () => {
+      data.subscription.unsubscribe();
+      window.removeEventListener("online", retryWhenOnline);
+    };
   }, []);
 
   useEffect(() => {

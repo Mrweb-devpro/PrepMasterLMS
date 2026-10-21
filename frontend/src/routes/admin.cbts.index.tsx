@@ -35,9 +35,19 @@ function AdminCbts() {
   const navigate = useNavigate();
   const [tab, setTab] = useState<(typeof tabs)[number]>("all");
   const [q, setQ] = useState("");
-  const list = admin.cbts.filter(
-    (c) => (tab === "all" || c.kind === tab) && c.title.toLowerCase().includes(q.toLowerCase()),
-  );
+  const list = admin.cbts
+    .filter(
+      (c) => (tab === "all" || c.kind === tab) && c.title.toLowerCase().includes(q.toLowerCase()),
+    )
+    .sort((a, b) => {
+      if (a.createdAt && b.createdAt) {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+      if (a.scheduledFor && b.scheduledFor) {
+        return new Date(b.scheduledFor).getTime() - new Date(a.scheduledFor).getTime();
+      }
+      return 0;
+    });
 
   return (
     <AdminShell

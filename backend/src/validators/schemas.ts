@@ -48,6 +48,16 @@ export const createCbtBody = z.object({
     answerIndex: z.number().int().min(0),
     topic: z.string().max(100).optional(),
   })).min(1).max(300),
+}).superRefine((value, ctx) => {
+  if (value.mode !== "live") return;
+  if (!value.closesAt) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["closesAt"], message: "Live CBTs need a closing time." });
+    return;
+  }
+  const opensAt = value.opensAt ? new Date(value.opensAt).getTime() : Date.now();
+  if (new Date(value.closesAt).getTime() <= opensAt) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["closesAt"], message: "Closing time must be after the opening time." });
+  }
 });
 
 export const updateCbtBody = z.object({
@@ -57,6 +67,7 @@ export const updateCbtBody = z.object({
   title: z.string().min(3).max(150).optional(),
   durationMinutes: z.number().int().min(1).max(600).optional(),
   opensAt: z.string().datetime().optional(),
+  closesAt: z.string().datetime().nullable().optional(),
   priceKobo: z.number().int().min(0).optional(),
   maxAttempts: z.number().int().min(1).nullable().optional(),
   /** Full replacement list. Items with an id are updated; new ones are inserted; missing ones are deleted. */

@@ -40,6 +40,7 @@ export interface CbtRow {
   reveal_results: boolean;
   published: boolean;
   paused?: boolean;
+  created_at: string;
   question_count: number;
   my_attempts: number;
 }
@@ -85,8 +86,15 @@ export function toCbt(c: CbtRow, courseSlug: string): Cbt {
     revealResults: c.reveal_results,
     published: c.published,
     paused: !!c.paused,
+    createdAt: c.created_at,
     myAttempts: c.my_attempts,
-    ...(c.mode === "live" ? { status: liveStatus(c), scheduledFor: c.opens_at } : {}),
+    ...(c.mode === "live"
+      ? {
+          status: liveStatus(c),
+          scheduledFor: c.opens_at,
+          ...(c.closes_at ? { closesAt: c.closes_at } : {}),
+        }
+      : {}),
     questions: [], // questions only arrive when an attempt starts
   };
 }

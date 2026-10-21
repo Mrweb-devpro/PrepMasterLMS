@@ -54,7 +54,7 @@ export async function startAttempt(cbtId: string, userId: string) {
   if (cbt.paused) throw forbidden("This CBT is pending release.");
   if (new Date(cbt.opens_at).getTime() > now())
     throw forbidden("This CBT hasn't opened yet.");
-  if (cbt.closes_at && new Date(cbt.closes_at).getTime() < now())
+  if (cbt.closes_at && new Date(cbt.closes_at).getTime() <= now())
     throw forbidden("This CBT has closed.");
   if (!(await hasAccess(userId, "cbt", cbt.id, cbt.price_kobo)))
     throw forbidden("Buy this CBT to start it.");
@@ -130,6 +130,11 @@ export async function saveAnswer(
   const attempt = await getOwnAttempt(attemptId, userId);
   if (attempt.status !== "in_progress")
     throw conflict("This attempt is already submitted.");
+  const cbt = await getCbt(attempt.cbt_id);
+  if (cbt.mode === "live" && cbt.closes_at && new Date(cbt.closes_at).getTime() <= now()) {
+    await finalize(attempt);
+    throw forbidden("This CBT has closed.");
+  }
   if (!isOpen(attempt, SUBMIT_GRACE_MS)) {
     await finalize(attempt);
     throw conflict(
@@ -344,6 +349,13 @@ export interface NewCbt {
 }
 
 export async function createCbt(input: NewCbt) {
+  if (input.mode === "live") {
+    if (!input.closesAt) throw badRequest("Live CBTs need a closing time.");
+    const opensAt = new Date(input.opensAt ?? new Date().toISOString()).getTime();
+    if (new Date(input.closesAt).getTime() <= opensAt) {
+      throw badRequest("Closing time must be after the opening time.");
+    }
+  }
   for (const q of input.questions) {
     if (q.answerIndex >= q.options.length)
       throw badRequest(
@@ -412,6 +424,7 @@ export interface CbtPatch {
   title?: string | undefined;
   durationMinutes?: number | undefined;
   opensAt?: string | undefined;
+  closesAt?: string | null | undefined;
   priceKobo?: number | undefined;
   maxAttempts?: number | null | undefined;
   questions?:
@@ -427,6 +440,16 @@ export interface CbtPatch {
 
 /** Edits settings and (optionally) replaces the question list. Works whether the CBT is live or not. */
 export async function updateCbt(cbtId: string, patch: CbtPatch) {
+  const existing = await getCbt(cbtId);
+  const touchesWindow = patch.opensAt !== undefined || patch.closesAt !== undefined;
+  if (existing.mode === "live" && touchesWindow) {
+    const closesAt = patch.closesAt !== undefined ? patch.closesAt : existing.closes_at;
+    const opensAt = patch.opensAt ?? existing.opens_at;
+    if (!closesAt) throw badRequest("Live CBTs need a closing time.");
+    if (new Date(closesAt).getTime() <= new Date(opensAt).getTime()) {
+      throw badRequest("Closing time must be after the opening time.");
+    }
+  }
   const map: [keyof CbtPatch, string][] = [
     ["published", "published"],
     ["revealResults", "reveal_results"],
@@ -434,6 +457,7 @@ export async function updateCbt(cbtId: string, patch: CbtPatch) {
     ["title", "title"],
     ["durationMinutes", "duration_minutes"],
     ["opensAt", "opens_at"],
+    ["closesAt", "closes_at"],
     ["priceKobo", "price_kobo"],
     ["maxAttempts", "max_attempts"],
   ];
@@ -449,7 +473,7 @@ export async function updateCbt(cbtId: string, patch: CbtPatch) {
           .maybeSingle(),
         "CBT not found.",
       )
-    : await getCbt(cbtId);
+    : existing;
 
   if (patch.questions) {
     for (const q of patch.questions) {

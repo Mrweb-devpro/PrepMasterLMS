@@ -52,20 +52,20 @@ export function Card({ className, children }: { className?: string; children: Re
 export function PaidPill({ paid, owned }: { paid: boolean; owned?: boolean }) {
   if (!paid) {
     return (
-      <span className="rounded-full bg-surface-subtle px-2.5 py-0.5 text-xs font-medium text-text-secondary">
+      <span className="inline-flex h-6 items-center rounded-full bg-surface-subtle px-2.5 text-xs font-medium leading-none text-text-secondary">
         Free
       </span>
     );
   }
   if (owned) {
     return (
-      <span className="rounded-full bg-success-bg px-2.5 py-0.5 text-xs font-medium text-success">
+      <span className="inline-flex h-6 items-center rounded-full bg-success-bg px-2.5 text-xs font-medium leading-none text-success">
         Owned
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-gold-bg px-2.5 py-0.5 text-xs font-medium text-gold-text">
+    <span className="inline-flex h-6 items-center gap-1 rounded-full bg-gold-bg px-2.5 text-xs font-medium leading-none text-gold-text">
       <Lock className="size-3" />
       Paid
     </span>
@@ -88,7 +88,7 @@ export function StatusPill({
     gold: "bg-gold-bg text-gold-text",
   } as const;
   return (
-    <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-medium", tones[tone])}>
+    <span className={cn("inline-flex h-6 items-center rounded-full px-2.5 text-xs font-medium leading-none", tones[tone])}>
       {children}
     </span>
   );
@@ -96,7 +96,7 @@ export function StatusPill({
 
 export function LiveBadge() {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-error-bg px-2.5 py-0.5 text-xs font-medium text-error">
+    <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-error-bg px-2.5 text-xs font-medium leading-none text-error">
       <span className="size-1.5 animate-pulse rounded-full bg-error" />
       Live now
     </span>

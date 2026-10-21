@@ -62,8 +62,8 @@ Avatar profile fields: `gender: "male" | "female" | "other" | "prefer_not_to_say
 
 | Method               | Path              | Body / Returns                                                                                                                                              |
 | -------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| POST                 | `/cbts/:id/start` | → `{ attempt: { id, started_at, deadline, status }, questions }`. Resumes an active attempt if one exists. Questions never include the correct answer.      |
-| POST                 | `/cbts/admin`     | Admin create `{ title, course_id, mode: "practice" \| "live", duration_minutes, status: "draft" \| "pending" \| "live", show_results, price, questions[] }` |
+| POST                 | `/cbts/:id/start` | → `{ attempt: { id, started_at, deadline, status }, questions }`. Resumes an active attempt if one exists. Questions never include the correct answer. A closed live CBT returns 403.      |
+| POST                 | `/cbts/admin`     | Admin create. Live CBTs require `opensAt` and `closesAt`, with closing after opening; attempt deadlines are capped at `closesAt`. |
 | GET / PATCH / DELETE | `/cbts/admin/:id` | Admin read / edit (details + questions, attempts, any status) / delete                                                                                     |
 
 ## Attempts
@@ -79,7 +79,7 @@ Avatar profile fields: `gender: "male" | "female" | "other" | "prefer_not_to_say
 
 | Method | Path                          | Body / Returns                                                                                             |
 | ------ | ----------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| POST   | `/payments/checkout`          | `{ item_type: "material" \| "cbt", item_id }` → `{ authorization_url, reference }`. Server sets the price. |
+| POST   | `/payments/checkout`          | `{ item_type: "material" \| "cbt", item_id }` → `{ authorization_url, reference }`. Server sets the price; unavailable or closed live CBTs return 400. |
 | GET    | `/payments/:reference`        | Payment status                                                                                             |
 | POST   | `/payments/:reference/verify` | Verifies with Paystack, grants access, idempotent                                                          |
 | GET    | `/payments/admin/all`         | Admin: all transactions                                                                                    |

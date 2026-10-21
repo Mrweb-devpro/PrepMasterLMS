@@ -11,7 +11,10 @@ import { library } from "./student.service.js";
  * (without storage keys) and published CBTs (without questions).
  */
 export async function catalog(userId: string, isAdmin: boolean) {
-  const cbtQuery = db.from("cbts").select("*, cbt_questions(count)").order("opens_at");
+  const cbtQuery = db
+    .from("cbts")
+    .select("*, cbt_questions(count)")
+    .order("created_at", { ascending: false });
   const [courses, subfolders, materials, cbts, owned, attempts] = await Promise.all([
     must(await db.from("courses").select("*").order("title")),
     must(await db.from("course_subfolders").select("*").order("name")),

@@ -8,9 +8,32 @@ import { hasAccess } from "./access.service.js";
 
 /** Price and title always come from the database, never from the browser. */
 async function itemOf(itemType: ItemType, itemId: string) {
-  const table = itemType === "material" ? "course_materials" : "cbts";
+  if (itemType === "cbt") {
+    const row = must<{
+      price_kobo: number;
+      title: string;
+      mode: "practice" | "live";
+      closes_at: string | null;
+      published: boolean;
+      paused: boolean;
+    }>(
+      await db
+        .from("cbts")
+        .select("price_kobo, title, mode, closes_at, published, paused")
+        .eq("id", itemId)
+        .maybeSingle(),
+      "Item not found.",
+    );
+    if (!row.published || row.paused) throw badRequest("This CBT is currently unavailable.");
+    if (row.mode === "live" && row.closes_at && new Date(row.closes_at).getTime() <= Date.now()) {
+      throw badRequest("This live CBT has ended and can no longer be purchased.");
+    }
+    if (row.price_kobo <= 0) throw badRequest("This item is free.");
+    return row;
+  }
+
   const row = must<{ price_kobo: number; title: string }>(
-    await db.from(table).select("price_kobo, title").eq("id", itemId).maybeSingle(), "Item not found.",
+    await db.from("course_materials").select("price_kobo, title").eq("id", itemId).maybeSingle(), "Item not found.",
   );
   if (row.price_kobo <= 0) throw badRequest("This item is free.");
   return row;

@@ -167,6 +167,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
             mode: c.kind,
             durationMinutes: c.minutes,
             ...(c.scheduledFor ? { opensAt: c.scheduledFor } : {}),
+            ...(c.closesAt ? { closesAt: c.closesAt } : {}),
             priceKobo: c.paid ? toKobo(c.price ?? 0) : 0,
             maxAttempts: c.kind === "live" || Number.isNaN(attempts) ? null : attempts,
             revealResults: c.revealResults !== false,
@@ -199,6 +200,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
             ...(c.title !== undefined ? { title: c.title } : {}),
             ...(c.minutes !== undefined ? { durationMinutes: c.minutes } : {}),
             ...(c.scheduledFor ? { opensAt: new Date(c.scheduledFor).toISOString() } : {}),
+            ...(c.closesAt ? { closesAt: new Date(c.closesAt).toISOString() } : {}),
             ...(c.paid !== undefined ? { priceKobo: c.paid ? toKobo(c.price ?? 0) : 0 } : {}),
             ...(c.retakePolicy !== undefined
               ? { maxAttempts: attempts === undefined || Number.isNaN(attempts) ? null : attempts }

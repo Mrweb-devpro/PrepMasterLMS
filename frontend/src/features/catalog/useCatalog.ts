@@ -54,6 +54,14 @@ export function useCatalogQuery() {
     queryFn: fetchCatalog,
     enabled: LIVE && Boolean(user),
     staleTime: 60_000,
+    refetchInterval: (query) => {
+      const nextClose = query.state.data?.cbts
+        .filter((cbt) => cbt.kind === "live" && cbt.status === "live" && cbt.closesAt)
+        .map((cbt) => new Date(cbt.closesAt!).getTime())
+        .sort((a, b) => a - b)[0];
+      if (!nextClose) return false;
+      return Math.min(30_000, Math.max(1_000, nextClose - Date.now() + 100));
+    },
   });
 }
 

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { AdminShell } from "@/components/prep/AdminShell";
 import { Choice, Field, KV, Panel, PanelHeader, Stepper } from "@/features/admin/components/parts";
 import { QuestionCard } from "@/features/cbt/components/QuestionCard";
+import { localDateTime } from "@/features/cbt/utils/cbt-time";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -69,7 +70,7 @@ function NewCbt() {
     questionCount: 5,
     availability: "forever",
     windowHours: 2,
-    scheduledFor: "2026-10-05T10:00",
+    scheduledFor: localDateTime(new Date(Date.now() + 60 * 60_000)),
     paid: false,
     price: 2000,
     retake: "Unlimited retakes",
@@ -80,13 +81,16 @@ function NewCbt() {
   const set = <K extends keyof Settings>(k: K, v: Settings[K]) => setS((p) => ({ ...p, [k]: v }));
   const course = admin.courses.find((c) => c.slug === s.courseSlug);
 
-  const settingsOk = s.title.trim().length > 2 && s.minutes > 0;
+  const settingsOk =
+    s.title.trim().length > 2 &&
+    s.minutes > 0 &&
+    (s.kind !== "live" || (s.windowHours > 0 && new Date(s.scheduledFor).getTime() > Date.now()));
   const questionsOk =
     qs.length > 0 && qs.every((q) => q.text.trim() && q.options.every((o) => o.trim()));
 
   const next = () => {
     if (step === 0 && !settingsOk) {
-      toast.error("Add a title and duration first");
+      toast.error(s.kind === "live" ? "Add a title, future start time, and live window" : "Add a title and duration first");
       return;
     }
     if (step === 1 && !questionsOk) {
@@ -114,7 +118,11 @@ function NewCbt() {
       minutes: s.minutes,
       retakePolicy: s.kind === "live" ? "Single attempt" : s.retake,
       ...(s.kind === "live"
-        ? { status: "upcoming" as const, scheduledFor: new Date(s.scheduledFor).toISOString() }
+        ? {
+            status: "upcoming" as const,
+            scheduledFor: new Date(s.scheduledFor).toISOString(),
+            closesAt: new Date(new Date(s.scheduledFor).getTime() + s.windowHours * 3_600_000).toISOString(),
+          }
         : {}),
       revealResults: s.reveal,
       questions: qs.map((q) => ({ ...q, courseSlug: s.courseSlug })),
@@ -165,7 +173,10 @@ function NewCbt() {
             <Field label="Type">
               <Choice
                 value={s.kind}
-                onChange={(v) => set("kind", v as Settings["kind"])}
+                onChange={(v) => {
+                  set("kind", v as Settings["kind"]);
+                  if (v === "live") set("availability", "window");
+                }}
                 options={[
                   { value: "practice", label: "Practice", hint: "Students take it any time" },
                   { value: "live", label: "Live", hint: "Starts at a set date & time" },
@@ -199,18 +210,8 @@ function NewCbt() {
                 />
               </Field>
             )}
-            <Field label="How long is it open?">
-              <Choice
-                value={s.availability}
-                onChange={(v) => set("availability", v as Settings["availability"])}
-                options={[
-                  { value: "forever", label: "Always open", hint: "No closing time" },
-                  { value: "window", label: "Limited window", hint: "Closes after a few hours" },
-                ]}
-              />
-            </Field>
-            {s.availability === "window" && (
-              <Field label="Open for (hours)">
+            {s.kind === "live" ? (
+              <Field label="Live window (hours)">
                 <Input
                   type="number"
                   min={1}
@@ -218,6 +219,29 @@ function NewCbt() {
                   onChange={(e) => set("windowHours", Number(e.target.value))}
                 />
               </Field>
+            ) : (
+              <>
+                <Field label="How long is it open?">
+                  <Choice
+                    value={s.availability}
+                    onChange={(v) => set("availability", v as Settings["availability"])}
+                    options={[
+                      { value: "forever", label: "Always open", hint: "No closing time" },
+                      { value: "window", label: "Limited window", hint: "Closes after a few hours" },
+                    ]}
+                  />
+                </Field>
+                {s.availability === "window" && (
+                  <Field label="Open for (hours)">
+                    <Input
+                      type="number"
+                      min={1}
+                      value={s.windowHours}
+                      onChange={(e) => set("windowHours", Number(e.target.value))}
+                    />
+                  </Field>
+                )}
+              </>
             )}
           </Panel>
           <div className="space-y-4">
