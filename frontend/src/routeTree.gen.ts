@@ -16,6 +16,7 @@ import { Route as LearnSolidworksRouteImport } from './routes/learn-solidworks'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as PythonRouteImport } from './routes/python'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SolidworksRouteImport } from './routes/solidworks'
@@ -92,6 +93,11 @@ const LoginRoute = LoginRouteImport.update({
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PythonRoute = PythonRouteImport.update({
+  id: '/python',
+  path: '/python',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -317,6 +323,7 @@ export interface FileRoutesByFullPath {
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/python': typeof PythonRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/solidworks': typeof SolidworksRouteWithChildren
@@ -368,6 +375,7 @@ export interface FileRoutesByTo {
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/python': typeof PythonRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/admin/payments': typeof AdminPaymentsRoute
@@ -419,6 +427,7 @@ export interface FileRoutesById {
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/python': typeof PythonRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/solidworks': typeof SolidworksRouteWithChildren
@@ -472,6 +481,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/login'
     | '/onboarding'
+    | '/python'
     | '/reset-password'
     | '/signup'
     | '/solidworks'
@@ -523,6 +533,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/login'
     | '/onboarding'
+    | '/python'
     | '/reset-password'
     | '/signup'
     | '/admin/payments'
@@ -573,6 +584,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/login'
     | '/onboarding'
+    | '/python'
     | '/reset-password'
     | '/signup'
     | '/solidworks'
@@ -625,6 +637,7 @@ export interface RootRouteChildren {
   LibraryRoute: typeof LibraryRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
+  PythonRoute: typeof PythonRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
   SolidworksRoute: typeof SolidworksRouteWithChildren
@@ -708,6 +721,13 @@ declare module '@tanstack/react-router' {
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/python': {
+      id: '/python'
+      path: '/python'
+      fullPath: '/python'
+      preLoaderRoute: typeof PythonRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -1045,6 +1065,7 @@ const rootRouteChildren: RootRouteChildren = {
   LibraryRoute: LibraryRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
+  PythonRoute: PythonRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
   SolidworksRoute: SolidworksRouteWithChildren,
