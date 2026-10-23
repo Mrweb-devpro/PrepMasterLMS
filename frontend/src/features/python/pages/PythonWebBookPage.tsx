@@ -1,8 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, Bookmark, BookOpen, Clock3, Lightbulb } from "lucide-react";
+import { ArrowLeft, ArrowRight, Bookmark, BookOpen, Check, Clock3, Lightbulb, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { PythonIcon } from "@/components/common/PythonIcon";
 import { Button } from "@/components/ui/button";
+import { usePythonWaitlist } from "../hooks/usePythonWaitlist";
 
 const pillars = [
   ["One lesson at a time", "Learn one small idea before moving on to the next one."],
@@ -24,6 +25,23 @@ const curriculum = [
 ] as const;
 
 export function PythonWebBookPage() {
+  const { joined, join } = usePythonWaitlist();
+
+  const handleJoinWaitlist = () => {
+    join.mutate(undefined, {
+      onSuccess: (result) => {
+        if (result.alreadyJoined) {
+          toast.info("You’re already on the waitlist!");
+          return;
+        }
+        toast.success("You’re on the list!", {
+          description: "We’ll notify you as soon as Chapter 1 drops.",
+        });
+      },
+      onError: (error: Error) => toast.error(error.message || "Couldn’t join the waitlist. Please try again."),
+    });
+  };
+
   return (
     <div className="mx-auto max-w-5xl pb-4">
       <section className="border-b border-border pb-10 pt-2 sm:pb-14">
@@ -159,14 +177,11 @@ export function PythonWebBookPage() {
 
       <section className="flex flex-col gap-3 border-t border-border pt-8 sm:flex-row sm:items-center sm:justify-between">
         <Button
-          onClick={() =>
-            toast.success("Early access is coming soon", {
-              description: "We’ll let you know when Chapter 1 is ready to read.",
-            })
-          }
+          disabled={joined || join.isPending}
+          onClick={handleJoinWaitlist}
         >
-          <Bookmark className="size-4" />
-          Get early access
+          {join.isPending ? <Loader2 className="size-4 animate-spin" /> : joined ? <Check className="size-4" /> : <Bookmark className="size-4" />}
+          {join.isPending ? "Joining waitlist..." : joined ? "On the Waitlist" : "Get early access"}
         </Button>
         <Button asChild variant="ghost">
           <Link to="/">
