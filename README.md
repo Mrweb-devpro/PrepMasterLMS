@@ -1,8 +1,35 @@
-# PrepMaster LMS
+<div align="center">
+  <a href="https://prepmasterlms.vercel.app/">
+    <img src="frontend/public/brand/prepmaster-logo.png" alt="PrepMaster" width="260" />
+  </a>
 
-**PrepMaster** is a specialized online tutorial and learning management platform designed for Nigerian university students (modeled primarily around UNILAG's Science, Engineering, and Environmental Sciences/Architecture faculties).
+  <h1>PrepMaster LMS</h1>
 
-The platform serves academic study materials, hosts practice and live computer-based test (CBT) exams, and includes a dedicated training hub for SolidWorks CAD design.
+  <p><strong>One home for smarter study, timed CBT practice, and SolidWorks learning.</strong></p>
+
+  <p>
+    <a href="https://prepmasterlms.vercel.app/"><strong>Explore the live app →</strong></a>
+    &nbsp;·&nbsp;
+    <a href="#-getting-started">Run it locally</a>
+  </p>
+
+  <p>
+    <img src="https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white" alt="React 19" />
+    <img src="https://img.shields.io/badge/TanStack_Start-v1-ff4154?logo=reactrouter&logoColor=white" alt="TanStack Start" />
+    <img src="https://img.shields.io/badge/Supabase-Postgres_%2B_Auth-3ecf8e?logo=supabase&logoColor=white" alt="Supabase" />
+    <img src="https://img.shields.io/badge/Payments-Paystack-00c3f7" alt="Paystack" />
+  </p>
+</div>
+
+---
+
+## Study with clarity. Build with confidence.
+
+**PrepMaster** is an online learning platform built for Nigerian university students, with a focus on Science, Engineering, and Environmental Sciences/Architecture programmes.
+
+Students can find course materials, take practice and scheduled live computer-based tests, track their attempts, and pay securely for premium resources. The same account can also unlock the **SolidWorks Design Lab** for guided CAD tasks, submissions, feedback, and a community showcase.
+
+> **Live app:** [prepmasterlms.vercel.app](https://prepmasterlms.vercel.app/)
 
 ---
 
