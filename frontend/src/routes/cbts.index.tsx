@@ -78,47 +78,44 @@ function CbtsPage() {
         subtitle="Practise at your own pace or join a scheduled live exam."
       />
 
-      <DepartmentFilter
-        userDepartment={user?.course}
-        mode={departmentMode}
-        onModeChange={(mode) => {
-          setDepartmentFilterTouched(true);
-          setDepartmentMode(mode);
-        }}
-      />
-      {(user?.level || user?.course) && (
-        <p className="mb-6 inline-flex rounded-full border border-border bg-surface-subtle px-3 py-1 text-xs font-medium text-text-secondary">
-          Showing {user.level ? `${user.level === "Postgraduate" ? user.level : `${user.level} level`}` : "all levels"}
-          {user.course ? ` · ${user.course}` : ""}
-        </p>
-      )}
+      <div className="mb-6 flex flex-wrap items-center gap-4">
+        <DepartmentFilter
+          userDepartment={user?.course}
+          mode={departmentMode}
+          className="mb-0"
+          onModeChange={(mode) => {
+            setDepartmentFilterTouched(true);
+            setDepartmentMode(mode);
+          }}
+        />
 
-      <div className="mb-6 inline-flex w-fit max-w-full flex-wrap gap-1 rounded-md border border-border bg-surface p-1 shadow-sm">
-        {[
-          { key: "all", label: "All" },
-          { key: "practice", label: "Practice sets" },
-          { key: "live", label: "Live exams", hasLive: hasActiveLiveCbt },
-          { key: "closed", label: "Closed" },
-        ].map((item) => (
-          <button
-            key={item.key}
-            onClick={() => setTab(item.key as typeof tab)}
-            className={cn(
-              "relative flex items-center gap-2 rounded-sm px-4 py-2 text-sm font-medium transition-colors",
-              tab === item.key
-                ? "bg-ink text-ink-foreground"
-                : "text-text-secondary hover:text-foreground",
-            )}
-          >
-            <span>{item.label}</span>
-            {item.hasLive && (
-              <span className="relative flex size-2">
-                <span className="absolute inline-flex size-full animate-ping rounded-full bg-error opacity-75" />
-                <span className="relative inline-flex size-2 rounded-full bg-error" />
-              </span>
-            )}
-          </button>
-        ))}
+        <div className="inline-flex w-fit max-w-full flex-wrap gap-1 rounded-md border border-border bg-surface p-1 shadow-sm">
+          {[
+            { key: "all", label: "All" },
+            { key: "practice", label: "Practice sets" },
+            { key: "live", label: "Live exams", hasLive: hasActiveLiveCbt },
+            { key: "closed", label: "Closed" },
+          ].map((item) => (
+            <button
+              key={item.key}
+              onClick={() => setTab(item.key as typeof tab)}
+              className={cn(
+                "relative flex items-center gap-2 rounded-sm px-4 py-2 text-sm font-medium transition-colors",
+                tab === item.key
+                  ? "bg-primary-active text-primary-foreground shadow-sm"
+                  : "text-text-secondary hover:text-foreground",
+              )}
+            >
+              <span>{item.label}</span>
+              {item.hasLive && (
+                <span className="relative flex size-2">
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-error opacity-75" />
+                  <span className="relative inline-flex size-2 rounded-full bg-error" />
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
       </div>
 
       {loading ? (

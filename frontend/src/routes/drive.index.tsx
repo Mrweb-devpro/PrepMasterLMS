@@ -87,12 +87,6 @@ function DrivePage() {
           setDepartmentMode(mode);
         }}
       />
-      {(studentLevel || user?.course) && (
-        <p className="mb-6 inline-flex rounded-full border border-border bg-surface-subtle px-3 py-1 text-xs font-medium text-text-secondary">
-          Showing {studentLevel ? `${studentLevel === "Postgraduate" ? studentLevel : `${studentLevel} level`}` : "all levels"}
-          {user?.course ? ` · ${user.course}` : ""}
-        </p>
-      )}
 
       {loading ? (
         <div role="status" className="flex items-center justify-center gap-2 py-12 text-sm text-text-muted">
