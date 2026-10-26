@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, Check, Folder, Loader2, Plus, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Folder, Loader2, Palette, Plus, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { AdminShell } from "@/components/prep/AdminShell";
@@ -25,7 +25,24 @@ export const Route = createFileRoute("/admin/courses/new")({
   component: NewCourse,
 });
 
-const COLORS = ["#3b6cff", "#16a34a", "#e5484d", "#c27a12", "#8b5cf6", "#0ea5e9"];
+const COLORS = [
+  "#3b6cff", // PrepMaster Blue
+  "#0ea5e9", // Sky Blue
+  "#06b6d4", // Cyan
+  "#0d9488", // Teal
+  "#16a34a", // Green
+  "#059669", // Emerald
+  "#84cc16", // Lime
+  "#c27a12", // Amber / Bronze
+  "#ea580c", // Orange / Coral
+  "#e5484d", // Red
+  "#e11d48", // Rose
+  "#db2777", // Pink
+  "#c026d3", // Fuchsia
+  "#8b5cf6", // Violet
+  "#6366f1", // Indigo
+  "#475569", // Slate / Charcoal
+];
 const slugify = (s: string) =>
   s
     .toLowerCase()
@@ -40,6 +57,7 @@ function NewCourse() {
   const [code, setCode] = useState("");
   const [title, setTitle] = useState("");
   const [color, setColor] = useState(COLORS[0]!);
+  const [colorHex, setColorHex] = useState(COLORS[0]!);
   const [level, setLevel] = useState("all");
   const [departments, setDepartments] = useState<string[]>([]);
   const [folders, setFolders] = useState<Record<CategorySlug, Subfolder[]>>({
@@ -49,6 +67,11 @@ function NewCourse() {
   });
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+
+  const selectColor = (nextColor: string) => {
+    setColor(nextColor);
+    setColorHex(nextColor);
+  };
 
   const addFolder = (cat: CategorySlug) => {
     const name = (draft[cat] ?? "").trim();
@@ -103,20 +126,48 @@ function NewCourse() {
             </Field>
           </div>
           <Field label="Colour">
-            <div className="flex gap-2">
+            <div className="flex flex-wrap items-center gap-2.5">
               {COLORS.map((c) => (
                 <button
                   key={c}
                   type="button"
-                  onClick={() => setColor(c)}
+                  onClick={() => selectColor(c)}
                   aria-label={c}
-                  className={cn(
-                    "size-8 rounded-full ring-offset-2 ring-offset-surface transition",
-                    color === c && "ring-2 ring-foreground",
-                  )}
+                  className={cn("flex size-8 items-center justify-center rounded-full ring-offset-2 ring-offset-background transition", color === c && "ring-2 ring-foreground")}
                   style={{ backgroundColor: c }}
-                />
+                >
+                  {color === c && <Check className="size-4 text-primary-foreground" />}
+                </button>
               ))}
+              <label
+                title="Custom color"
+                className={cn(
+                  "flex size-8 cursor-pointer items-center justify-center rounded-full border border-border bg-surface text-text-secondary ring-offset-2 ring-offset-background transition hover:text-foreground",
+                  !COLORS.includes(color) && "ring-2 ring-foreground",
+                )}
+              >
+                <input
+                  type="color"
+                  value={color}
+                  onChange={(event) => selectColor(event.target.value)}
+                  className="sr-only"
+                  aria-label="Choose a custom course color"
+                />
+                <Palette className="size-4" />
+                <span className="sr-only">Custom color</span>
+              </label>
+              <Input
+                value={colorHex}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  if (!/^#[0-9a-fA-F]{0,6}$/.test(value)) return;
+                  setColorHex(value);
+                  if (/^#[0-9a-fA-F]{6}$/.test(value)) setColor(value);
+                }}
+                aria-label="Custom course color hex code"
+                className="h-8 w-28 font-mono text-xs"
+                maxLength={7}
+              />
             </div>
           </Field>
           <Field label="Academic level">
