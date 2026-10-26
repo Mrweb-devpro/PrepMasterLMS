@@ -23,6 +23,9 @@ const empty = {
   steps: "",
   videoUrl: "",
   thumbnailUrl: "",
+  targetMass: "",
+  targetVolume: "",
+  tolerancePercent: "0.5",
 };
 
 export function TaskFormDialog({
@@ -46,6 +49,9 @@ export function TaskFormDialog({
               steps: task.steps.join("\n"),
               videoUrl: task.videoUrl ?? "",
               thumbnailUrl: task.thumbnailUrl ?? "",
+              targetMass: task.targetMass?.toString() ?? "",
+              targetVolume: task.targetVolume?.toString() ?? "",
+              tolerancePercent: (task.tolerancePercent ?? 0.5).toString(),
             }
           : empty,
       );
@@ -78,6 +84,9 @@ export function TaskFormDialog({
       steps,
       ...(f.videoUrl.trim() ? { videoUrl: f.videoUrl.trim() } : {}),
       ...(f.thumbnailUrl ? { thumbnailUrl: f.thumbnailUrl } : {}),
+      ...(f.targetMass.trim() ? { targetMass: Number(f.targetMass) } : {}),
+      ...(f.targetVolume.trim() ? { targetVolume: Number(f.targetVolume) } : {}),
+      tolerancePercent: Number(f.tolerancePercent) || 0.5,
     });
   };
 
@@ -150,6 +159,21 @@ export function TaskFormDialog({
             onChange={(e) => setF({ ...f, steps: e.target.value })}
           />
         </Field>
+        <div className="rounded-lg border border-border bg-surface-subtle/50 p-4">
+          <p className="text-sm font-semibold">Auto-grading targets <span className="font-normal text-text-muted">(optional)</span></p>
+          <p className="mt-1 text-xs text-text-muted">Students within the tolerance automatically receive full marks for mass and volume.</p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            <Field label="Target mass (g)">
+              <Input type="number" min="0" step="any" value={f.targetMass} onChange={(e) => setF({ ...f, targetMass: e.target.value })} />
+            </Field>
+            <Field label="Target volume (cm³)">
+              <Input type="number" min="0" step="any" value={f.targetVolume} onChange={(e) => setF({ ...f, targetVolume: e.target.value })} />
+            </Field>
+            <Field label="Tolerance (± %)">
+              <Input type="number" min="0.01" step="0.1" value={f.tolerancePercent} onChange={(e) => setF({ ...f, tolerancePercent: e.target.value })} />
+            </Field>
+          </div>
+        </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel

@@ -53,6 +53,7 @@ Browser (TanStack Start app)
 - **Stores**: `prep-store.tsx` (owned items, attempts, purchases), `admin-store.tsx` (admin data).
 - **CBT**: Live CBTs require an opening and closing timestamp. The server caps each attempt deadline at the closing time, blocks starts, answer saves, and new purchases after closure, and finalizes an in-progress attempt when an answer arrives after the live window. `useCatalog()` refetches at the next live close so live badges and student actions update without a reload. While an open exam temporarily loses connection, selected answers are kept in memory and queued for saving when the browser reconnects; the exam page warns the student to keep it open. Question flags are persisted with submission as question IDs, then mapped to positions for the admin attempt history.
 - **Files**: `features/drive/utils/files.ts` `loadViewable` → `/materials/:id/download` (signed URL) → `FileViewer`.
+- **SolidWorks grading**: task targets for mass, volume and tolerance are admin-only. On submission, the server awards 30 points each for mass and volume based on the target tolerance; admins review the remaining 40 model/file points and may override the automatic scores.
 - **Payments**: `payments.api.ts` `startCheckout` (saves return path) → Paystack → `/payment/callback?reference=` → `POST /payments/:ref/verify`.
 - **AI**: TanStack server functions in `src/lib/ai/` (only server code touches keys).
 

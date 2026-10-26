@@ -58,7 +58,18 @@ const mockSwService = {
     if (db.submissions.some((s) => s.taskId === input.taskId && s.userId === input.userId)) {
       throw new Error("You've already submitted for this task");
     }
-    const s = { ...input, id: uid("sub"), submittedAt: nowIso() };
+    const task = db.tasks.find((item) => item.id === input.taskId);
+    const within = (value: string, target?: number, tolerance = 0.5, mass = false) => {
+      const submitted = Number.parseFloat(value.replace(/,/g, ""));
+      if (!target || !Number.isFinite(submitted)) return 0;
+      const normalized = mass && /\bkg\b/i.test(value) ? submitted * 1000 : submitted;
+      const deviation = Math.abs(normalized - target) / target * 100;
+      return deviation <= tolerance ? 30 : deviation <= tolerance * 2 ? 15 : 0;
+    };
+    const autoScores = task?.targetMass && task.targetVolume
+      ? { mass: within(input.mass, task.targetMass, task.tolerancePercent, true), volume: within(input.volume, task.targetVolume, task.tolerancePercent) }
+      : undefined;
+    const s = { ...input, id: uid("sub"), submittedAt: nowIso(), ...(autoScores ? { autoScores } : {}) };
     db.submissions.unshift(s);
     return clone(s);
   },

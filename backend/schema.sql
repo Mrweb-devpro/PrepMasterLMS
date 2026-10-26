@@ -163,6 +163,9 @@ create table public.sw_tasks (
   steps text[] not null default '{}',
   video_url text,
   thumbnail_url text,
+  target_mass numeric,
+  target_volume numeric,
+  tolerance_percent numeric not null default 0.5,
   created_at timestamptz not null default now()
 );
 
@@ -367,6 +370,12 @@ create policy "read own waitlist" on public.python_waitlist
   for select to authenticated using (user_id = auth.uid());
 grant select, insert on public.python_waitlist to authenticated;
 grant all on public.python_waitlist to service_role;
+
+-- SolidWorks CSWA-style auto-grading upgrade (idempotent).
+alter table public.sw_tasks
+  add column if not exists target_mass numeric,
+  add column if not exists target_volume numeric,
+  add column if not exists tolerance_percent numeric not null default 0.5;
 
 -- Course targeting upgrade (idempotent).
 -- An empty department array means a general course that every department can browse.

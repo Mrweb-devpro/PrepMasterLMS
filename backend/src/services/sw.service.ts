@@ -13,16 +13,29 @@ async function requireMember(userId: string) {
 }
 
 // ---------- Tasks ----------
-export const listTasks = async () =>
-  must(await db.from("sw_tasks").select("*").order("number", { ascending: false }));
+const stripTargets = <T extends Record<string, unknown>>(task: T, user: AuthUser) => {
+  if (user.role === "admin") return task;
+  const { target_mass: _mass, target_volume: _volume, tolerance_percent: _tolerance, ...publicTask } = task;
+  return publicTask;
+};
 
-export const getTask = async (id: string) =>
-  must(await db.from("sw_tasks").select("*").eq("id", id).maybeSingle(), "Task not found.");
+export const listTasks = async (user: AuthUser) =>
+  must(await db.from("sw_tasks").select("*").order("number", { ascending: false })).map((task) => stripTargets(task, user));
 
-type TaskInput = { title: string; summary: string; description: string; steps: string[]; videoUrl?: string | undefined; thumbnailUrl?: string | undefined };
+export const getTask = async (id: string, user: AuthUser) =>
+  stripTargets(must<Record<string, unknown>>(
+    await db.from("sw_tasks").select("*").eq("id", id).maybeSingle(),
+    "Task not found.",
+  ), user);
+
+type TaskInput = {
+  title: string; summary: string; description: string; steps: string[]; videoUrl?: string | undefined; thumbnailUrl?: string | undefined;
+  targetMass?: number | null | undefined; targetVolume?: number | null | undefined; tolerancePercent: number;
+};
 const taskRow = (t: TaskInput) => ({
   title: t.title, summary: t.summary, description: t.description, steps: t.steps,
   video_url: t.videoUrl || null, thumbnail_url: t.thumbnailUrl || null,
+  target_mass: t.targetMass ?? null, target_volume: t.targetVolume ?? null, tolerance_percent: t.tolerancePercent,
 });
 
 export const createTask = async (t: TaskInput) => must(await db.from("sw_tasks").insert(taskRow(t)).select().single());
@@ -57,13 +70,43 @@ export async function createSubmission(userId: string, input: {
     !f.r2Key.startsWith(`solidworks/submissions/${userId}/`) &&
     !f.r2Key.startsWith(`solidworks/${userId}/`),
   )) throw badRequest("Upload your files first.");
+  const task = must<{ target_mass: number | string | null; target_volume: number | string | null; tolerance_percent: number | string | null }>(
+    await db.from("sw_tasks").select("target_mass, target_volume, tolerance_percent").eq("id", input.taskId).maybeSingle(),
+    "Task not found.",
+  );
+  const targetMass = Number(task.target_mass);
+  const targetVolume = Number(task.target_volume);
+  const tolerance = Number(task.tolerance_percent ?? 0.5);
+  const scoreMass = Number.isFinite(targetMass) && Number.isFinite(targetVolume)
+    ? gradeDimension(parseMeasurement(input.mass, "mass"), targetMass, tolerance)
+    : null;
+  const scoreVolume = Number.isFinite(targetMass) && Number.isFinite(targetVolume)
+    ? gradeDimension(parseMeasurement(input.volume, "volume"), targetVolume, tolerance)
+    : null;
   const { data, error } = await db.from("sw_submissions").insert({
     task_id: input.taskId, user_id: userId, files: input.files, mass: input.mass, volume: input.volume,
     difficulty: input.difficulty, challenge: input.challenge,
+    score_mass: scoreMass, score_volume: scoreVolume,
   }).select(SUB_SELECT).single();
   if (error?.code === "23505") throw conflict("You've already submitted for this task.");
   if (error) throw badRequest(error.message);
   return withNames(data);
+}
+
+function parseMeasurement(value: string, dimension: "mass" | "volume") {
+  const number = Number.parseFloat(value.replace(/,/g, "").replace(/[^0-9.+-].*$/, ""));
+  if (!Number.isFinite(number)) return 0;
+  if (dimension === "mass" && /\bkg\b/i.test(value)) return number * 1000;
+  if (dimension === "volume" && /\bmm(?:³|3)\b/i.test(value)) return number / 1000;
+  return number;
+}
+
+function gradeDimension(submitted: number, target: number, tolerancePercent: number, maxScore = 30) {
+  if (!target || target <= 0 || !Number.isFinite(submitted)) return 0;
+  const deviation = (Math.abs(submitted - target) / target) * 100;
+  if (deviation <= tolerancePercent) return maxScore;
+  if (deviation <= tolerancePercent * 2) return Math.round(maxScore * 0.5);
+  return 0;
 }
 
 type Named = { profiles?: { first_name: string; last_name: string } | null } & Record<string, unknown>;

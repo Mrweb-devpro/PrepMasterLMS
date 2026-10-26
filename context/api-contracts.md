@@ -86,6 +86,7 @@ Avatar profile fields: `gender: "male" | "female" | "other" | "prefer_not_to_say
 
 ## SolidWorks (`/solidworks`)
 
+- Admin task create/update accepts optional `{ targetMass, targetVolume, tolerancePercent }`. These values are returned only to admins; student task responses omit them. When both targets exist, a submission receives automatic `score_mass` and `score_volume` values before manual review.
 - `GET /tasks`, `GET /tasks/:id`; admin `POST /tasks`, `PATCH /tasks/:id`, `DELETE /tasks/:id`.
 - `GET /submissions` (mine; admin sees all), `GET /submissions/:id`, `POST /uploads` `{ fileName, contentType, type: "submission" | "question" }` (presigned PUT), `POST /submissions` `{ task_id, files[], note? }`, admin `PATCH /submissions/:id/grade` `{ score, feedback }`. New submission and question uploads are stored under `solidworks/submissions/<userId>/` and `solidworks/questions/<userId>/`; legacy `solidworks/<userId>/` keys remain supported.
 - `GET /works` (graded showcase), `GET /works/:id`.

@@ -11,6 +11,10 @@ export interface SwTask {
   steps: string[];
   videoUrl?: string;
   thumbnailUrl?: string;
+  /** Admin-only target values; never returned in student task queries. */
+  targetMass?: number;
+  targetVolume?: number;
+  tolerancePercent?: number;
   createdAt: string;
 }
 
@@ -44,6 +48,8 @@ export interface SwSubmission {
   challenge: string;
   submittedAt: string;
   grade?: SwGrade;
+  /** Present after the server automatically scores mass and volume. */
+  autoScores?: { mass: number; volume: number };
 }
 
 export interface SwResponse {

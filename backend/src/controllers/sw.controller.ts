@@ -12,8 +12,8 @@ const mineQuery = z.object({ mine: z.enum(["true", "false"]).optional() });
 
 export const swController = new Hono<AppEnv>()
   // Tasks
-  .get("/tasks", async (c) => c.json(await sw.listTasks()))
-  .get("/tasks/:id", zValidator("param", idParam), async (c) => c.json(await sw.getTask(c.req.valid("param").id)))
+  .get("/tasks", async (c) => c.json(await sw.listTasks(c.get("user"))))
+  .get("/tasks/:id", zValidator("param", idParam), async (c) => c.json(await sw.getTask(c.req.valid("param").id, c.get("user"))))
   .post("/tasks", requireAdmin, zValidator("json", swTaskBody), async (c) => c.json(await sw.createTask(c.req.valid("json")), 201))
   .put("/tasks/:id", requireAdmin, zValidator("param", idParam), zValidator("json", swTaskBody), async (c) =>
     c.json(await sw.updateTask(c.req.valid("param").id, c.req.valid("json"))))

@@ -21,14 +21,21 @@ export function SwSubmissionDetailPage({ id }: { id: string }) {
   const grade = useGradeSubmission();
   const confirm = useConfirm();
   const g = sub.grade;
+  const task = tasks.find((item) => item.id === sub.taskId);
+  const autoScores = sub.autoScores;
   const [scores, setScores] = useState<Record<K, string>>({
-    mass: String(g?.scores.mass ?? ""),
-    volume: String(g?.scores.volume ?? ""),
+    mass: String(g?.scores.mass ?? autoScores?.mass ?? ""),
+    volume: String(g?.scores.volume ?? autoScores?.volume ?? ""),
     model: String(g?.scores.model ?? ""),
   });
   const [verdict, setVerdict] = useState<Verdict | "">(g?.verdict ?? "");
   const [remarks, setRemarks] = useState(g?.remarks ?? "");
   const total = (Object.keys(scores) as K[]).reduce((n, k) => n + (Number(scores[k]) || 0), 0);
+  const deviation = (value: string, target?: number, mass = false) => {
+    const submitted = Number.parseFloat(value.replace(/,/g, ""));
+    const normalized = mass && /\bkg\b/i.test(value) ? submitted * 1000 : submitted;
+    return target && Number.isFinite(normalized) ? Math.abs(normalized - target) / target * 100 : undefined;
+  };
 
   const save = async () => {
     const nums = {
@@ -64,14 +71,21 @@ export function SwSubmissionDetailPage({ id }: { id: string }) {
     <div className="space-y-6">
       <SubmissionAnswers
         sub={sub}
-        taskTitle={tasks.find((t) => t.id === sub.taskId)?.title ?? "Deleted task"}
+        taskTitle={task?.title ?? "Deleted task"}
       />
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="space-y-4">
           <p className="text-sm font-semibold">{g ? "Update grade" : "Grade this submission"}</p>
           <div className="grid gap-3 sm:grid-cols-3">
-            {(Object.keys(MAX_SCORES) as K[]).map((k) => (
+            {(Object.keys(MAX_SCORES) as K[]).map((k) => {
+              const target = k === "mass" ? task?.targetMass : k === "volume" ? task?.targetVolume : undefined;
+              const submitted = k === "mass" ? sub.mass : k === "volume" ? sub.volume : undefined;
+              const pct = submitted ? deviation(submitted, target, k === "mass") : undefined;
+              return (
               <Field key={k} label={`${SCORE_LABELS[k]} /${MAX_SCORES[k]}`}>
+                {(k === "mass" || k === "volume") && autoScores && (
+                  <span className="mb-1 inline-flex rounded-full bg-primary-soft px-1.5 py-0.5 text-2xs font-semibold text-primary">Auto-graded</span>
+                )}
                 <Input
                   type="number"
                   min={0}
@@ -79,8 +93,15 @@ export function SwSubmissionDetailPage({ id }: { id: string }) {
                   value={scores[k]}
                   onChange={(e) => setScores({ ...scores, [k]: e.target.value })}
                 />
+                {target && submitted && pct !== undefined && (
+                  <p className="mt-1 text-2xs text-text-muted">
+                    Target {target} · submitted {submitted} · {pct.toFixed(2)}% deviation
+                    {task?.tolerancePercent ? ` (±${task.tolerancePercent}% tolerance)` : ""}
+                  </p>
+                )}
               </Field>
-            ))}
+              );
+            })}
           </div>
           <p className="text-sm">
             Total: <span className="font-display text-lg font-semibold">{total}</span>/100

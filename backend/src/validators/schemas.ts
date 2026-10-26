@@ -148,6 +148,9 @@ export const swTaskBody = z.object({
   steps: z.array(z.string().min(1).max(500)).max(50).default([]),
   videoUrl: z.string().url().optional().or(z.literal("")),
   thumbnailUrl: z.string().url().optional().or(z.literal("")),
+  targetMass: z.number().positive().optional().nullable(),
+  targetVolume: z.number().positive().optional().nullable(),
+  tolerancePercent: z.number().positive().max(100).default(0.5),
 });
 
 export const swSubmissionBody = z.object({

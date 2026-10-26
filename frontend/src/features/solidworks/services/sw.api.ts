@@ -21,6 +21,9 @@ interface TaskRow {
   steps: string[];
   video_url: string | null;
   thumbnail_url: string | null;
+  target_mass?: number | null;
+  target_volume?: number | null;
+  tolerance_percent?: number | null;
   created_at: string;
 }
 interface SubRow {
@@ -75,6 +78,9 @@ const toTask = (t: TaskRow): SwTask => ({
   createdAt: t.created_at,
   ...(t.video_url ? { videoUrl: t.video_url } : {}),
   ...(t.thumbnail_url ? { thumbnailUrl: t.thumbnail_url } : {}),
+  ...(t.target_mass !== null && t.target_mass !== undefined ? { targetMass: Number(t.target_mass) } : {}),
+  ...(t.target_volume !== null && t.target_volume !== undefined ? { targetVolume: Number(t.target_volume) } : {}),
+  ...(t.tolerance_percent !== null && t.tolerance_percent !== undefined ? { tolerancePercent: Number(t.tolerance_percent) } : {}),
 });
 
 const toSubmission = (s: SubRow): SwSubmission => ({
@@ -104,6 +110,9 @@ const toSubmission = (s: SubRow): SwSubmission => ({
         },
       }
     : {}),
+  ...(s.score_mass !== null && s.score_volume !== null && !s.graded_at
+    ? { autoScores: { mass: s.score_mass, volume: s.score_volume } }
+    : {}),
 });
 
 const toQuestion = (q: QuestionRow): SwQuestion => ({
@@ -129,6 +138,9 @@ const taskBody = (t: NewTask) => ({
   steps: t.steps,
   videoUrl: t.videoUrl ?? "",
   thumbnailUrl: t.thumbnailUrl ?? "",
+  targetMass: t.targetMass ?? null,
+  targetVolume: t.targetVolume ?? null,
+  tolerancePercent: t.tolerancePercent ?? 0.5,
 });
 
 /** userId given = "only mine" (students); admins list everything without it. */
