@@ -9,6 +9,8 @@ interface CourseRow {
   code: string;
   title: string;
   color: string;
+  level?: string;
+  departments?: string[];
 }
 interface SubfolderRow {
   course_id: string;
@@ -115,6 +117,8 @@ export async function fetchCatalog(): Promise<Catalog> {
       code: c.code,
       title: c.title,
       color: c.color,
+      level: c.level ?? "all",
+      departments: c.departments ?? [],
       subfolders: {
         "lecture-notes": pick("lecture-notes"),
         "past-questions": pick("past-questions"),

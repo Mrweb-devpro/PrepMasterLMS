@@ -54,6 +54,8 @@ create table public.courses (
   title text not null,
   color text not null default '#3b6cff',
   description text not null default '',
+  level text not null default 'all',
+  departments text[] not null default '{}',
   created_at timestamptz not null default now()
 );
 
@@ -365,3 +367,14 @@ create policy "read own waitlist" on public.python_waitlist
   for select to authenticated using (user_id = auth.uid());
 grant select, insert on public.python_waitlist to authenticated;
 grant all on public.python_waitlist to service_role;
+
+-- Course targeting upgrade (idempotent).
+-- An empty department array means a general course that every department can browse.
+alter table public.courses
+  add column if not exists level text not null default 'all',
+  add column if not exists departments text[] not null default '{}';
+
+comment on column public.courses.level is
+  'Academic level: 100, 200, 300, 400, 500, 600, Postgraduate, or all';
+comment on column public.courses.departments is
+  'List of department names eligible for this course. Empty array means general / all departments.';

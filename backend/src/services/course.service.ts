@@ -52,6 +52,8 @@ export async function getDownloadLink(materialId: string, userId: string, isAdmi
 
 export async function createCourse(input: {
   slug: string; code: string; title: string; color: string; description: string;
+  level: string;
+  departments: string[];
   subfolders: { category: string; slug: string; name: string }[];
 }) {
   const { subfolders, ...course } = input;
@@ -77,6 +79,8 @@ export async function updateCourse(
     title?: string;
     color?: string;
     description?: string;
+    level?: string;
+    departments?: string[];
     subfolders?: { category: string; slug: string; name: string }[];
   },
 ) {

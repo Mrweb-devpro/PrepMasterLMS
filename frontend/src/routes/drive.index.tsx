@@ -1,11 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Folder, Loader2, Search } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StudentShell } from "@/components/prep/StudentShell";
 import { DriveEmptyIllustration } from "@/components/common/EmptyStateIllustration";
 import { Breadcrumbs, EmptyState, FileIcon, PageHeader, PaidPill } from "@/components/prep/bits";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DepartmentFilter, type DepartmentFilterMode } from "@/features/catalog/components/DepartmentFilter";
 import { useCatalog } from "@/features/catalog/useCatalog";
+import { matchesDepartment, matchesLevel } from "@/features/catalog/utils/department-filter";
+import { useSession } from "@/features/auth/session";
 import { usePrep } from "@/lib/prep-store";
 
 export const Route = createFileRoute("/drive/")({
@@ -28,10 +32,37 @@ export const Route = createFileRoute("/drive/")({
 
 function DrivePage() {
   const prep = usePrep();
+  const { user } = useSession();
   const { courses, files, getCourse, filesIn, loading } = useCatalog();
   const [query, setQuery] = useState("");
+  const [departmentMode, setDepartmentMode] = useState<DepartmentFilterMode>(user?.course ? "mine" : "all");
+  const [departmentFilterTouched, setDepartmentFilterTouched] = useState(false);
   const searching = query.trim().length > 0;
-  const results = files.filter((f) => f.name.toLowerCase().includes(query.trim().toLowerCase()));
+  const studentLevel = user?.level;
+  const visibleCourses = courses.filter(
+    (course) =>
+      matchesLevel(course, studentLevel) &&
+      matchesDepartment(course, departmentMode, user?.course),
+  );
+  const noCoursesTitle =
+    departmentMode === "all"
+      ? "No course materials yet"
+      : "No courses found for your department at this level";
+  const results = files.filter(
+    (file) =>
+      file.name.toLowerCase().includes(query.trim().toLowerCase()) &&
+      matchesLevel(getCourse(file.courseSlug), studentLevel) &&
+      matchesDepartment(getCourse(file.courseSlug), departmentMode, user?.course),
+  );
+
+  const resetDepartmentFilter = () => {
+    setDepartmentFilterTouched(true);
+    setDepartmentMode("all");
+  };
+
+  useEffect(() => {
+    if (!departmentFilterTouched) setDepartmentMode(user?.course ? "mine" : "all");
+  }, [departmentFilterTouched, user?.course]);
 
   return (
     <StudentShell>
@@ -47,6 +78,21 @@ function DrivePage() {
           className="rounded-md border-border bg-surface pl-9"
         />
       </div>
+
+      <DepartmentFilter
+        userDepartment={user?.course}
+        mode={departmentMode}
+        onModeChange={(mode) => {
+          setDepartmentFilterTouched(true);
+          setDepartmentMode(mode);
+        }}
+      />
+      {(studentLevel || user?.course) && (
+        <p className="mb-6 inline-flex rounded-full border border-border bg-surface-subtle px-3 py-1 text-xs font-medium text-text-secondary">
+          Showing {studentLevel ? `${studentLevel === "Postgraduate" ? studentLevel : `${studentLevel} level`}` : "all levels"}
+          {user?.course ? ` · ${user.course}` : ""}
+        </p>
+      )}
 
       {loading ? (
         <div role="status" className="flex items-center justify-center gap-2 py-12 text-sm text-text-muted">
@@ -79,15 +125,26 @@ function DrivePage() {
             </Link>
           ))}
         </div>
-      ) : courses.length === 0 ? (
+      ) : visibleCourses.length === 0 ? (
         <EmptyState
           illustration={<DriveEmptyIllustration />}
-          title="No course materials yet"
-          description="Your courses and study materials will appear here when they are available."
+          title={noCoursesTitle}
+          description={
+            departmentMode === "all"
+              ? "Your courses and study materials will appear here when they are available."
+              : "Switch to all courses to explore other departments at this level."
+          }
+          action={
+            departmentMode !== "all" ? (
+              <Button variant="outline" onClick={resetDepartmentFilter}>
+                View all courses
+              </Button>
+            ) : undefined
+          }
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {courses.map((course) => (
+          {visibleCourses.map((course) => (
             <Link
               key={course.slug}
               to="/drive/$course"
@@ -105,6 +162,11 @@ function DrivePage() {
               <p className="mt-2 text-sm text-text-muted">
                 {filesIn(course.slug).length} files · 3 categories
               </p>
+              <span className="mt-3 inline-flex w-fit rounded-full bg-surface-subtle px-2 py-1 text-2xs font-medium text-text-secondary">
+                {(course.departments?.length ?? 0) === 0
+                  ? "General"
+                  : `${course.departments!.length} department${course.departments!.length === 1 ? "" : "s"}`}
+              </span>
             </Link>
           ))}
         </div>

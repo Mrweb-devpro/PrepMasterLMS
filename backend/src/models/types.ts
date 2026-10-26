@@ -46,6 +46,18 @@ export interface Cbt {
   created_at: string;
 }
 
+export interface Course {
+  id: string;
+  slug: string;
+  code: string;
+  title: string;
+  color: string;
+  description: string;
+  level: string;
+  departments: string[];
+  created_at: string;
+}
+
 export interface Question {
   id: string;
   cbt_id: string;

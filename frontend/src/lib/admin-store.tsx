@@ -35,6 +35,8 @@ interface AdminState {
       title?: string;
       color?: string;
       description?: string;
+      level?: string;
+      departments?: string[];
       subfolders?: Record<CategorySlug, Subfolder[]>;
     },
   ) => Promise<void>;
@@ -129,7 +131,15 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           const subfolders = (Object.keys(c.subfolders) as (keyof Course["subfolders"])[]).flatMap(
             (category) => c.subfolders[category].map((s) => ({ category, slug: s.slug, name: s.name })),
           );
-          await api.post("/courses", { slug: c.slug, code: c.code, title: c.title, color: c.color, subfolders });
+          await api.post("/courses", {
+            slug: c.slug,
+            code: c.code,
+            title: c.title,
+            color: c.color,
+            level: c.level ?? "all",
+            departments: c.departments ?? [],
+            subfolders,
+          });
           await refreshCatalog();
           return c.slug;
         },
@@ -146,6 +156,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
             ...(patch.title !== undefined ? { title: patch.title } : {}),
             ...(patch.color !== undefined ? { color: patch.color } : {}),
             ...(patch.description !== undefined ? { description: patch.description } : {}),
+            ...(patch.level !== undefined ? { level: patch.level } : {}),
+            ...(patch.departments !== undefined ? { departments: patch.departments } : {}),
             ...(subfolders !== undefined ? { subfolders } : {}),
           });
           await refreshCatalog();

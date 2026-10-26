@@ -5,7 +5,10 @@ import { toast } from "sonner";
 import { AdminShell } from "@/components/prep/AdminShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Field, Panel } from "@/features/admin/components/parts";
+import { DepartmentCheckboxGroup } from "@/features/catalog/components/DepartmentCheckboxGroup";
+import { LEVELS } from "@/features/auth/constants/options";
 import { useAdmin } from "@/lib/admin-store";
 import { CATEGORIES, type CategorySlug, type Course, type Subfolder } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
@@ -50,6 +53,8 @@ function CourseEditForm({ course }: { course: Course }) {
   const [code, setCode] = useState(course.code);
   const [title, setTitle] = useState(course.title);
   const [color, setColor] = useState(course.color);
+  const [level, setLevel] = useState(course.level ?? "all");
+  const [departments, setDepartments] = useState(course.departments ?? []);
   const [folders, setFolders] = useState<Record<CategorySlug, Subfolder[]>>({
     "lecture-notes": course.subfolders["lecture-notes"] ?? [],
     "past-questions": course.subfolders["past-questions"] ?? [],
@@ -92,6 +97,8 @@ function CourseEditForm({ course }: { course: Course }) {
         code: code.toUpperCase().trim(),
         title: title.trim(),
         color,
+        level,
+        departments,
         subfolders: folders,
       });
       toast.success("Course updated successfully");
@@ -145,6 +152,22 @@ function CourseEditForm({ course }: { course: Course }) {
               ))}
             </div>
           </Field>
+          <Field label="Academic level">
+            <Select value={level} onValueChange={setLevel}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All levels (general)</SelectItem>
+                {LEVELS.map((item) => (
+                  <SelectItem key={item} value={item}>
+                    {item === "Postgraduate" ? item : `${item} level`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+          <DepartmentCheckboxGroup value={departments} onChange={setDepartments} />
         </Panel>
 
         <Panel className="space-y-6 p-5 md:p-6">

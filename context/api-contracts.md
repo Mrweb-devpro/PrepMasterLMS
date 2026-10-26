@@ -36,15 +36,15 @@ Avatar profile fields: `gender: "male" | "female" | "other" | "prefer_not_to_say
 
 ## Catalog
 
-| GET | `/catalog` | Role-aware list of courses → subfolders → materials, and CBTs, each with `owned: boolean` and `price` (kobo). |
+| GET | `/catalog` | Role-aware list of courses → subfolders → materials, and CBTs, each with `owned: boolean` and `price` (kobo). Every course includes `level` (`100`–`600`, `Postgraduate`, or `all`) plus `departments: string[]`; `[]` means general/open to all. |
 | --- | ---------- | ------------------------------------------------------------------------------------------------------------- |
 
 ## Courses (admin)
 
 | Method | Path                      | Body                                                                                      |
 | ------ | ------------------------- | ----------------------------------------------------------------------------------------- |
-| POST   | `/courses`                | `{ title, slug, description? }`                                                           |
-| PATCH  | `/courses/:id`            | `{ code?, title?, color?, description?, subfolders? }`; removed folders must be empty.   |
+| POST   | `/courses`                | `{ title, slug, description?, level?: string, departments?: string[] }`                                  |
+| PATCH  | `/courses/:id`            | `{ code?, title?, color?, description?, level?, departments?, subfolders? }`; removed folders must be empty.   |
 | DELETE | `/courses/:id`            | —                                                                                         |
 | POST   | `/courses/:id/subfolders` | `{ name, category }`                                                                      |
 | POST   | `/courses/:id/uploads`    | `{ filename, contentType }` → `{ uploadUrl, key }` (presigned PUT, upload directly to R2) |

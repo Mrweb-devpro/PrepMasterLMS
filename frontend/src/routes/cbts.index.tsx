@@ -1,13 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, CalendarClock, Clock3, ListChecks, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StudentShell } from "@/components/prep/StudentShell";
 import { CbtMonitorIllustration } from "@/components/common/EmptyStateIllustration";
 import { EmptyState, PageHeader, PaidPill } from "@/components/prep/bits";
+import { Button } from "@/components/ui/button";
+import { DepartmentFilter, type DepartmentFilterMode } from "@/features/catalog/components/DepartmentFilter";
 import { cbtStatusPill } from "@/features/cbt/utils/cbt-status";
 import { isAttemptableLiveCbt, isCbtClosed } from "@/features/cbt/utils/cbt-lifecycle";
+import { useSession } from "@/features/auth/session";
 import { formatDateTime } from "@/lib/mock-data";
 import { useCatalog } from "@/features/catalog/useCatalog";
+import { matchesDepartment, matchesLevel } from "@/features/catalog/utils/department-filter";
 import { usePrep } from "@/lib/prep-store";
 import { cn } from "@/lib/utils";
 
@@ -31,10 +35,17 @@ export const Route = createFileRoute("/cbts/")({
 
 function CbtsPage() {
   const prep = usePrep();
+  const { user } = useSession();
   const { cbts, getCourse, loading } = useCatalog();
   const [tab, setTab] = useState<"all" | "practice" | "live" | "closed">("all");
+  const [departmentMode, setDepartmentMode] = useState<DepartmentFilterMode>(user?.course ? "mine" : "all");
+  const [departmentFilterTouched, setDepartmentFilterTouched] = useState(false);
+  const tabLabel =
+    tab === "all" ? "CBTs" : tab === "practice" ? "practice CBTs" : tab === "live" ? "live exams" : "closed CBTs";
   const list = cbts
     .filter((cbt) => {
+      const course = getCourse(cbt.courseSlug);
+      if (!matchesLevel(course, user?.level) || !matchesDepartment(course, departmentMode, user?.course)) return false;
       const closed = isCbtClosed(cbt);
       if (tab === "all") return true;
       if (tab === "practice") return cbt.kind === "practice" && !closed;
@@ -51,6 +62,14 @@ function CbtsPage() {
       return 0;
     });
   const hasActiveLiveCbt = cbts.some(isAttemptableLiveCbt);
+  const resetDepartmentFilter = () => {
+    setDepartmentFilterTouched(true);
+    setDepartmentMode("all");
+  };
+
+  useEffect(() => {
+    if (!departmentFilterTouched) setDepartmentMode(user?.course ? "mine" : "all");
+  }, [departmentFilterTouched, user?.course]);
 
   return (
     <StudentShell>
@@ -58,6 +77,21 @@ function CbtsPage() {
         title="CBTs"
         subtitle="Practise at your own pace or join a scheduled live exam."
       />
+
+      <DepartmentFilter
+        userDepartment={user?.course}
+        mode={departmentMode}
+        onModeChange={(mode) => {
+          setDepartmentFilterTouched(true);
+          setDepartmentMode(mode);
+        }}
+      />
+      {(user?.level || user?.course) && (
+        <p className="mb-6 inline-flex rounded-full border border-border bg-surface-subtle px-3 py-1 text-xs font-medium text-text-secondary">
+          Showing {user.level ? `${user.level === "Postgraduate" ? user.level : `${user.level} level`}` : "all levels"}
+          {user.course ? ` · ${user.course}` : ""}
+        </p>
+      )}
 
       <div className="mb-6 inline-flex w-fit max-w-full flex-wrap gap-1 rounded-md border border-border bg-surface p-1 shadow-sm">
         {[
@@ -95,22 +129,33 @@ function CbtsPage() {
         <EmptyState
           illustration={<CbtMonitorIllustration />}
           title={
-            tab === "all"
-              ? "No CBTs available"
-              : tab === "practice"
-                ? "No practice CBTs available"
-                : tab === "live"
-                  ? "No live exams scheduled"
-                  : "No closed CBTs"
+            departmentMode !== "all"
+              ? `No ${tabLabel} found for your department at this level`
+              : tab === "all"
+                ? "No CBTs available"
+                : tab === "practice"
+                  ? "No practice CBTs available"
+                  : tab === "live"
+                    ? "No live exams scheduled"
+                    : "No closed CBTs"
           }
           description={
-            tab === "all"
-              ? "CBTs will appear here when added."
-              : tab === "practice"
-                ? "Practice CBTs will appear here when they are available."
-                : tab === "live"
-                  ? "Scheduled live exams will appear here."
-                  : "Finished live exams will appear here."
+            departmentMode !== "all"
+              ? "Switch to all courses to explore other departments at this level."
+              : tab === "all"
+                ? "CBTs will appear here when added."
+                : tab === "practice"
+                  ? "Practice CBTs will appear here when they are available."
+                  : tab === "live"
+                    ? "Scheduled live exams will appear here."
+                    : "Finished live exams will appear here."
+          }
+          action={
+            departmentMode !== "all" ? (
+              <Button variant="outline" onClick={resetDepartmentFilter}>
+                View all courses
+              </Button>
+            ) : undefined
           }
         />
       ) : (

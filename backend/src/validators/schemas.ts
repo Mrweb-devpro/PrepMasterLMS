@@ -4,6 +4,7 @@ export const uuid = z.string().uuid();
 export const idParam = z.object({ id: uuid });
 const category = z.enum(["lecture-notes", "past-questions", "textbooks"]);
 const slug = z.string().regex(/^[a-z0-9-]+$/).max(60);
+const courseLevel = z.enum(["100", "200", "300", "400", "500", "600", "Postgraduate", "all"]);
 
 // ---------- Profile ----------
 const optionalText = (max: number) => z.string().max(max).nullable().optional();
@@ -87,6 +88,8 @@ export const createCourseBody = z.object({
   title: z.string().min(3).max(150),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/).default("#3b6cff"),
   description: z.string().max(2000).default(""),
+  level: courseLevel.default("all"),
+  departments: z.array(z.string().min(1).max(120)).max(100).default([]),
   subfolders: z.array(z.object({ category, slug, name: z.string().min(1).max(80) })).max(100).default([]),
 });
 
@@ -95,6 +98,8 @@ export const updateCourseBody = z.object({
   title: z.string().min(3).max(150).optional(),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
   description: z.string().max(2000).optional(),
+  level: courseLevel.optional(),
+  departments: z.array(z.string().min(1).max(120)).max(100).optional(),
   subfolders: z.array(z.object({ category, slug, name: z.string().min(1).max(80) })).max(100).optional(),
 });
 

@@ -60,3 +60,6 @@ export const FACULTIES: Record<string, string[]> = {
 };
 
 export const FACULTY_NAMES = Object.keys(FACULTIES);
+
+/** Every department currently supported during student onboarding. */
+export const DEPARTMENTS = Object.values(FACULTIES).flat();

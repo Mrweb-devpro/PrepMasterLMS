@@ -29,6 +29,10 @@ export interface Course {
   code: string;
   title: string;
   color: string;
+  /** Academic level this course is for; all means it is available at every level. */
+  level?: string;
+  /** Empty means the course is general and visible to every department. */
+  departments?: string[];
   subfolders: Record<CategorySlug, Subfolder[]>;
 }
 
@@ -100,6 +104,8 @@ export const courses: Course[] = [
     code: "BIO 101",
     title: "General Biology",
     color: "#1a9c6b",
+    level: "100",
+    departments: [],
     subfolders: {
       "lecture-notes": [
         { slug: "cell-biology", name: "Cell Biology" },
@@ -121,6 +127,8 @@ export const courses: Course[] = [
     code: "CHM 102",
     title: "Organic Chemistry",
     color: "#2f27ce",
+    level: "200",
+    departments: ["Chemical Engineering", "Chemistry", "Biochemistry"],
     subfolders: {
       "lecture-notes": [
         { slug: "hydrocarbons", name: "Hydrocarbons" },
@@ -142,6 +150,8 @@ export const courses: Course[] = [
     code: "PHY 103",
     title: "Mechanics & Waves",
     color: "#443dff",
+    level: "200",
+    departments: ["Mechanical Engineering", "Civil and Environmental Engineering", "Physics"],
     subfolders: {
       "lecture-notes": [
         { slug: "kinematics", name: "Kinematics" },
@@ -162,6 +172,8 @@ export const courses: Course[] = [
     code: "MTH 104",
     title: "Calculus I",
     color: "#c53030",
+    level: "100",
+    departments: [],
     subfolders: {
       "lecture-notes": [
         { slug: "limits", name: "Limits & Continuity" },

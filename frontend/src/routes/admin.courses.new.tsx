@@ -6,8 +6,11 @@ import { AdminShell } from "@/components/prep/AdminShell";
 import { Field, KV, Panel, PanelHeader, Stepper } from "@/features/admin/components/parts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LEVELS } from "@/features/auth/constants/options";
 import { useAdmin } from "@/lib/admin-store";
 import { CATEGORIES, type CategorySlug, type Subfolder } from "@/lib/mock-data";
+import { DepartmentCheckboxGroup } from "@/features/catalog/components/DepartmentCheckboxGroup";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/courses/new")({
@@ -37,6 +40,8 @@ function NewCourse() {
   const [code, setCode] = useState("");
   const [title, setTitle] = useState("");
   const [color, setColor] = useState(COLORS[0]!);
+  const [level, setLevel] = useState("all");
+  const [departments, setDepartments] = useState<string[]>([]);
   const [folders, setFolders] = useState<Record<CategorySlug, Subfolder[]>>({
     "lecture-notes": [{ slug: "week-1", name: "Week 1" }],
     "past-questions": [{ slug: "2024", name: "2024 Papers" }],
@@ -65,7 +70,7 @@ function NewCourse() {
     setSaving(true);
     const slug = `${slugify(code)}-${Date.now().toString(36)}`;
     try {
-      await admin.addCourse({ slug, code: code.toUpperCase(), title, color, subfolders: folders });
+      await admin.addCourse({ slug, code: code.toUpperCase(), title, color, level, departments, subfolders: folders });
     } catch (e) {
       toast.error("Couldn't create the course", { description: (e as Error).message });
       setSaving(false);
@@ -114,6 +119,22 @@ function NewCourse() {
               ))}
             </div>
           </Field>
+          <Field label="Academic level">
+            <Select value={level} onValueChange={setLevel}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All levels (general)</SelectItem>
+                {LEVELS.map((item) => (
+                  <SelectItem key={item} value={item}>
+                    {item === "Postgraduate" ? item : `${item} level`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+          <DepartmentCheckboxGroup value={departments} onChange={setDepartments} />
         </Panel>
       )}
 
@@ -181,6 +202,9 @@ function NewCourse() {
             </span>
             <p className="mt-3 text-xs text-text-muted">{code.toUpperCase()}</p>
             <p className="font-display text-lg font-semibold">{title}</p>
+            <p className="mt-1 text-xs text-text-muted">
+              {level === "all" ? "All levels" : `${level} level`} · {departments.length === 0 ? "General course" : `${departments.length} department${departments.length === 1 ? "" : "s"}`}
+            </p>
             <div className="mt-3 border-t border-border pt-2">
               {CATEGORIES.map((c) => (
                 <KV key={c.slug} k={c.name} v={`${folders[c.slug].length} folders`} />
