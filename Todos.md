@@ -1,5 +1,11 @@
 Todos on the frontend
 
+Completed: Option 1 — SolidWorks CSWA Mass/Volume Auto-Grading (feature/sw-auto-grading)
+Current Focus: Option 2 — Solo Practice CBT Upgrade (setup modal with question count & shuffle, pause/resume, untimed option, and instant per-question explanations)
+Upcoming: Option 3 — Scheduled Competitions & Live Contest Arenas
+Upcoming: Option 4 — Python Web Book Reader Engine
+Upcoming: Option 5 — Microsoft Edge-style History Popover (Ctrl+H top-bar flyout for recent CBTs and Drive docs)
+
 ADMIN:
 
 <!-- --------------------------------- -->
