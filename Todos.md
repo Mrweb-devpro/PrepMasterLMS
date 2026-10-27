@@ -19,3 +19,4 @@ CODEBASE
 - clean up the package.json of all unused packages
 - clean up all lovable flags/doings in the app.
 - clear out all mock data from the frontend and backend.
+- fix all modals, they are not reponsive on mobile.
