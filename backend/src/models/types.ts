@@ -66,10 +66,16 @@ export interface Question {
   options: string[];
   answer_index: number;
   topic: string;
+  explanation: string;
 }
 
-/** What students receive during an exam — never includes answer_index. */
-export type PublicQuestion = Omit<Question, "answer_index">;
+/** What students receive during an exam — live exams never include answer data. */
+export type PublicQuestion = Omit<Question, "answer_index" | "explanation"> & {
+  /** Present only for a practice session with instant-feedback support. */
+  correct_index?: number;
+  /** Present only for a practice session. */
+  explanation?: string;
+};
 
 export interface Attempt {
   id: string;

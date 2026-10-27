@@ -48,6 +48,7 @@ export const createCbtBody = z.object({
     options: z.array(z.string().min(1).max(500)).min(2).max(6),
     answerIndex: z.number().int().min(0),
     topic: z.string().max(100).optional(),
+    explanation: z.string().max(5000).optional(),
   })).min(1).max(300),
 }).superRefine((value, ctx) => {
   if (value.mode !== "live") return;
@@ -78,6 +79,7 @@ export const updateCbtBody = z.object({
     options: z.array(z.string().min(1).max(500)).min(2).max(6),
     answerIndex: z.number().int().min(0),
     topic: z.string().max(100).optional(),
+    explanation: z.string().max(5000).optional(),
   })).min(1).max(300).optional(),
 });
 

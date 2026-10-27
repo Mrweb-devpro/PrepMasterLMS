@@ -11,6 +11,8 @@ import { useCatalog, useRefreshCatalog } from "@/features/catalog/useCatalog";
 import { LIVE } from "@/lib/api/config";
 import { usePrep } from "@/lib/prep-store";
 import { cbtStatusPill } from "@/features/cbt/utils/cbt-status";
+import { PracticeSetupDialog } from "@/features/cbt/components/PracticeSetupDialog";
+import { savePracticeConfig, type PracticeConfig } from "@/features/cbt/utils/practice-config";
 import { useConfirm } from "@/components/common/ConfirmDialog";
 import { formatEndTimeOnly, formatSecondsCountdown, formatSmartCbtDate } from "@/features/cbt/utils/cbt-time";
 
@@ -35,6 +37,15 @@ function CbtDetail() {
   const navigate = useNavigate();
   const confirm = useConfirm();
   const [buying, setBuying] = useState(false);
+  const [practiceSetupOpen, setPracticeSetupOpen] = useState(false);
+  const [practiceConfig, setPracticeConfig] = useState<PracticeConfig>(() => ({
+    questionCount: "all",
+    timed: false,
+    durationMinutes: 30,
+    feedback: "instant",
+    shuffle: false,
+    seed: Date.now(),
+  }));
   const [nowMs, setNowMs] = useState(() => Date.now());
   const refreshCatalog = useRefreshCatalog();
   const { getCbt, getCourse, loading } = useCatalog();
@@ -156,9 +167,17 @@ function CbtDetail() {
           <Card className="mt-6">
             <h2 className="text-lg font-semibold">Before you begin</h2>
             <ul className="mt-3 space-y-2 text-sm text-text-secondary">
-              <li>• The timer starts as soon as you open the first question.</li>
+              <li>
+                • {cbt.kind === "practice"
+                  ? "Choose your question set, timer style, feedback, and order before you begin."
+                  : "The timer starts as soon as you open the first question."}
+              </li>
               <li>• You can flag questions and come back to them before submitting.</li>
-              <li>• Your answers save automatically if you lose connection.</li>
+              <li>
+                • {cbt.kind === "practice"
+                  ? "You can pause at any time. Your progress stays saved while you take a break."
+                  : "Your answers save automatically if you lose connection."}
+              </li>
               <li>
                 •{" "}
                 {cbt.revealResults === false
@@ -242,7 +261,9 @@ function CbtDetail() {
               <p className="font-semibold">{isLiveNow ? "Live exam in progress" : canStart ? "Ready when you are" : "Not open yet"}</p>
               <p className="mt-1 text-sm text-text-secondary">
                 {canStart
-                  ? `${cbt.questionCount} questions · ${cbt.minutes} minutes`
+                  ? cbt.kind === "practice"
+                    ? `${cbt.questionCount} questions · set your own study pace`
+                    : `${cbt.questionCount} questions · ${cbt.minutes} minutes`
                   : cbt.paused
                     ? "Pending release — your instructor will open it soon."
                     : "This exam isn't available to take right now."}
@@ -251,8 +272,17 @@ function CbtDetail() {
                 className="mt-4 w-full"
                 disabled={!canStart}
                 onClick={async () => {
+                  if (cbt.kind === "practice") {
+                    setPracticeConfig((config) => ({
+                      ...config,
+                      durationMinutes: cbt.minutes,
+                      seed: Date.now(),
+                    }));
+                    setPracticeSetupOpen(true);
+                    return;
+                  }
                   const ok = await confirm({
-                    title: cbt.kind === "live" ? "Start this exam?" : "Start this practice?",
+                    title: "Start this exam?",
                     description: `The ${cbt.minutes}-minute timer starts as soon as you begin and can't be paused.`,
                     confirmLabel: "Start now",
                   });
@@ -280,6 +310,18 @@ function CbtDetail() {
         onConfirm={async () => {
           await prep.purchaseCbt(cbt.id);
           if (!LIVE) toast.success("Payment confirmed", { description: `${cbt.title} is now unlocked.` });
+        }}
+      />
+      <PracticeSetupDialog
+        open={practiceSetupOpen}
+        onOpenChange={setPracticeSetupOpen}
+        totalQuestions={cbt.questionCount}
+        config={practiceConfig}
+        onChange={setPracticeConfig}
+        onBegin={() => {
+          savePracticeConfig(cbt.id, practiceConfig);
+          setPracticeSetupOpen(false);
+          navigate({ to: "/attempt/$cbtId", params: { cbtId: cbt.id } });
         }}
       />
     </StudentShell>

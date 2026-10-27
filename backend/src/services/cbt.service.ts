@@ -18,6 +18,7 @@ import { hasAccess } from "./access.service.js";
 // The server owns the clock. The browser timer is only a display.
 
 const now = () => Date.now();
+const PRACTICE_DEADLINE_MS = 365 * 24 * 60 * 60_000;
 const isOpen = (a: Attempt, graceMs = 0) =>
   now() <= new Date(a.deadline).getTime() + graceMs;
 
@@ -37,8 +38,21 @@ async function getOwnAttempt(attemptId: string, userId: string) {
   return a;
 }
 
-async function publicQuestions(cbtId: string): Promise<PublicQuestion[]> {
-  return must(
+async function publicQuestions(cbtId: string, isPractice = false): Promise<PublicQuestion[]> {
+  if (isPractice) {
+    const questions = must<Question[]>(
+      await db
+        .from("cbt_questions")
+        .select("id, cbt_id, position, text, options, topic, explanation, answer_index")
+        .eq("cbt_id", cbtId)
+        .order("position"),
+    );
+    return questions.map(({ answer_index, ...question }) => ({
+      ...question,
+      correct_index: answer_index,
+    }));
+  }
+  return must<PublicQuestion[]>(
     await db
       .from("cbt_questions")
       .select("id, cbt_id, position, text, options, topic")
@@ -47,14 +61,14 @@ async function publicQuestions(cbtId: string): Promise<PublicQuestion[]> {
   );
 }
 
-/** Starts (or resumes) an attempt. Deadline = start + duration, capped at the CBT close time. */
+/** Starts or resumes an attempt. Practice attempts have a long server window; their timer is client-configured. */
 export async function startAttempt(cbtId: string, userId: string) {
   const cbt = await getCbt(cbtId);
   if (!cbt.published) throw notFound("CBT not found.");
   if (cbt.paused) throw forbidden("This CBT is pending release.");
-  if (new Date(cbt.opens_at).getTime() > now())
+  if (cbt.mode === "live" && new Date(cbt.opens_at).getTime() > now())
     throw forbidden("This CBT hasn't opened yet.");
-  if (cbt.closes_at && new Date(cbt.closes_at).getTime() <= now())
+  if (cbt.mode === "live" && cbt.closes_at && new Date(cbt.closes_at).getTime() <= now())
     throw forbidden("This CBT has closed.");
   if (!(await hasAccess(userId, "cbt", cbt.id, cbt.price_kobo)))
     throw forbidden("Buy this CBT to start it.");
@@ -68,7 +82,7 @@ export async function startAttempt(cbtId: string, userId: string) {
     .maybeSingle();
 
   let attempt = open as Attempt | null;
-  if (attempt && !isOpen(attempt)) {
+  if (attempt && cbt.mode === "live" && !isOpen(attempt)) {
     await finalize(attempt);
     attempt = null;
   }
@@ -88,8 +102,11 @@ export async function startAttempt(cbtId: string, userId: string) {
         );
       }
     }
-    let deadline = now() + cbt.duration_minutes * 60_000;
-    if (cbt.closes_at)
+    let deadline =
+      cbt.mode === "practice"
+        ? now() + PRACTICE_DEADLINE_MS
+        : now() + cbt.duration_minutes * 60_000;
+    if (cbt.mode === "live" && cbt.closes_at)
       deadline = Math.min(deadline, new Date(cbt.closes_at).getTime());
     attempt = must<Attempt>(
       await db
@@ -105,7 +122,7 @@ export async function startAttempt(cbtId: string, userId: string) {
   }
 
   const [questions, answers] = await Promise.all([
-    publicQuestions(cbtId),
+    publicQuestions(cbtId, cbt.mode === "practice"),
     db
       .from("cbt_answers")
       .select("question_id, selected_index")
@@ -135,7 +152,7 @@ export async function saveAnswer(
     await finalize(attempt);
     throw forbidden("This CBT has closed.");
   }
-  if (!isOpen(attempt, SUBMIT_GRACE_MS)) {
+  if (cbt.mode === "live" && !isOpen(attempt, SUBMIT_GRACE_MS)) {
     await finalize(attempt);
     throw conflict(
       "Time is up. Your answers up to the deadline were submitted.",
@@ -345,6 +362,7 @@ export interface NewCbt {
     options: string[];
     answerIndex: number;
     topic?: string | undefined;
+    explanation?: string | undefined;
   }[];
 }
 
@@ -387,6 +405,7 @@ export async function createCbt(input: NewCbt) {
     options: q.options,
     answer_index: q.answerIndex,
     topic: q.topic ?? "",
+    explanation: q.explanation ?? "",
   }));
   const { error } = await db.from("cbt_questions").insert(rows);
   if (error) {
@@ -434,6 +453,7 @@ export interface CbtPatch {
         options: string[];
         answerIndex: number;
         topic?: string | undefined;
+        explanation?: string | undefined;
       }[]
     | undefined;
 }
@@ -510,6 +530,7 @@ export async function updateCbt(cbtId: string, patch: CbtPatch) {
         options: q.options,
         answer_index: q.answerIndex,
         topic: q.topic ?? "",
+        explanation: q.explanation ?? "",
       };
       if (q.id && keep.has(q.id) && existing.some((e) => e.id === q.id)) {
         must(

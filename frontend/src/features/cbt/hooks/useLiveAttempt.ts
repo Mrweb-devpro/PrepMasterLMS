@@ -12,7 +12,7 @@ import { cbtApi, type ResultResponse } from "../services/cbt.api";
 export function useLiveAttempt(cbtId: string) {
   const [state, setState] = useState<{
     attemptId: string;
-    questions: Question[];
+    questions: (Question & { correctIndex?: number })[];
     answers: Record<string, number>;
     deadline: number; // in local clock time
   } | null>(null);
@@ -84,6 +84,8 @@ export function useLiveAttempt(cbtId: string) {
             options: q.options,
             answerIndex: -1, // never sent before submitting
             topic: q.topic,
+            ...(q.correct_index !== undefined ? { correctIndex: q.correct_index } : {}),
+            ...(q.explanation !== undefined ? { explanation: q.explanation } : {}),
           })),
           answers,
           deadline: new Date(r.attempt.deadline).getTime() + skew,

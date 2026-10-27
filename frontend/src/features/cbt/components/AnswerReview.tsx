@@ -68,6 +68,12 @@ export function AnswerReview({
                     );
                   })}
                 </ul>
+                {q.explanation && (
+                  <div className="mt-4 rounded-md border border-border bg-surface-subtle p-3 text-sm text-text-secondary">
+                    <p className="font-medium text-foreground">Solution note</p>
+                    <p className="mt-1 whitespace-pre-line leading-relaxed">{q.explanation}</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

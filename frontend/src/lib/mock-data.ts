@@ -43,6 +43,9 @@ export interface Question {
   options: string[];
   answerIndex: number;
   topic?: string;
+  explanation?: string;
+  /** Available only for practice questions returned by the server. */
+  correctIndex?: number;
 }
 
 export type CbtStatus = "upcoming" | "live" | "past-results-held" | "past-results-shown";
@@ -420,7 +423,14 @@ function q(
   options: string[],
   answerIndex: number,
 ): Question {
-  return { id, courseSlug, text, options, answerIndex };
+  return {
+    id,
+    courseSlug,
+    text,
+    options,
+    answerIndex,
+    explanation: `The correct answer is ${options[answerIndex]}. Review the key idea behind this question before moving on.`,
+  };
 }
 
 const bioQuestions: Question[] = [

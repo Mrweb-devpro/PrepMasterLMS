@@ -17,7 +17,16 @@ interface AttemptRow {
 export interface StartResponse {
   attempt: AttemptRow;
   serverNow: string;
-  questions: { id: string; position: number; text: string; options: string[]; topic: string }[];
+  questions: {
+    id: string;
+    position: number;
+    text: string;
+    options: string[];
+    topic: string;
+    /** These two fields are only sent for a practice CBT. */
+    correct_index?: number;
+    explanation?: string;
+  }[];
   answers: { question_id: string; selected_index: number }[];
 }
 
@@ -38,6 +47,7 @@ export interface ResultResponse {
     options: string[];
     answer_index: number;
     topic: string;
+    explanation?: string;
     selected_index: number | null;
   }[];
 }
@@ -74,6 +84,7 @@ export function toReview(r: ResultResponse) {
     options: q.options,
     answerIndex: q.answer_index,
     topic: q.topic,
+    ...(q.explanation ? { explanation: q.explanation } : {}),
   }));
   const answers: Record<string, number> = {};
   for (const q of r.questions) if (q.selected_index !== null) answers[q.id] = q.selected_index;

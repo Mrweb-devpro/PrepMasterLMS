@@ -109,6 +109,7 @@ create table public.cbt_questions (
   options text[] not null check (array_length(options, 1) between 2 and 6),
   answer_index integer not null,
   topic text not null default '',
+  explanation text not null default '',
   unique (cbt_id, position)
 );
 
@@ -376,6 +377,8 @@ alter table public.sw_tasks
   add column if not exists target_mass numeric,
   add column if not exists target_volume numeric,
   add column if not exists tolerance_percent numeric not null default 0.5;
+
+alter table public.cbt_questions add column if not exists explanation text not null default '';
 
 -- Course targeting upgrade (idempotent).
 -- An empty department array means a general course that every department can browse.

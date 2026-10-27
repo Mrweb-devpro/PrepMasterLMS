@@ -32,7 +32,14 @@ export const Route = createFileRoute("/admin/cbts/$cbtId")({
 const letters = ["A", "B", "C", "D", "E"];
 
 interface AdminCbtDetail {
-  questions: { id: string; text: string; options: string[]; answer_index: number; topic: string }[];
+  questions: {
+    id: string;
+    text: string;
+    options: string[];
+    answer_index: number;
+    topic: string;
+    explanation: string;
+  }[];
   attempts: {
     id: string;
     user_id: string;
@@ -67,6 +74,7 @@ function CbtDetail() {
             options: q.options,
             answerIndex: q.answer_index,
             topic: q.topic,
+            explanation: q.explanation,
           })),
         }
       : found;

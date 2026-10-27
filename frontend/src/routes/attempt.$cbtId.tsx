@@ -5,9 +5,11 @@ import {
   Clock3,
   Flag,
   Lock,
+  Pause,
+  Play,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { EmptyState } from "@/components/prep/bits";
 import { QuestionCard } from "@/features/cbt/components/QuestionCard";
 import { AnswerReview } from "@/features/cbt/components/AnswerReview";
@@ -28,6 +30,7 @@ import { LIVE } from "@/lib/api/config";
 import { toast } from "sonner";
 import { usePrep } from "@/lib/prep-store";
 import { cn } from "@/lib/utils";
+import { getPracticeConfig, seededShuffle, type PracticeConfig } from "@/features/cbt/utils/practice-config";
 
 export const Route = createFileRoute("/attempt/$cbtId")({
   head: () => ({
@@ -44,8 +47,6 @@ export const Route = createFileRoute("/attempt/$cbtId")({
   component: AttemptPage,
 });
 
-const letters = ["A", "B", "C", "D", "E"];
-
 function AttemptPage() {
   const { cbtId } = Route.useParams();
   const prep = usePrep();
@@ -60,23 +61,55 @@ function AttemptPage() {
   const [confirm, setConfirm] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState((cbt?.minutes ?? 0) * 60);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [practiceConfig] = useState<PracticeConfig | null>(() => getPracticeConfig(cbtId));
+  const isPractice = cbt?.kind === "practice";
+  const activePracticeConfig: PracticeConfig = practiceConfig ?? {
+    questionCount: "all",
+    timed: false,
+    durationMinutes: cbt?.minutes ?? 30,
+    feedback: "instant",
+    shuffle: false,
+    seed: 0,
+  };
+  const isUntimedPractice = Boolean(isPractice && !activePracticeConfig.timed);
+  const baseQuestions = LIVE && live.state ? live.state.questions : (cbt?.questions ?? []);
+  const questions = useMemo(() => {
+    if (!isPractice) return baseQuestions;
+    const ordered = activePracticeConfig.shuffle
+      ? seededShuffle(baseQuestions, activePracticeConfig.seed)
+      : baseQuestions;
+    return activePracticeConfig.questionCount === "all"
+      ? ordered
+      : ordered.slice(0, activePracticeConfig.questionCount);
+  }, [activePracticeConfig.questionCount, activePracticeConfig.seed, activePracticeConfig.shuffle, baseQuestions, isPractice]);
 
   useEffect(() => {
-    if (submitted) return;
-    const t = setInterval(() => setSecondsLeft((s) => Math.max(0, s - 1)), 1000);
+    if (isPractice && activePracticeConfig.timed) {
+      setSecondsLeft(activePracticeConfig.durationMinutes * 60);
+    }
+  }, [activePracticeConfig.durationMinutes, activePracticeConfig.timed, isPractice]);
+
+  useEffect(() => {
+    if (submitted || paused || (LIVE && live.state && !isPractice)) return;
+    const t = setInterval(() => {
+      if (isUntimedPractice) setElapsedSeconds((seconds) => seconds + 1);
+      else setSecondsLeft((seconds) => Math.max(0, seconds - 1));
+    }, 1000);
     return () => clearInterval(t);
-  }, [submitted]);
+  }, [isPractice, isUntimedPractice, live.state, paused, submitted]);
 
   // LIVE: restore saved answers and follow the server deadline.
   useEffect(() => {
-    if (!live.state) return;
+    if (!live.state || isPractice) return;
     setAnswers(live.state.answers);
     const tick = () =>
       setSecondsLeft(Math.max(0, Math.round((live.state!.deadline - Date.now()) / 1000)));
     tick();
     const t = setInterval(tick, 1000);
     return () => clearInterval(t);
-  }, [live.state]);
+  }, [isPractice, live.state]);
 
   const liveSubmit = () => {
     if (submitting) return;
@@ -96,9 +129,9 @@ function AttemptPage() {
 
   // Auto-submit when the clock hits zero.
   useEffect(() => {
-    if (LIVE && live.state && secondsLeft === 0) liveSubmit();
+    if (LIVE && !isPractice && live.state && secondsLeft === 0) liveSubmit();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [secondsLeft, live.state]);
+  }, [isPractice, secondsLeft, live.state]);
 
   if (LIVE && (loading || (!live.state && !live.error)))
     return (
@@ -144,13 +177,14 @@ function AttemptPage() {
   }
 
   const course = getCourse(cbt.courseSlug);
-  const questions = LIVE && live.state ? live.state.questions : cbt.questions;
   const q = questions[index]!;
   const answeredCount = Object.keys(answers).length;
-  const correct = questions.filter((x) => answers[x.id] === x.answerIndex).length;
+  const correct = questions.filter((x) => answers[x.id] === (x.correctIndex ?? x.answerIndex)).length;
   const score = Math.round((correct / questions.length) * 100);
   const mm = String(Math.floor(secondsLeft / 60)).padStart(2, "0");
   const ss = String(secondsLeft % 60).padStart(2, "0");
+  const elapsedMinutes = String(Math.floor(elapsedSeconds / 60)).padStart(2, "0");
+  const elapsedRemainder = String(elapsedSeconds % 60).padStart(2, "0");
 
   const submit = () => {
     if (LIVE) return liveSubmit();
@@ -219,15 +253,21 @@ function AttemptPage() {
           <p className="text-2xs text-text-muted">{course?.code}</p>
           <p className="truncate font-display font-semibold">{cbt.title}</p>
         </div>
-        <div
+          <div
           className={cn(
             "ml-auto flex items-center gap-2 rounded-full px-3 py-1 font-display text-base font-semibold tabular-nums",
-            secondsLeft < 60 ? "bg-error-bg text-error" : "bg-surface-subtle",
+              !isUntimedPractice && secondsLeft < 60 ? "bg-error-bg text-error" : "bg-surface-subtle",
           )}
         >
           <Clock3 className="size-4" />
-          {mm}:{ss}
+            {isUntimedPractice ? `Elapsed ${elapsedMinutes}:${elapsedRemainder}` : `${mm}:${ss}`}
         </div>
+          {isPractice && (
+            <Button variant="outline" size="sm" onClick={() => setPaused(true)}>
+              <Pause className="size-4" />
+              Pause
+            </Button>
+          )}
       </header>
       {LIVE && live.offline && (
         <div
@@ -269,6 +309,11 @@ function AttemptPage() {
             index={index}
             total={questions.length}
             selected={answers[q.id]}
+            isPractice={isPractice}
+            instantFeedback={isPractice && activePracticeConfig.feedback === "instant"}
+            showExplanation={activePracticeConfig.feedback === "instant"}
+            correctIndex={q.correctIndex}
+            explanation={q.explanation}
             onSelect={(i) => {
               setAnswers((a) => ({ ...a, [q.id]: i }));
               if (LIVE) live.save(q.id, i, liveSubmit);
@@ -333,6 +378,22 @@ function AttemptPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Keep working</AlertDialogCancel>
             <AlertDialogAction onClick={submit}>Submit</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog open={paused} onOpenChange={setPaused}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Practice paused</AlertDialogTitle>
+            <AlertDialogDescription>
+              Take a breather. Your selected answers and progress are saved, and your practice timer is paused.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setPaused(false)}>
+              <Play className="size-4" />
+              Resume practice
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

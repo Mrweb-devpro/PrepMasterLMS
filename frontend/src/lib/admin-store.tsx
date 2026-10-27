@@ -189,6 +189,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
               options: q.options,
               answerIndex: q.answerIndex,
               ...(q.topic ? { topic: q.topic } : {}),
+              ...(q.explanation ? { explanation: q.explanation } : {}),
             })),
           });
           await refreshCatalog();
@@ -225,6 +226,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
                     options: q.options,
                     answerIndex: q.answerIndex,
                     ...(q.topic ? { topic: q.topic } : {}),
+                    ...(q.explanation ? { explanation: q.explanation } : {}),
                   })),
                 }
               : {}),

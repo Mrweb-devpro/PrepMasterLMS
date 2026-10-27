@@ -361,6 +361,12 @@ function NewCbt() {
               <p className="mt-2 text-xs text-text-muted">
                 Tap a letter to mark the correct answer.
               </p>
+              <Textarea
+                value={q.explanation ?? ""}
+                onChange={(e) => updateQ(q.id, { explanation: e.target.value })}
+                placeholder="Explanation / solution note (optional). Explain the correct answer, formulas, or reference concepts…"
+                className="mt-3 min-h-20"
+              />
             </Panel>
           ))}
         </div>

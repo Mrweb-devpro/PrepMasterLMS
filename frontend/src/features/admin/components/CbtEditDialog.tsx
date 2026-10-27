@@ -233,6 +233,13 @@ export function CbtEditDialog({
                     onChange={(e) => setQ(i, { topic: e.target.value })}
                     placeholder="Topic (optional)"
                   />
+                  <Textarea
+                    rows={3}
+                    className="mt-3"
+                    value={q.explanation ?? ""}
+                    onChange={(e) => setQ(i, { explanation: e.target.value })}
+                    placeholder="Explanation / solution note (optional). Explain the answer, formula, or key concept for practice students…"
+                  />
                   <p className="mt-2 text-2xs text-text-muted">Tap a letter to mark the correct answer.</p>
                 </li>
               ))}
