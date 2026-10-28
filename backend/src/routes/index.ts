@@ -6,6 +6,7 @@ import { paymentsController, paystackWebhook } from "../controllers/payments.con
 import { pythonController } from "../controllers/python.controller.js";
 import { adminStudentsController, meController } from "../controllers/students.controller.js";
 import { swController } from "../controllers/sw.controller.js";
+import { competitionsController } from "../controllers/competitions.controller.js";
 import { requireAuth } from "../middleware/auth.js";
 import type { AppEnv } from "../models/types.js";
 
@@ -19,6 +20,7 @@ const protectedRoutes = new Hono<AppEnv>()
   .route("/attempts", attemptsController)
   .route("/payments", paymentsController)
   .route("/python", pythonController)
+  .route("/competitions", competitionsController)
   .route("/solidworks", swController)
   .route("/admin/students", adminStudentsController);
 

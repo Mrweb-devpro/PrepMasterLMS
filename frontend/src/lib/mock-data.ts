@@ -77,6 +77,32 @@ export interface Cbt {
   questions: Question[];
 }
 
+export type CompetitionStatus = "scheduled" | "live" | "completed" | "cancelled";
+
+export interface CompetitionStanding {
+  rank: number;
+  name: string;
+  score: number;
+  speedSeconds: number;
+  isCurrentUser?: boolean;
+}
+
+export interface Competition {
+  id: string;
+  title: string;
+  description: string;
+  courseCode: string;
+  cbtId?: string;
+  startsAt: string;
+  durationMinutes: number;
+  level: string;
+  prizePoolNaira: number;
+  status: CompetitionStatus;
+  participantCount: number;
+  registered?: boolean;
+  standings: CompetitionStanding[];
+}
+
 export interface Transaction {
   id: string;
   student: string;
@@ -803,6 +829,94 @@ export const students: Student[] = [
     email: "chidi.eze@example.com",
     joinedAt: "2026-09-01",
     verified: true,
+  },
+];
+
+const competitionTime = (hoursFromNow: number) =>
+  new Date(Date.now() + hoursFromNow * 60 * 60_000).toISOString();
+
+const sampleStandings: CompetitionStanding[] = [
+  { rank: 1, name: "Emmanuel Okafor", score: 1_240, speedSeconds: 842 },
+  { rank: 2, name: "Fatima Bello", score: 1_180, speedSeconds: 901 },
+  { rank: 3, name: "Chinedu Adeyemi", score: 1_090, speedSeconds: 990 },
+  { rank: 4, name: "Daniel Kalu", score: 1_020, speedSeconds: 1_108 },
+  { rank: 5, name: "Aisha Musa", score: 980, speedSeconds: 1_140 },
+  { rank: 6, name: "Tobi James", score: 920, speedSeconds: 1_230 },
+  { rank: 7, name: "Nneka Obi", score: 860, speedSeconds: 1_290 },
+  { rank: 8, name: "You", score: 825, speedSeconds: 1_340, isCurrentUser: true },
+  { rank: 9, name: "Ifeanyi Okoro", score: 790, speedSeconds: 1_410 },
+  { rank: 10, name: "Maryam Yusuf", score: 740, speedSeconds: 1_490 },
+];
+
+/** Demo contests give the competition UI a realistic live and historical state. */
+export const mockCompetitions: Competition[] = [
+  {
+    id: "comp-mat-live",
+    title: "MAT 111 Calculus Speed Clash",
+    description: "A fast, friendly race through limits, differentiation, and integration.",
+    courseCode: "MAT 111",
+    cbtId: "cbt-mth-practice-1",
+    startsAt: competitionTime(-0.15),
+    durationMinutes: 30,
+    level: "100",
+    prizePoolNaira: 15_000,
+    status: "live",
+    participantCount: 86,
+    registered: true,
+    standings: sampleStandings,
+  },
+  {
+    id: "comp-phy-upcoming",
+    title: "PHY 101 Mechanics Blitz",
+    description: "Build speed and confidence with core mechanics questions.",
+    courseCode: "PHY 101",
+    cbtId: "cbt-phy-practice-1",
+    startsAt: competitionTime(20),
+    durationMinutes: 25,
+    level: "100",
+    prizePoolNaira: 10_000,
+    status: "scheduled",
+    participantCount: 42,
+    standings: [],
+  },
+  {
+    id: "comp-chm-upcoming",
+    title: "CHM 101 Organic Sprint",
+    description: "A short contest on organic reactions and structures.",
+    courseCode: "CHM 101",
+    startsAt: competitionTime(42),
+    durationMinutes: 20,
+    level: "all",
+    prizePoolNaira: 7_500,
+    status: "scheduled",
+    participantCount: 29,
+    standings: [],
+  },
+  {
+    id: "comp-bio-past",
+    title: "BIO 101 Cell Challenge",
+    description: "A completed biology speed round.",
+    courseCode: "BIO 101",
+    startsAt: competitionTime(-168),
+    durationMinutes: 30,
+    level: "100",
+    prizePoolNaira: 10_000,
+    status: "completed",
+    participantCount: 112,
+    standings: sampleStandings,
+  },
+  {
+    id: "comp-mat-past",
+    title: "MAT 111 Algebra Arena",
+    description: "A completed algebra and functions contest.",
+    courseCode: "MAT 111",
+    startsAt: competitionTime(-336),
+    durationMinutes: 25,
+    level: "100",
+    prizePoolNaira: 8_000,
+    status: "completed",
+    participantCount: 94,
+    standings: sampleStandings.map((entry) => ({ ...entry, score: Math.max(0, entry.score - 80) })),
   },
 ];
 

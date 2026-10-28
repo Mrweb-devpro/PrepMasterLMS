@@ -8,6 +8,7 @@ import {
   MonitorCheck,
   Settings,
   ShieldCheck,
+  Trophy,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { AppFrame, Brand, type NavGroup, useSidebarCollapsed } from "@/components/layout/AppSidebar";
@@ -20,6 +21,8 @@ import { useCatalog } from "@/features/catalog/useCatalog";
 import { isAttemptableLiveCbt } from "@/features/cbt/utils/cbt-lifecycle";
 import { cn } from "@/lib/utils";
 import { WarningNoticeDialog } from "./WarningNoticeDialog";
+import { BroadcastBanner } from "./BroadcastBanner";
+import { useCompetitions } from "@/features/competitions/hooks/useCompetitions";
 
 function StudentFooter() {
   const { user } = useSession();
@@ -64,14 +67,21 @@ export function StudentShell({ children }: { children: ReactNode }) {
   const ready = useMainAppGuard();
   const { user } = useSession();
   const { cbts } = useCatalog();
+  const competitions = useCompetitions();
   const isSwRegistered = Boolean(user?.swRegistered);
   const hasLiveCbt = cbts.some(isAttemptableLiveCbt);
+  const broadcast = competitions.data?.find((competition) => {
+    if (competition.status === "live") return true;
+    const startsIn = new Date(competition.startsAt).getTime() - Date.now();
+    return competition.status === "scheduled" && startsIn > 0 && startsIn <= 48 * 60 * 60_000;
+  });
   const groups: NavGroup[] = [
     {
       items: [
         { to: "/", label: "Home", icon: Home, exact: true },
         { to: "/drive", label: "Drive", icon: FolderClosed },
         { to: "/cbts", label: "CBTs", icon: MonitorCheck, liveIndicator: hasLiveCbt },
+        { to: "/competitions", label: "Competitions", icon: Trophy },
         { to: "/attempts", label: "My attempts", icon: History },
         { to: "/library", label: "My Library", icon: BookMarked },
       ],
@@ -94,6 +104,16 @@ export function StudentShell({ children }: { children: ReactNode }) {
       groups={groups}
       footer={<StudentFooter />}
     >
+      {broadcast && (
+        <BroadcastBanner
+          id={broadcast.id}
+          title={broadcast.status === "live" ? `${broadcast.title} is live` : `${broadcast.title} starts soon`}
+          subtitle={broadcast.status === "live" ? "The contest arena is open now." : "Register now and be ready when the contest begins."}
+          prize={`₦${broadcast.prizePoolNaira.toLocaleString("en-NG")} prize pool`}
+          actionText={broadcast.status === "live" ? "Enter arena" : "View contest"}
+          actionTo="/competitions"
+        />
+      )}
       {children}
       <WarningNoticeDialog key={user?.id} />
     </AppFrame>

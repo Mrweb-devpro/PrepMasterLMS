@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   MonitorCheck,
   Plus,
+  Trophy,
   Users,
 } from "lucide-react";
 import { Suspense, type ReactNode } from "react";
@@ -68,6 +69,7 @@ export function AdminShell({
         },
         { to: "/admin/students", label: "Students", icon: Users },
         { to: "/admin/payments", label: "Payments", icon: CreditCard },
+        { to: "/admin/competitions", label: "Competitions", icon: Trophy },
       ],
     },
     {
@@ -84,6 +86,7 @@ export function AdminShell({
       items: [
         { to: "/admin/courses/new", label: "New course", icon: Plus, exact: true },
         { to: "/admin/cbts/new", label: "New CBT", icon: Plus, exact: true },
+        { to: "/admin/competitions/new", label: "New competition", icon: Plus, exact: true },
       ],
     },
   ];

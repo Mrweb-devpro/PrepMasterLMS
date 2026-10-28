@@ -105,6 +105,22 @@ export const updateCourseBody = z.object({
   subfolders: z.array(z.object({ category, slug, name: z.string().min(1).max(80) })).max(100).optional(),
 });
 
+// ---------- Competitions ----------
+export const competitionBody = z.object({
+  title: z.string().min(3).max(150),
+  description: z.string().max(2_000).default(""),
+  courseId: uuid.nullable().optional(),
+  cbtId: uuid.nullable().optional(),
+  startsAt: z.string().datetime(),
+  durationMinutes: z.number().int().min(1).max(600).default(30),
+  level: courseLevel.default("all"),
+  prizePoolNaira: z.number().int().min(0).default(0),
+});
+export const competitionAnswerBody = z.object({
+  questionId: uuid,
+  selectedIndex: z.number().int().min(0).max(5),
+});
+
 export const subfolderBody = z.object({ category, slug, name: z.string().min(1).max(80) });
 
 export const uploadBody = z.object({
