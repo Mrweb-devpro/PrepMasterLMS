@@ -4,9 +4,13 @@ import type { AppEnv } from "../models/types.js";
 import { competitionAnswerBody, competitionBody, idParam } from "../validators/schemas.js";
 import { requireAdmin } from "../middleware/auth.js";
 import * as competitions from "../services/competition.service.js";
+import { updateCompetitionSchema } from "../validators/competition.validator.js";
 
 export const competitionsController = new Hono<AppEnv>()
-  .get("/", async (c) => c.json({ competitions: await competitions.listCompetitions(c.get("user").id) }))
+  .get("/", async (c) => c.json({ competitions: await competitions.listCompetitions(c.get("user").id, c.get("user").role === "admin") }))
+  .patch("/admin/:id", requireAdmin, zValidator("param", idParam), zValidator("json", updateCompetitionSchema), async (c) =>
+    c.json(await competitions.updateCompetition(c.req.valid("param").id, c.req.valid("json"))),
+  )
   .post("/:id/register", zValidator("param", idParam), async (c) =>
     c.json(await competitions.registerForCompetition(c.req.valid("param").id, c.get("user").id)),
   )

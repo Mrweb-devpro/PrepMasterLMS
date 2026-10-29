@@ -45,6 +45,8 @@ export interface CbtRow {
   created_at: string;
   question_count: number;
   my_attempts: number;
+  competition_id?: string | null;
+  releases_at?: string | null;
 }
 interface CatalogResponse {
   courses: CourseRow[];
@@ -90,6 +92,8 @@ export function toCbt(c: CbtRow, courseSlug: string): Cbt {
     paused: !!c.paused,
     createdAt: c.created_at,
     myAttempts: c.my_attempts,
+    ...(c.competition_id ? { competitionId: c.competition_id } : {}),
+    ...(c.releases_at ? { releasesAt: c.releases_at } : {}),
     ...(c.mode === "live"
       ? {
           status: liveStatus(c),

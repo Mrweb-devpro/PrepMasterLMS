@@ -106,7 +106,15 @@ export const updateCourseBody = z.object({
 });
 
 // ---------- Competitions ----------
+const competitionQuestion = z.object({
+  text: z.string().min(1).max(2000),
+  options: z.array(z.string().min(1).max(500)).length(4),
+  answerIndex: z.number().int().min(0).max(3),
+  topic: z.string().max(100).optional(),
+  explanation: z.string().max(5000).optional(),
+});
 export const competitionBody = z.object({
+  prizeDescription: z.string().max(2000).default(""),
   title: z.string().min(3).max(150),
   description: z.string().max(2_000).default(""),
   courseId: uuid.nullable().optional(),
@@ -115,6 +123,9 @@ export const competitionBody = z.object({
   durationMinutes: z.number().int().min(1).max(600).default(30),
   level: courseLevel.default("all"),
   prizePoolNaira: z.number().int().min(0).default(0),
+  questionSource: z.enum(["bank", "custom"]).default("bank"),
+  questionLimit: z.number().int().min(1).max(300).nullable().optional(),
+  customQuestions: z.array(competitionQuestion).min(1).max(300).optional(),
 });
 export const competitionAnswerBody = z.object({
   questionId: uuid,

@@ -21,6 +21,8 @@ const now = () => Date.now();
 const PRACTICE_DEADLINE_MS = 365 * 24 * 60 * 60_000;
 const isOpen = (a: Attempt, graceMs = 0) =>
   now() <= new Date(a.deadline).getTime() + graceMs;
+const isReleasedCompetitionPractice = (cbt: Cbt) =>
+  Boolean(cbt.competition_id && cbt.releases_at && new Date(cbt.releases_at).getTime() <= now());
 
 async function getCbt(cbtId: string) {
   return must<Cbt>(
@@ -64,7 +66,7 @@ async function publicQuestions(cbtId: string, isPractice = false): Promise<Publi
 /** Starts or resumes an attempt. Practice attempts have a long server window; their timer is client-configured. */
 export async function startAttempt(cbtId: string, userId: string) {
   const cbt = await getCbt(cbtId);
-  if (!cbt.published) throw notFound("CBT not found.");
+  if (!cbt.published && !isReleasedCompetitionPractice(cbt)) throw notFound("CBT not found.");
   if (cbt.paused) throw forbidden("This CBT is pending release.");
   if (cbt.mode === "live" && new Date(cbt.opens_at).getTime() > now())
     throw forbidden("This CBT hasn't opened yet.");
@@ -357,6 +359,8 @@ export interface NewCbt {
   maxAttempts: number | null;
   revealResults: boolean;
   published: boolean;
+  competitionId?: string | undefined;
+  releasesAt?: string | undefined;
   questions: {
     text: string;
     options: string[];
@@ -394,6 +398,8 @@ export async function createCbt(input: NewCbt) {
         max_attempts: input.maxAttempts,
         reveal_results: input.revealResults,
         published: input.published,
+        competition_id: input.competitionId ?? null,
+        releases_at: input.releasesAt ?? null,
       })
       .select()
       .single(),

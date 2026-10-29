@@ -43,6 +43,10 @@ export interface Cbt {
   reveal_results: boolean;
   published: boolean;
   paused: boolean;
+  /** Present only for a practice CBT generated from a competition. */
+  competition_id?: string | null;
+  /** A hidden competition CBT becomes student-visible after this instant. */
+  releases_at?: string | null;
   created_at: string;
 }
 

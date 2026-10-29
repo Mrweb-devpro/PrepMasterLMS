@@ -1,8 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { Bell, CalendarClock, ChevronRight, Medal, Trophy, Users } from "lucide-react";
+import { Bell, CalendarClock, ChevronRight, Loader2, Medal, Trophy, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Card, EmptyState, LiveBadge, StatusPill } from "@/components/prep/bits";
+import { Card, EmptyState, LiveBadge, StatusPill, PageHeader } from "@/components/prep/bits";
+import { visibleForLevel } from "../utils/visibility";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/features/auth/session";
 import { formatNaira, type Competition } from "@/lib/mock-data";
@@ -19,7 +20,7 @@ function Countdown({ target }: { target: string }) {
   return <span className="font-display tabular-nums text-sm font-semibold">{parts.map((part) => String(part).padStart(2, "0")).join(":")}</span>;
 }
 
-function ContestCard({ competition, onRegister }: { competition: Competition; onRegister: (competition: Competition) => void }) {
+function ContestCard({ competition, onRegister, registering }: { competition: Competition; onRegister: (competition: Competition) => void; registering?: boolean }) {
   const isLive = competition.status === "live";
   return (
     <Card className={isLive ? "border-error/40" : ""}>
@@ -43,8 +44,8 @@ function ContestCard({ competition, onRegister }: { competition: Competition; on
         {isLive ? (
           <Button asChild size="sm"><Link to="/competitions/$competitionId/arena" params={{ competitionId: competition.id }}>Enter arena <ChevronRight /></Link></Button>
         ) : (
-          <Button size="sm" variant={competition.registered ? "outline" : "default"} disabled={competition.registered} onClick={() => onRegister(competition)}>
-            {competition.registered ? "Registered" : "Register"}
+          <Button size="sm" variant={competition.registered ? "outline" : "default"} disabled={competition.registered || registering} onClick={() => onRegister(competition)}>
+            {registering ? <><Loader2 className="size-4 animate-spin" />Registering…</> : competition.registered ? "Registered" : "Register"}
           </Button>
         )}
       </div>
@@ -85,8 +86,8 @@ export function CompetitionsPage() {
   const competitions = useCompetitions();
   const register = useRegisterForCompetition();
   const visible = useMemo(
-    () => (competitions.data ?? []).filter((competition) => !user?.level || competition.level === "all" || competition.level === user.level),
-    [competitions.data, user?.level],
+    () => (competitions.data ?? []).filter((competition) => visibleForLevel(competition, user)),
+    [competitions.data, user],
   );
   const live = visible.filter((competition) => competition.status === "live");
   const upcoming = visible.filter((competition) => competition.status === "scheduled");
@@ -99,11 +100,7 @@ export function CompetitionsPage() {
   if (competitions.isPending) return <div className="h-48 animate-pulse rounded-lg bg-surface-subtle" />;
   return (
     <div className="space-y-8">
-      <section className="relative overflow-hidden rounded-xl border border-primary/20 bg-primary-soft p-6 sm:p-8">
-        <Trophy className="size-7 text-primary" />
-        <h1 className="mt-4 font-display text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Campus competition arena</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-text-secondary">Join short, scheduled CBT clashes. Answer accurately, move quickly, and climb the live board.</p>
-      </section>
+      <PageHeader title="Competitions & Contests" subtitle="Join live timed blitzes, compete with coursemates, and win cash prizes." />
 
       {visible.length === 0 ? (
         <CompetitionsEmptyState />
@@ -112,24 +109,27 @@ export function CompetitionsPage() {
 
       <section>
         <div className="mb-3 flex items-center gap-2"><span className="relative flex size-2"><span className="absolute inline-flex size-full animate-ping rounded-full bg-error opacity-70" /><span className="relative size-2 rounded-full bg-error" /></span><h2 className="font-display text-lg font-semibold">Live now</h2></div>
-        {live.length ? <div className="grid gap-4 lg:grid-cols-2">{live.map((competition) => <ContestCard key={competition.id} competition={competition} onRegister={onRegister} />)}</div> : <EmptyState title="No contest is live right now" description="The next scheduled clash will appear here." />}
+        {live.length ? <div className="grid gap-4 lg:grid-cols-2">{live.map((competition) => <ContestCard key={competition.id} competition={competition} onRegister={onRegister} registering={register.isPending && register.variables === competition.id} />)}</div> : <EmptyState title="No contest is live right now" description="The next scheduled clash will appear here." />}
       </section>
 
       <section>
         <h2 className="mb-3 font-display text-lg font-semibold">Upcoming clashes</h2>
-        {upcoming.length ? <div className="grid gap-4 lg:grid-cols-2">{upcoming.map((competition) => <ContestCard key={competition.id} competition={competition} onRegister={onRegister} />)}</div> : <EmptyState title="No upcoming competitions" />}
+        {upcoming.length ? <div className="grid gap-4 lg:grid-cols-2">{upcoming.map((competition) => <ContestCard key={competition.id} competition={competition} onRegister={onRegister} registering={register.isPending && register.variables === competition.id} />)}</div> : <EmptyState title="No upcoming competitions" />}
       </section>
 
       <section>
         <div className="mb-3 flex items-center gap-2"><Medal className="size-5 text-gold-text" /><h2 className="font-display text-lg font-semibold">Hall of Fame</h2></div>
         <div className="grid gap-4 lg:grid-cols-2">
           {past.map((competition) => (
-            <Card key={competition.id}>
-              <p className="text-xs font-medium text-text-muted">{competition.courseCode} · {competition.participantCount} participants</p>
-              <h3 className="mt-1 font-semibold">{competition.title}</h3>
-              <div className="mt-4 grid grid-cols-3 gap-2">
-                {competition.standings.slice(0, 3).map((entry) => <div key={entry.rank} className="rounded-md bg-surface-subtle p-2 text-center"><p className="text-xs font-semibold text-gold-text">#{entry.rank}</p><p className="mt-1 truncate text-xs font-medium">{entry.name}</p><p className="mt-1 text-2xs text-text-secondary">{entry.score.toLocaleString()} pts</p></div>)}
-              </div>
+            <Card key={competition.id} className="p-0 transition-colors hover:border-primary/40">
+              <Link to="/competitions/$competitionId/results" params={{ competitionId: competition.id }} className="block p-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                <p className="text-xs font-medium text-text-muted">{competition.courseCode} · {competition.participantCount} participants</p>
+                <h3 className="mt-1 font-semibold">{competition.title}</h3>
+                <div className="mt-4 grid grid-cols-3 gap-2">
+                  {competition.standings.slice(0, 3).map((entry) => <div key={entry.rank} className="rounded-md bg-surface-subtle p-2 text-center"><p className="text-xs font-semibold text-gold-text">#{entry.rank}</p><p className="mt-1 truncate text-xs font-medium">{entry.name}</p><p className="mt-1 text-2xs text-text-secondary">{entry.score.toLocaleString()} pts</p></div>)}
+                </div>
+                <p className="mt-4 text-sm font-medium text-primary">View final results</p>
+              </Link>
             </Card>
           ))}
         </div>

@@ -11,6 +11,16 @@ import { library } from "./student.service.js";
  * (without storage keys) and published CBTs (without questions).
  */
 export async function catalog(userId: string, isAdmin: boolean) {
+  // A catalog request is enough to release completed competition practice sets; no background worker is required.
+  if (!isAdmin) {
+    const { error } = await db
+      .from("cbts")
+      .update({ published: true })
+      .eq("published", false)
+      .not("competition_id", "is", null)
+      .lte("releases_at", new Date().toISOString());
+    if (error) throw new Error(error.message);
+  }
   const cbtQuery = db
     .from("cbts")
     .select("*, cbt_questions(count)")
@@ -19,7 +29,9 @@ export async function catalog(userId: string, isAdmin: boolean) {
     must(await db.from("courses").select("*").order("title")),
     must(await db.from("course_subfolders").select("*").order("name")),
     must<Material[]>(await db.from("course_materials").select("*").order("created_at", { ascending: false })),
-    must(await (isAdmin ? cbtQuery : cbtQuery.eq("published", true))),
+    must(await (isAdmin
+      ? cbtQuery
+      : cbtQuery.or(`published.eq.true,and(competition_id.not.is.null,releases_at.lte.${new Date().toISOString()})`))),
     library(userId),
     must<{ cbt_id: string }[]>(await db.from("cbt_attempts").select("cbt_id").eq("user_id", userId)),
   ]);

@@ -72,6 +72,9 @@ export interface Cbt {
   published?: boolean;
   /** Admin set it to "Pending release": students see it but can't start it. */
   paused?: boolean;
+  /** Competition-generated practice sets remain hidden until this time. */
+  competitionId?: string;
+  releasesAt?: string;
   /** Real backend only: how many times the student has started it. */
   myAttempts?: number;
   questions: Question[];
@@ -88,6 +91,10 @@ export interface CompetitionStanding {
 }
 
 export interface Competition {
+  courseId?: string | null;
+  prizeDescription?: string;
+  questionSource?: "bank" | "custom";
+  questionLimit?: number | null;
   id: string;
   title: string;
   description: string;

@@ -21,8 +21,7 @@ import { useCatalog } from "@/features/catalog/useCatalog";
 import { isAttemptableLiveCbt } from "@/features/cbt/utils/cbt-lifecycle";
 import { cn } from "@/lib/utils";
 import { WarningNoticeDialog } from "./WarningNoticeDialog";
-import { BroadcastBanner } from "./BroadcastBanner";
-import { useCompetitions } from "@/features/competitions/hooks/useCompetitions";
+import { TopBroadcastBanner } from "./TopBroadcastBanner";
 
 function StudentFooter() {
   const { user } = useSession();
@@ -67,14 +66,8 @@ export function StudentShell({ children }: { children: ReactNode }) {
   const ready = useMainAppGuard();
   const { user } = useSession();
   const { cbts } = useCatalog();
-  const competitions = useCompetitions();
   const isSwRegistered = Boolean(user?.swRegistered);
   const hasLiveCbt = cbts.some(isAttemptableLiveCbt);
-  const broadcast = competitions.data?.find((competition) => {
-    if (competition.status === "live") return true;
-    const startsIn = new Date(competition.startsAt).getTime() - Date.now();
-    return competition.status === "scheduled" && startsIn > 0 && startsIn <= 48 * 60 * 60_000;
-  });
   const groups: NavGroup[] = [
     {
       items: [
@@ -103,17 +96,8 @@ export function StudentShell({ children }: { children: ReactNode }) {
       brand={<Brand name="PrepMaster" to="/" />}
       groups={groups}
       footer={<StudentFooter />}
+      announcement={<TopBroadcastBanner />}
     >
-      {broadcast && (
-        <BroadcastBanner
-          id={broadcast.id}
-          title={broadcast.status === "live" ? `${broadcast.title} is live` : `${broadcast.title} starts soon`}
-          subtitle={broadcast.status === "live" ? "The contest arena is open now." : "Register now and be ready when the contest begins."}
-          prize={`₦${broadcast.prizePoolNaira.toLocaleString("en-NG")} prize pool`}
-          actionText={broadcast.status === "live" ? "Enter arena" : "View contest"}
-          actionTo="/competitions"
-        />
-      )}
       {children}
       <WarningNoticeDialog key={user?.id} />
     </AppFrame>

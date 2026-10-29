@@ -88,7 +88,7 @@ export function useCatalog(overrides?: { courses?: Course[]; cbts?: Cbt[] }) {
   const data = LIVE ? (q.data ?? EMPTY) : null;
   const courses = overrides?.courses ?? data?.courses ?? mockCourses;
   const files = data?.files ?? mockFiles;
-  const cbts = overrides?.cbts ?? data?.cbts ?? mockCbts;
+  const cbts = overrides?.cbts ?? data?.cbts ?? mockCbts.filter((cbt) => cbt.published !== false || Boolean(cbt.competitionId && cbt.releasesAt && new Date(cbt.releasesAt).getTime() <= Date.now()));
 
   return useMemo(() => {
     const getCourse = (slug: string) => courses.find((c) => c.slug === slug);

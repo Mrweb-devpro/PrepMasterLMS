@@ -48,8 +48,11 @@ export function CompetitionArenaPage({ competitionId }: { competitionId: string 
     });
   }, [submit.isSuccess]);
 
-  if (arena.isPending) return <div className="p-8 text-sm text-text-secondary">Entering arena…</div>;
-  if (arena.error || !arena.data) return <div className="p-8 text-sm text-text-secondary">This arena is unavailable right now.</div>;
+  if (arena.isPending) return <div className="flex min-h-screen items-center justify-center bg-background p-6"><div className="text-center"><p className="font-display text-lg font-semibold text-foreground">Entering arena…</p><p className="mt-1 text-sm text-text-secondary">Checking your contest access and question bank.</p></div></div>;
+  if (arena.error || !arena.data) {
+    const message = arena.error instanceof Error ? arena.error.message : "This arena is unavailable right now.";
+    return <div className="flex min-h-screen items-center justify-center bg-background p-6"><div className="max-w-md rounded-xl border border-border bg-surface p-6 text-center shadow-sm"><Trophy className="mx-auto size-8 text-primary" /><h1 className="mt-4 font-display text-xl font-semibold text-foreground">Couldn’t enter the arena</h1><p className="mt-2 text-sm leading-relaxed text-text-secondary">{message}</p><div className="mt-6 flex flex-wrap justify-center gap-2"><Button variant="outline" onClick={() => arena.refetch()}>Try again</Button><Button asChild><Link to="/competitions">Back to competitions</Link></Button></div></div></div>;
+  }
   if (!question) return <div className="p-8 text-sm text-text-secondary">This contest’s question bank is being prepared.</div>;
   return (
     <div className="min-h-screen bg-background">

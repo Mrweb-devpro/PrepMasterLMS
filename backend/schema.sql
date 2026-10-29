@@ -483,3 +483,42 @@ create policy "Register own entry" on public.competition_entries
 grant select on public.competitions to authenticated;
 grant select, insert on public.competition_entries to authenticated;
 grant all on public.competitions, public.competition_entries to service_role;
+
+-- Competition settings and server-enforced level access (20261029120000).
+alter table public.competitions
+  add column if not exists prize_description text not null default '';
+revoke all on public.competitions from authenticated, anon;
+revoke all on public.competition_entries from authenticated, anon;
+
+
+-- Serialize score writes with contest closure and keep ended results immutable.
+create or replace function public.guard_competition_score_write()
+returns trigger language plpgsql set search_path = public as $$
+declare contest public.competitions;
+begin
+  select * into contest from public.competitions where id = new.competition_id for update;
+  if contest.status in ('completed', 'cancelled')
+    or clock_timestamp() >= contest.starts_at + make_interval(mins => contest.duration_minutes) then
+    if new.score is distinct from old.score
+      or new.speed_seconds is distinct from old.speed_seconds
+      or new.answers is distinct from old.answers
+      or new.final_rank is distinct from old.final_rank then
+      raise exception 'Competition results are locked';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists competition_scores_locked on public.competition_entries;
+create trigger competition_scores_locked before update on public.competition_entries
+for each row execute function public.guard_competition_score_write();
+
+-- Competition question sourcing and delayed practice release (idempotent).
+alter table public.competitions
+  add column if not exists question_limit integer check (question_limit is null or question_limit > 0);
+alter table public.cbts
+  add column if not exists competition_id uuid references public.competitions(id) on delete set null,
+  add column if not exists releases_at timestamptz;
+alter table public.competition_entries
+  add column if not exists question_ids uuid[] not null default '{}';
+create index if not exists idx_cbts_competition_release on public.cbts (competition_id, releases_at);
