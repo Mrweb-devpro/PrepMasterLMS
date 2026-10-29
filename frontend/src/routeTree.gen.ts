@@ -30,6 +30,7 @@ import { Route as AttemptsIndexRouteImport } from './routes/attempts.index'
 import { Route as AttemptsAttemptIdRouteImport } from './routes/attempts.$attemptId'
 import { Route as CbtsIndexRouteImport } from './routes/cbts.index'
 import { Route as CbtsCbtIdRouteImport } from './routes/cbts.$cbtId'
+import { Route as CompetitionsIndexRouteImport } from './routes/competitions.index'
 import { Route as DriveIndexRouteImport } from './routes/drive.index'
 import { Route as PaymentCallbackRouteImport } from './routes/payment.callback'
 import { Route as SolidworksIndexRouteImport } from './routes/solidworks.index'
@@ -41,6 +42,7 @@ import { Route as AdminCbtsIndexRouteImport } from './routes/admin.cbts.index'
 import { Route as AdminCbtsCbtIdRouteImport } from './routes/admin.cbts.$cbtId'
 import { Route as AdminCbtsNewRouteImport } from './routes/admin.cbts.new'
 import { Route as AdminCompetitionsIndexRouteImport } from './routes/admin.competitions.index'
+import { Route as AdminCompetitionsCompetitionIdRouteImport } from './routes/admin.competitions.$competitionId'
 import { Route as AdminCompetitionsNewRouteImport } from './routes/admin.competitions.new'
 import { Route as AdminCoursesIndexRouteImport } from './routes/admin.courses.index'
 import { Route as AdminCoursesNewRouteImport } from './routes/admin.courses.new'
@@ -51,6 +53,7 @@ import { Route as AdminSwSubmissionsIdRouteImport } from './routes/admin.sw-subm
 import { Route as AdminSwUsersIndexRouteImport } from './routes/admin.sw-users.index'
 import { Route as AdminSwUsersUserIdRouteImport } from './routes/admin.sw-users.$userId'
 import { Route as CompetitionsCompetitionIdArenaRouteImport } from './routes/competitions.$competitionId.arena'
+import { Route as CompetitionsCompetitionIdResultsRouteImport } from './routes/competitions.$competitionId.results'
 import { Route as DriveCourseIndexRouteImport } from './routes/drive.$course.index'
 import { Route as SolidworksQuestionsIndexRouteImport } from './routes/solidworks.questions.index'
 import { Route as SolidworksQuestionsIdRouteImport } from './routes/solidworks.questions.$id'
@@ -58,6 +61,7 @@ import { Route as SolidworksTasksIndexRouteImport } from './routes/solidworks.ta
 import { Route as SolidworksTasksTaskIdRouteImport } from './routes/solidworks.tasks.$taskId'
 import { Route as SolidworksWorksIndexRouteImport } from './routes/solidworks.works.index'
 import { Route as SolidworksWorksIdRouteImport } from './routes/solidworks.works.$id'
+import { Route as AdminCompetitionsCompetitionIdEditRouteImport } from './routes/admin.competitions.$competitionId.edit'
 import { Route as AdminCoursesSlugIndexRouteImport } from './routes/admin.courses.$slug.index'
 import { Route as AdminCoursesSlugEditRouteImport } from './routes/admin.courses.$slug_.edit'
 import { Route as DriveCourseCategoryIndexRouteImport } from './routes/drive.$course.$category.index'
@@ -169,6 +173,11 @@ const CbtsCbtIdRoute = CbtsCbtIdRouteImport.update({
   path: '/cbts/$cbtId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CompetitionsIndexRoute = CompetitionsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CompetitionsRoute,
+} as any)
 const DriveIndexRoute = DriveIndexRouteImport.update({
   id: '/drive/',
   path: '/drive/',
@@ -224,6 +233,12 @@ const AdminCompetitionsIndexRoute = AdminCompetitionsIndexRouteImport.update({
   path: '/admin/competitions/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCompetitionsCompetitionIdRoute =
+  AdminCompetitionsCompetitionIdRouteImport.update({
+    id: '/admin/competitions/$competitionId',
+    path: '/admin/competitions/$competitionId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AdminCompetitionsNewRoute = AdminCompetitionsNewRouteImport.update({
   id: '/admin/competitions/new',
   path: '/admin/competitions/new',
@@ -275,6 +290,12 @@ const CompetitionsCompetitionIdArenaRoute =
     path: '/$competitionId/arena',
     getParentRoute: () => CompetitionsRoute,
   } as any)
+const CompetitionsCompetitionIdResultsRoute =
+  CompetitionsCompetitionIdResultsRouteImport.update({
+    id: '/$competitionId/results',
+    path: '/$competitionId/results',
+    getParentRoute: () => CompetitionsRoute,
+  } as any)
 const DriveCourseIndexRoute = DriveCourseIndexRouteImport.update({
   id: '/drive/$course/',
   path: '/drive/$course/',
@@ -311,6 +332,12 @@ const SolidworksWorksIdRoute = SolidworksWorksIdRouteImport.update({
   path: '/works/$id',
   getParentRoute: () => SolidworksRoute,
 } as any)
+const AdminCompetitionsCompetitionIdEditRoute =
+  AdminCompetitionsCompetitionIdEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => AdminCompetitionsCompetitionIdRoute,
+  } as any)
 const AdminCoursesSlugIndexRoute = AdminCoursesSlugIndexRouteImport.update({
   id: '/admin/courses/$slug/',
   path: '/admin/courses/$slug/',
@@ -367,16 +394,19 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/attempts/': typeof AttemptsIndexRoute
   '/cbts/': typeof CbtsIndexRoute
+  '/competitions/': typeof CompetitionsIndexRoute
   '/drive/': typeof DriveIndexRoute
   '/solidworks/': typeof SolidworksIndexRoute
   '/admin/cbts/$cbtId': typeof AdminCbtsCbtIdRoute
   '/admin/cbts/new': typeof AdminCbtsNewRoute
+  '/admin/competitions/$competitionId': typeof AdminCompetitionsCompetitionIdRouteWithChildren
   '/admin/competitions/new': typeof AdminCompetitionsNewRoute
   '/admin/courses/new': typeof AdminCoursesNewRoute
   '/admin/students/$studentId': typeof AdminStudentsStudentIdRoute
   '/admin/sw-submissions/$id': typeof AdminSwSubmissionsIdRoute
   '/admin/sw-users/$userId': typeof AdminSwUsersUserIdRoute
   '/competitions/$competitionId/arena': typeof CompetitionsCompetitionIdArenaRoute
+  '/competitions/$competitionId/results': typeof CompetitionsCompetitionIdResultsRoute
   '/solidworks/questions/$id': typeof SolidworksQuestionsIdRoute
   '/solidworks/tasks/$taskId': typeof SolidworksTasksTaskIdRoute
   '/solidworks/works/$id': typeof SolidworksWorksIdRoute
@@ -390,6 +420,7 @@ export interface FileRoutesByFullPath {
   '/solidworks/questions/': typeof SolidworksQuestionsIndexRoute
   '/solidworks/tasks/': typeof SolidworksTasksIndexRoute
   '/solidworks/works/': typeof SolidworksWorksIndexRoute
+  '/admin/competitions/$competitionId/edit': typeof AdminCompetitionsCompetitionIdEditRoute
   '/admin/courses/$slug/edit': typeof AdminCoursesSlugEditRoute
   '/drive/$course/$category/$subfolder': typeof DriveCourseCategorySubfolderRoute
   '/admin/courses/$slug/': typeof AdminCoursesSlugIndexRoute
@@ -399,7 +430,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
-  '/competitions': typeof CompetitionsRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/learn-solidworks': typeof LearnSolidworksRoute
   '/library': typeof LibraryRoute
@@ -422,16 +452,19 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/attempts': typeof AttemptsIndexRoute
   '/cbts': typeof CbtsIndexRoute
+  '/competitions': typeof CompetitionsIndexRoute
   '/drive': typeof DriveIndexRoute
   '/solidworks': typeof SolidworksIndexRoute
   '/admin/cbts/$cbtId': typeof AdminCbtsCbtIdRoute
   '/admin/cbts/new': typeof AdminCbtsNewRoute
+  '/admin/competitions/$competitionId': typeof AdminCompetitionsCompetitionIdRouteWithChildren
   '/admin/competitions/new': typeof AdminCompetitionsNewRoute
   '/admin/courses/new': typeof AdminCoursesNewRoute
   '/admin/students/$studentId': typeof AdminStudentsStudentIdRoute
   '/admin/sw-submissions/$id': typeof AdminSwSubmissionsIdRoute
   '/admin/sw-users/$userId': typeof AdminSwUsersUserIdRoute
   '/competitions/$competitionId/arena': typeof CompetitionsCompetitionIdArenaRoute
+  '/competitions/$competitionId/results': typeof CompetitionsCompetitionIdResultsRoute
   '/solidworks/questions/$id': typeof SolidworksQuestionsIdRoute
   '/solidworks/tasks/$taskId': typeof SolidworksTasksTaskIdRoute
   '/solidworks/works/$id': typeof SolidworksWorksIdRoute
@@ -445,6 +478,7 @@ export interface FileRoutesByTo {
   '/solidworks/questions': typeof SolidworksQuestionsIndexRoute
   '/solidworks/tasks': typeof SolidworksTasksIndexRoute
   '/solidworks/works': typeof SolidworksWorksIndexRoute
+  '/admin/competitions/$competitionId/edit': typeof AdminCompetitionsCompetitionIdEditRoute
   '/admin/courses/$slug/edit': typeof AdminCoursesSlugEditRoute
   '/drive/$course/$category/$subfolder': typeof DriveCourseCategorySubfolderRoute
   '/admin/courses/$slug': typeof AdminCoursesSlugIndexRoute
@@ -479,16 +513,19 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/attempts/': typeof AttemptsIndexRoute
   '/cbts/': typeof CbtsIndexRoute
+  '/competitions/': typeof CompetitionsIndexRoute
   '/drive/': typeof DriveIndexRoute
   '/solidworks/': typeof SolidworksIndexRoute
   '/admin/cbts/$cbtId': typeof AdminCbtsCbtIdRoute
   '/admin/cbts/new': typeof AdminCbtsNewRoute
+  '/admin/competitions/$competitionId': typeof AdminCompetitionsCompetitionIdRouteWithChildren
   '/admin/competitions/new': typeof AdminCompetitionsNewRoute
   '/admin/courses/new': typeof AdminCoursesNewRoute
   '/admin/students/$studentId': typeof AdminStudentsStudentIdRoute
   '/admin/sw-submissions/$id': typeof AdminSwSubmissionsIdRoute
   '/admin/sw-users/$userId': typeof AdminSwUsersUserIdRoute
   '/competitions/$competitionId/arena': typeof CompetitionsCompetitionIdArenaRoute
+  '/competitions/$competitionId/results': typeof CompetitionsCompetitionIdResultsRoute
   '/solidworks/questions/$id': typeof SolidworksQuestionsIdRoute
   '/solidworks/tasks/$taskId': typeof SolidworksTasksTaskIdRoute
   '/solidworks/works/$id': typeof SolidworksWorksIdRoute
@@ -502,6 +539,7 @@ export interface FileRoutesById {
   '/solidworks/questions/': typeof SolidworksQuestionsIndexRoute
   '/solidworks/tasks/': typeof SolidworksTasksIndexRoute
   '/solidworks/works/': typeof SolidworksWorksIndexRoute
+  '/admin/competitions/$competitionId/edit': typeof AdminCompetitionsCompetitionIdEditRoute
   '/admin/courses/$slug_/edit': typeof AdminCoursesSlugEditRoute
   '/drive/$course/$category/$subfolder': typeof DriveCourseCategorySubfolderRoute
   '/admin/courses/$slug/': typeof AdminCoursesSlugIndexRoute
@@ -537,16 +575,19 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/attempts/'
     | '/cbts/'
+    | '/competitions/'
     | '/drive/'
     | '/solidworks/'
     | '/admin/cbts/$cbtId'
     | '/admin/cbts/new'
+    | '/admin/competitions/$competitionId'
     | '/admin/competitions/new'
     | '/admin/courses/new'
     | '/admin/students/$studentId'
     | '/admin/sw-submissions/$id'
     | '/admin/sw-users/$userId'
     | '/competitions/$competitionId/arena'
+    | '/competitions/$competitionId/results'
     | '/solidworks/questions/$id'
     | '/solidworks/tasks/$taskId'
     | '/solidworks/works/$id'
@@ -560,6 +601,7 @@ export interface FileRouteTypes {
     | '/solidworks/questions/'
     | '/solidworks/tasks/'
     | '/solidworks/works/'
+    | '/admin/competitions/$competitionId/edit'
     | '/admin/courses/$slug/edit'
     | '/drive/$course/$category/$subfolder'
     | '/admin/courses/$slug/'
@@ -569,7 +611,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/account'
-    | '/competitions'
     | '/forgot-password'
     | '/learn-solidworks'
     | '/library'
@@ -592,16 +633,19 @@ export interface FileRouteTypes {
     | '/admin'
     | '/attempts'
     | '/cbts'
+    | '/competitions'
     | '/drive'
     | '/solidworks'
     | '/admin/cbts/$cbtId'
     | '/admin/cbts/new'
+    | '/admin/competitions/$competitionId'
     | '/admin/competitions/new'
     | '/admin/courses/new'
     | '/admin/students/$studentId'
     | '/admin/sw-submissions/$id'
     | '/admin/sw-users/$userId'
     | '/competitions/$competitionId/arena'
+    | '/competitions/$competitionId/results'
     | '/solidworks/questions/$id'
     | '/solidworks/tasks/$taskId'
     | '/solidworks/works/$id'
@@ -615,6 +659,7 @@ export interface FileRouteTypes {
     | '/solidworks/questions'
     | '/solidworks/tasks'
     | '/solidworks/works'
+    | '/admin/competitions/$competitionId/edit'
     | '/admin/courses/$slug/edit'
     | '/drive/$course/$category/$subfolder'
     | '/admin/courses/$slug'
@@ -648,16 +693,19 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/attempts/'
     | '/cbts/'
+    | '/competitions/'
     | '/drive/'
     | '/solidworks/'
     | '/admin/cbts/$cbtId'
     | '/admin/cbts/new'
+    | '/admin/competitions/$competitionId'
     | '/admin/competitions/new'
     | '/admin/courses/new'
     | '/admin/students/$studentId'
     | '/admin/sw-submissions/$id'
     | '/admin/sw-users/$userId'
     | '/competitions/$competitionId/arena'
+    | '/competitions/$competitionId/results'
     | '/solidworks/questions/$id'
     | '/solidworks/tasks/$taskId'
     | '/solidworks/works/$id'
@@ -671,6 +719,7 @@ export interface FileRouteTypes {
     | '/solidworks/questions/'
     | '/solidworks/tasks/'
     | '/solidworks/works/'
+    | '/admin/competitions/$competitionId/edit'
     | '/admin/courses/$slug_/edit'
     | '/drive/$course/$category/$subfolder'
     | '/admin/courses/$slug/'
@@ -705,6 +754,7 @@ export interface RootRouteChildren {
   DriveIndexRoute: typeof DriveIndexRoute
   AdminCbtsCbtIdRoute: typeof AdminCbtsCbtIdRoute
   AdminCbtsNewRoute: typeof AdminCbtsNewRoute
+  AdminCompetitionsCompetitionIdRoute: typeof AdminCompetitionsCompetitionIdRouteWithChildren
   AdminCompetitionsNewRoute: typeof AdminCompetitionsNewRoute
   AdminCoursesNewRoute: typeof AdminCoursesNewRoute
   AdminStudentsStudentIdRoute: typeof AdminStudentsStudentIdRoute
@@ -873,6 +923,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CbtsCbtIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/competitions/': {
+      id: '/competitions/'
+      path: '/'
+      fullPath: '/competitions/'
+      preLoaderRoute: typeof CompetitionsIndexRouteImport
+      parentRoute: typeof CompetitionsRoute
+    }
     '/drive/': {
       id: '/drive/'
       path: '/drive'
@@ -950,6 +1007,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCompetitionsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/competitions/$competitionId': {
+      id: '/admin/competitions/$competitionId'
+      path: '/admin/competitions/$competitionId'
+      fullPath: '/admin/competitions/$competitionId'
+      preLoaderRoute: typeof AdminCompetitionsCompetitionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/competitions/new': {
       id: '/admin/competitions/new'
       path: '/admin/competitions/new'
@@ -1020,6 +1084,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CompetitionsCompetitionIdArenaRouteImport
       parentRoute: typeof CompetitionsRoute
     }
+    '/competitions/$competitionId/results': {
+      id: '/competitions/$competitionId/results'
+      path: '/$competitionId/results'
+      fullPath: '/competitions/$competitionId/results'
+      preLoaderRoute: typeof CompetitionsCompetitionIdResultsRouteImport
+      parentRoute: typeof CompetitionsRoute
+    }
     '/drive/$course/': {
       id: '/drive/$course/'
       path: '/drive/$course'
@@ -1069,6 +1140,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SolidworksWorksIdRouteImport
       parentRoute: typeof SolidworksRoute
     }
+    '/admin/competitions/$competitionId/edit': {
+      id: '/admin/competitions/$competitionId/edit'
+      path: '/edit'
+      fullPath: '/admin/competitions/$competitionId/edit'
+      preLoaderRoute: typeof AdminCompetitionsCompetitionIdEditRouteImport
+      parentRoute: typeof AdminCompetitionsCompetitionIdRoute
+    }
     '/admin/courses/$slug/': {
       id: '/admin/courses/$slug/'
       path: '/admin/courses/$slug'
@@ -1108,11 +1186,15 @@ declare module '@tanstack/react-router' {
 }
 
 interface CompetitionsRouteChildren {
+  CompetitionsIndexRoute: typeof CompetitionsIndexRoute
   CompetitionsCompetitionIdArenaRoute: typeof CompetitionsCompetitionIdArenaRoute
+  CompetitionsCompetitionIdResultsRoute: typeof CompetitionsCompetitionIdResultsRoute
 }
 
 const CompetitionsRouteChildren: CompetitionsRouteChildren = {
+  CompetitionsIndexRoute: CompetitionsIndexRoute,
   CompetitionsCompetitionIdArenaRoute: CompetitionsCompetitionIdArenaRoute,
+  CompetitionsCompetitionIdResultsRoute: CompetitionsCompetitionIdResultsRoute,
 }
 
 const CompetitionsRouteWithChildren = CompetitionsRoute._addFileChildren(
@@ -1149,6 +1231,21 @@ const SolidworksRouteWithChildren = SolidworksRoute._addFileChildren(
   SolidworksRouteChildren,
 )
 
+interface AdminCompetitionsCompetitionIdRouteChildren {
+  AdminCompetitionsCompetitionIdEditRoute: typeof AdminCompetitionsCompetitionIdEditRoute
+}
+
+const AdminCompetitionsCompetitionIdRouteChildren: AdminCompetitionsCompetitionIdRouteChildren =
+  {
+    AdminCompetitionsCompetitionIdEditRoute:
+      AdminCompetitionsCompetitionIdEditRoute,
+  }
+
+const AdminCompetitionsCompetitionIdRouteWithChildren =
+  AdminCompetitionsCompetitionIdRoute._addFileChildren(
+    AdminCompetitionsCompetitionIdRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRoute,
@@ -1176,6 +1273,8 @@ const rootRouteChildren: RootRouteChildren = {
   DriveIndexRoute: DriveIndexRoute,
   AdminCbtsCbtIdRoute: AdminCbtsCbtIdRoute,
   AdminCbtsNewRoute: AdminCbtsNewRoute,
+  AdminCompetitionsCompetitionIdRoute:
+    AdminCompetitionsCompetitionIdRouteWithChildren,
   AdminCompetitionsNewRoute: AdminCompetitionsNewRoute,
   AdminCoursesNewRoute: AdminCoursesNewRoute,
   AdminStudentsStudentIdRoute: AdminStudentsStudentIdRoute,
