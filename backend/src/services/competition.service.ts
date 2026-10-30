@@ -63,9 +63,40 @@ export async function updateCompetition(id: string, patch: z.infer<typeof update
   const updates: Record<string, unknown> = {};
   const mapping = { title: "title", description: "description", courseId: "course_id", cbtId: "cbt_id", startsAt: "starts_at", durationMinutes: "duration_minutes", level: "level", prizePoolNaira: "prize_pool_naira", prizeDescription: "prize_description", questionLimit: "question_limit" } as const;
   for (const key of Object.keys(mapping) as (keyof typeof mapping)[]) if (patch[key] !== undefined) updates[mapping[key]] = patch[key];
-  const startsAt = patch.startsAt ?? existing.starts_at;
+  const now = Date.now();
+  const existingEndsAt = new Date(existing.starts_at).getTime() + existing.duration_minutes * 60_000;
+  const isLive = existing.status !== "cancelled" && now >= new Date(existing.starts_at).getTime() && now < existingEndsAt;
+  const changesStartTime =
+    patch.startsAt !== undefined && new Date(patch.startsAt).getTime() !== new Date(existing.starts_at).getTime();
+  // During a live contest, a duration change means "minutes remaining". Moving
+  // the effective start to now keeps the existing deadline calculation intact.
+  const startsAt = changesStartTime
+    ? patch.startsAt!
+    : isLive && patch.durationMinutes !== undefined
+      ? new Date(now).toISOString()
+      : existing.starts_at;
   const durationMinutes = patch.durationMinutes ?? existing.duration_minutes;
   const courseId = patch.courseId !== undefined ? patch.courseId : existing.course_id;
+  if (isLive && patch.durationMinutes !== undefined && !changesStartTime) {
+    updates.starts_at = startsAt;
+  }
+  const changesQuestionBank =
+    patch.questionSource !== undefined ||
+    patch.customQuestions !== undefined ||
+    patch.questionLimit !== undefined ||
+    (patch.cbtId !== undefined && patch.cbtId !== existing.cbt_id);
+
+  if (changesQuestionBank) {
+    const { count, error } = await db
+      .from("competition_entries")
+      .select("id", { count: "exact", head: true })
+      .eq("competition_id", id)
+      .not("started_at", "is", null);
+    if (error) throw new Error(error.message);
+    if (count) {
+      throw conflict("The question bank cannot be changed after students have started this competition.");
+    }
+  }
 
   if (patch.questionSource === "bank" && patch.cbtId) {
     await assertQuestionBankReady(patch.cbtId);
@@ -107,7 +138,6 @@ export async function updateCompetition(id: string, patch: z.infer<typeof update
       await db.from("cbts").update({ title: `🏆 Practice: ${patch.title ?? existing.title}`, ...(courseId ? { course_id: courseId } : {}), releases_at: releasesAt, published: new Date(releasesAt).getTime() <= Date.now() }).eq("id", linked.data.id);
     }
   }
-  const now = Date.now();
   const endsAt = new Date(startsAt).getTime() + durationMinutes * 60_000;
   if (existing.status !== "cancelled") updates.status = now >= endsAt ? "completed" : now >= new Date(startsAt).getTime() ? "live" : "scheduled";
   const query = db.from("competitions").update(updates).eq("id", id).eq("starts_at", existing.starts_at).eq("duration_minutes", existing.duration_minutes);
@@ -319,6 +349,15 @@ async function questionsForEntry(competition: ArenaCompetition, entry: ArenaEntr
     if (error) throw new Error(error.message);
   }
   const byId = new Map(all.map((question) => [question.id, question]));
+  // Older edits could rebuild a custom bank and replace its question IDs after
+  // entrants had started. Recover those entries from the current bank instead
+  // of leaving the arena with an empty question set.
+  if (ids.some((id) => !byId.has(id))) {
+    const limit = Math.min(competition.question_limit ?? all.length, all.length);
+    ids = all.slice(0, limit).map((question) => question.id);
+    const { error } = await db.from("competition_entries").update({ question_ids: ids }).eq("id", entry.id);
+    if (error) throw new Error(error.message);
+  }
   return ids.map((id) => byId.get(id)).filter((question): question is (typeof all)[number] => Boolean(question));
 }
 
