@@ -3,7 +3,7 @@ import confetti from "canvas-confetti";
 import { ArrowLeft, Crown } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, EmptyState, PageHeader, StatusPill } from "@/components/prep/bits";
+import { Card, EmptyState, PageHeader } from "@/components/prep/bits";
 import type { CompetitionStanding } from "@/lib/mock-data";
 import { CompetitionAvatar } from "../components/CompetitionAvatar";
 import { useCompetitions } from "../hooks/useCompetitions";
@@ -78,7 +78,7 @@ export function CompetitionResultsPage({ id }: { id: string }) {
 
   return <div className="space-y-7 pb-10">
     <PageHeader title="Hall of Fame" subtitle={`${competition.courseCode} ${competition.title} · final standings`} action={<Button asChild variant="outline"><Link to="/competitions"><ArrowLeft className="size-4" />All competitions</Link></Button>} />
-    <Card className="results-podium-card"><div><StatusPill tone="success">Results final</StatusPill><h2 className="mt-3 font-display text-xl font-semibold text-foreground">{competition.title}</h2></div>{podium.length ? <div className="results-podium">{[2, 1, 3].map((rank) => {
+    <Card className="results-podium-card">{podium.length ? <div className="results-podium">{[2, 1, 3].map((rank) => {
       const entry = podium.find((finisher) => finisher.rank === rank);
       return entry ? <PodiumColumn key={rank} entry={entry} /> : <div key={rank} aria-hidden="true" />;
     })}</div> : <EmptyState className="mt-6" title="No final standings yet" />}</Card>
