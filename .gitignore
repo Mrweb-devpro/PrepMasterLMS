@@ -1,2 +1,8 @@
 backend/.env 
 frontend/.env
+
+
+
+tmp/*
+tmp
+seed_phy102_competition.sql
