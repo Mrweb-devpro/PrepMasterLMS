@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import confetti from "canvas-confetti";
-import { ArrowLeft, Award, Crown } from "lucide-react";
+import { ArrowLeft, Crown } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, EmptyState, PageHeader, StatusPill } from "@/components/prep/bits";
@@ -16,33 +16,39 @@ function duration(seconds: number) {
 
 function PodiumColumn({ entry }: { entry: CompetitionStanding }) {
   const champion = entry.rank === 1;
-  const runnerUp = entry.rank === 2;
-  const accent = champion ? "border-gold/70 text-gold-text" : runnerUp ? "border-primary/35 text-primary" : "border-warning/50 text-warning";
-  const pedestal = champion ? "h-24 bg-gold sm:h-32" : runnerUp ? "h-16 bg-primary sm:h-20" : "h-14 bg-warning sm:h-16";
-  const avatarSize = champion ? "size-15 sm:size-20" : "size-11 sm:size-16";
-
-  return <div className={`flex min-w-0 flex-col items-center text-center ${champion ? "-mt-5 sm:-mt-8" : ""}`}>
-    <div className="relative">
-      {champion ? <Crown aria-label="First place crown" className="absolute -top-6 left-1/2 z-10 size-8 -translate-x-1/2 fill-current text-gold-text sm:-top-7 sm:size-9" /> : <span className={`absolute -top-3 left-1/2 z-10 flex size-6 -translate-x-1/2 items-center justify-center rounded-full border-2 border-background bg-surface text-xs font-bold ${accent}`}>{entry.rank}</span>}
-      <div className={`rounded-full border-2 bg-surface p-0.5 shadow-sm ${accent}`}><CompetitionAvatar name={entry.name} avatarUrl={entry.avatarUrl} className={`${avatarSize} text-sm sm:text-lg`} /></div>
+  return (
+    <div className="results-podium__column" data-place={entry.rank} aria-label={`Place ${entry.rank}: ${entry.name}`}>
+      <div className="results-podium__portrait">
+        {champion
+          ? <Crown aria-hidden="true" className="results-podium__crown" />
+          : <span className="results-podium__position" aria-hidden="true">{entry.rank}</span>}
+        <CompetitionAvatar name={entry.name} avatarUrl={entry.avatarUrl} className="results-podium__avatar" />
+      </div>
+      <p className="results-podium__name" title={entry.name}>{entry.name}</p>
+      <p className="results-podium__points">{entry.score.toLocaleString()} <span>pts</span></p>
+      <p className="results-podium__time">{duration(entry.speedSeconds)}</p>
+      <div className="results-podium__pedestal" aria-hidden="true">
+        <span className="results-podium__medal">{entry.rank}</span>
+        {champion && <svg className="results-podium__laurel" viewBox="0 0 64 40" fill="currentColor" aria-hidden="true">
+          <path d="M31 35C16 33 9 22 8 8M33 35C48 33 55 22 56 8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          <ellipse cx="7" cy="12" rx="3" ry="6" transform="rotate(-30 7 12)" /><ellipse cx="14" cy="14" rx="3" ry="6" transform="rotate(25 14 14)" />
+          <ellipse cx="12" cy="23" rx="3" ry="6" transform="rotate(-50 12 23)" /><ellipse cx="21" cy="23" rx="3" ry="6" transform="rotate(25 21 23)" />
+          <ellipse cx="22" cy="32" rx="3" ry="6" transform="rotate(-70 22 32)" />
+          <ellipse cx="57" cy="12" rx="3" ry="6" transform="rotate(30 57 12)" /><ellipse cx="50" cy="14" rx="3" ry="6" transform="rotate(-25 50 14)" />
+          <ellipse cx="52" cy="23" rx="3" ry="6" transform="rotate(50 52 23)" /><ellipse cx="43" cy="23" rx="3" ry="6" transform="rotate(-25 43 23)" />
+          <ellipse cx="42" cy="32" rx="3" ry="6" transform="rotate(70 42 32)" />
+        </svg>}
+      </div>
     </div>
-    <p title={entry.name} className="mt-2 w-full truncate text-xs font-semibold text-foreground sm:mt-3 sm:text-sm">{entry.name}</p>
-    <p className="mt-0.5 text-2xs font-semibold tabular-nums text-foreground sm:text-xs">{entry.score.toLocaleString()} pts</p>
-    <p className="text-2xs text-text-secondary">{duration(entry.speedSeconds)}</p>
-    <div className={`relative mt-2 flex w-full items-start justify-center rounded-t-md sm:mt-3 sm:rounded-t-lg ${pedestal}`}>
-      <span className={`absolute top-2 flex size-7 items-center justify-center rounded-full bg-surface font-display text-sm font-bold shadow-sm sm:size-8 sm:text-base ${champion ? "text-gold-text" : runnerUp ? "text-primary" : "text-warning"}`}>{entry.rank}</span>
-      {champion && <Award aria-hidden className="absolute top-10 size-4 text-primary-foreground/80 sm:top-12 sm:size-5" />}
-    </div>
-  </div>;
+  );
 }
 
 function StandingRow({ entry }: { entry: CompetitionStanding }) {
-  return <div className={`flex items-center gap-2.5 border-b border-border px-3 py-3 text-sm last:border-b-0 sm:px-4 ${entry.isCurrentUser ? "bg-primary-soft" : "bg-surface"}`}>
-    <span className="w-7 shrink-0 font-display font-semibold text-text-secondary sm:w-9">{entry.rank}</span>
-    <CompetitionAvatar name={entry.name} avatarUrl={entry.avatarUrl} className="size-8 shrink-0 text-2xs" />
-    <span className="min-w-0 flex-1 truncate font-medium text-foreground">{entry.name}{entry.isCurrentUser ? " (You)" : ""}</span>
-    <span className="shrink-0 text-right"><span className="block text-xs font-semibold tabular-nums text-foreground sm:text-sm">{entry.score.toLocaleString()} pts</span><span className="block text-2xs text-text-secondary">{duration(entry.speedSeconds)}</span></span>
-  </div>;
+  return <tr data-current-user={Boolean(entry.isCurrentUser)}>
+    <td>{entry.rank}</td>
+    <td><div className="results-standings__player"><CompetitionAvatar name={entry.name} avatarUrl={entry.avatarUrl} className="results-standings__avatar" /><span title={entry.name}>{entry.name}{entry.isCurrentUser ? " (You)" : ""}</span></div></td>
+    <td><strong>{entry.score.toLocaleString()} pts</strong><small>{duration(entry.speedSeconds)}</small></td>
+  </tr>;
 }
 
 function YourStandingBar({ entry }: { entry: CompetitionStanding }) {
@@ -72,8 +78,11 @@ export function CompetitionResultsPage({ id }: { id: string }) {
 
   return <div className="space-y-7 pb-10">
     <PageHeader title="Hall of Fame" subtitle={`${competition.courseCode} ${competition.title} · final standings`} action={<Button asChild variant="outline"><Link to="/competitions"><ArrowLeft className="size-4" />All competitions</Link></Button>} />
-    <Card className="p-5 sm:p-7"><div><StatusPill tone="success">Results final</StatusPill><h2 className="mt-3 font-display text-xl font-semibold text-foreground">{competition.title}</h2></div>{podium.length ? <div className="mx-auto mt-12 grid max-w-xl grid-cols-3 items-end gap-1 sm:mt-14 sm:gap-4">{[podium[1], podium[0], podium[2]].filter(Boolean).map((entry) => <PodiumColumn key={entry.rank} entry={entry} />)}</div> : <EmptyState className="mt-6" title="No final standings yet" />}</Card>
-    <section><div className="mb-3 flex items-center justify-between"><h2 className="font-display text-lg font-semibold text-foreground">Final standings</h2><span className="text-xs text-text-secondary">{competition.participantCount} players</span></div><Card className="overflow-hidden p-0"><div className="flex items-center gap-2.5 border-b border-border bg-surface-subtle px-3 py-2 text-2xs font-semibold uppercase tracking-wider text-text-muted sm:px-4"><span className="w-7 shrink-0 sm:w-9">Rank</span><span className="min-w-0 flex-1">Player</span><span className="shrink-0 text-right">Points / time</span></div>{remaining.length ? remaining.map((entry) => <StandingRow key={`${entry.rank}-${entry.name}`} entry={entry} />) : <div className="px-4 py-8 text-center text-sm text-text-secondary">Only the podium finishers took part in this contest.</div>}</Card></section>
+    <Card className="results-podium-card"><div><StatusPill tone="success">Results final</StatusPill><h2 className="mt-3 font-display text-xl font-semibold text-foreground">{competition.title}</h2></div>{podium.length ? <div className="results-podium">{[2, 1, 3].map((rank) => {
+      const entry = podium.find((finisher) => finisher.rank === rank);
+      return entry ? <PodiumColumn key={rank} entry={entry} /> : <div key={rank} aria-hidden="true" />;
+    })}</div> : <EmptyState className="mt-6" title="No final standings yet" />}</Card>
+    <section><div className="mb-3 flex items-center justify-between"><h2 className="font-display text-lg font-semibold text-foreground">Final standings</h2><span className="text-xs text-text-secondary">{competition.participantCount} players</span></div><div className="results-standings"><table><caption className="sr-only">Competition results from fourth place onward</caption><thead><tr><th scope="col">Rank</th><th scope="col">Player</th><th scope="col">Points / time</th></tr></thead><tbody>{remaining.length ? remaining.map((entry) => <StandingRow key={`${entry.rank}-${entry.name}`} entry={entry} />) : <tr><td colSpan={3} className="results-standings__empty">All participants are shown on the podium.</td></tr>}</tbody></table></div></section>
     {currentUser && <YourStandingBar entry={currentUser} />}
   </div>;
 }
