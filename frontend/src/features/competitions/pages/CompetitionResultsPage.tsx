@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import confetti from "canvas-confetti";
-import { ArrowLeft, Award, Crown, Trophy } from "lucide-react";
+import { ArrowLeft, Award, Crown } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, EmptyState, PageHeader, StatusPill } from "@/components/prep/bits";
@@ -17,32 +17,31 @@ function duration(seconds: number) {
 function PodiumColumn({ entry }: { entry: CompetitionStanding }) {
   const champion = entry.rank === 1;
   const runnerUp = entry.rank === 2;
-  const label = champion ? "Champion" : runnerUp ? "Runner-up" : "Third place";
   const accent = champion ? "border-gold/70 text-gold-text" : runnerUp ? "border-primary/35 text-primary" : "border-warning/50 text-warning";
   const pedestal = champion ? "h-24 bg-gold sm:h-32" : runnerUp ? "h-16 bg-primary sm:h-20" : "h-14 bg-warning sm:h-16";
-  const avatarSize = champion ? "size-16 sm:size-20" : "size-12 sm:size-16";
+  const avatarSize = champion ? "size-15 sm:size-20" : "size-11 sm:size-16";
 
-  return <div className={`flex min-w-0 flex-col items-center text-center ${champion ? "-mt-6 sm:-mt-10" : ""}`}>
+  return <div className={`flex min-w-0 flex-col items-center text-center ${champion ? "-mt-5 sm:-mt-8" : ""}`}>
     <div className="relative">
-      {champion ? <Crown aria-label="First place crown" className="absolute -top-7 left-1/2 z-10 size-9 -translate-x-1/2 fill-current text-gold-text" /> : <span className={`absolute -top-2 -right-2 z-10 flex size-6 items-center justify-center rounded-full border-2 border-background bg-surface text-xs font-bold ${accent}`}>{entry.rank}</span>}
+      {champion ? <Crown aria-label="First place crown" className="absolute -top-6 left-1/2 z-10 size-8 -translate-x-1/2 fill-current text-gold-text sm:-top-7 sm:size-9" /> : <span className={`absolute -top-3 left-1/2 z-10 flex size-6 -translate-x-1/2 items-center justify-center rounded-full border-2 border-background bg-surface text-xs font-bold ${accent}`}>{entry.rank}</span>}
       <div className={`rounded-full border-2 bg-surface p-0.5 shadow-sm ${accent}`}><CompetitionAvatar name={entry.name} avatarUrl={entry.avatarUrl} className={`${avatarSize} text-sm sm:text-lg`} /></div>
     </div>
-    <p className={`mt-3 text-2xs font-bold uppercase tracking-wider sm:text-xs ${accent}`}>{label}</p>
-    <p title={entry.name} className="mt-1 w-full truncate text-xs font-semibold text-foreground sm:text-sm">{entry.name}</p>
-    <p className="mt-1 text-2xs font-semibold tabular-nums text-foreground sm:text-xs">{entry.score.toLocaleString()} pts</p>
-    <p className="mt-0.5 text-2xs text-text-secondary">{duration(entry.speedSeconds)}</p>
-    <div className={`relative mt-3 flex w-full items-start justify-center rounded-t-lg ${pedestal}`}>
-      <span className={`absolute top-2 flex size-8 items-center justify-center rounded-full bg-surface font-display text-base font-bold shadow-sm ${champion ? "text-gold-text" : runnerUp ? "text-primary" : "text-warning"}`}>{entry.rank}</span>
-      {champion && <Award aria-hidden className="absolute top-11 size-5 text-primary-foreground/80 sm:top-12" />}
+    <p title={entry.name} className="mt-2 w-full truncate text-xs font-semibold text-foreground sm:mt-3 sm:text-sm">{entry.name}</p>
+    <p className="mt-0.5 text-2xs font-semibold tabular-nums text-foreground sm:text-xs">{entry.score.toLocaleString()} pts</p>
+    <p className="text-2xs text-text-secondary">{duration(entry.speedSeconds)}</p>
+    <div className={`relative mt-2 flex w-full items-start justify-center rounded-t-md sm:mt-3 sm:rounded-t-lg ${pedestal}`}>
+      <span className={`absolute top-2 flex size-7 items-center justify-center rounded-full bg-surface font-display text-sm font-bold shadow-sm sm:size-8 sm:text-base ${champion ? "text-gold-text" : runnerUp ? "text-primary" : "text-warning"}`}>{entry.rank}</span>
+      {champion && <Award aria-hidden className="absolute top-10 size-4 text-primary-foreground/80 sm:top-12 sm:size-5" />}
     </div>
   </div>;
 }
 
 function StandingRow({ entry }: { entry: CompetitionStanding }) {
-  return <div className={`grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-2 border-b border-border px-3 py-3 text-sm last:border-b-0 sm:grid-cols-[3rem_minmax(0,1fr)_9rem] sm:px-4 ${entry.isCurrentUser ? "bg-primary-soft" : "bg-surface"}`}>
-    <span className="font-display font-semibold text-text-secondary">{entry.rank}</span>
-    <span className="flex min-w-0 items-center gap-2.5"><CompetitionAvatar name={entry.name} avatarUrl={entry.avatarUrl} className="size-8 text-2xs" /><span className="truncate font-medium text-foreground">{entry.name}{entry.isCurrentUser ? " (You)" : ""}</span></span>
-    <span className="text-right"><span className="block font-semibold tabular-nums text-foreground">{entry.score.toLocaleString()} pts</span><span className="block text-2xs text-text-secondary">{duration(entry.speedSeconds)}</span></span>
+  return <div className={`flex items-center gap-2.5 border-b border-border px-3 py-3 text-sm last:border-b-0 sm:px-4 ${entry.isCurrentUser ? "bg-primary-soft" : "bg-surface"}`}>
+    <span className="w-7 shrink-0 font-display font-semibold text-text-secondary sm:w-9">{entry.rank}</span>
+    <CompetitionAvatar name={entry.name} avatarUrl={entry.avatarUrl} className="size-8 shrink-0 text-2xs" />
+    <span className="min-w-0 flex-1 truncate font-medium text-foreground">{entry.name}{entry.isCurrentUser ? " (You)" : ""}</span>
+    <span className="shrink-0 text-right"><span className="block text-xs font-semibold tabular-nums text-foreground sm:text-sm">{entry.score.toLocaleString()} pts</span><span className="block text-2xs text-text-secondary">{duration(entry.speedSeconds)}</span></span>
   </div>;
 }
 
@@ -73,8 +72,8 @@ export function CompetitionResultsPage({ id }: { id: string }) {
 
   return <div className="space-y-7 pb-10">
     <PageHeader title="Hall of Fame" subtitle={`${competition.courseCode} ${competition.title} · final standings`} action={<Button asChild variant="outline"><Link to="/competitions"><ArrowLeft className="size-4" />All competitions</Link></Button>} />
-    <Card className="overflow-hidden p-5 sm:p-7"><div className="flex items-start justify-between gap-3"><div><StatusPill tone="success">Results final</StatusPill><h2 className="mt-3 font-display text-xl font-semibold text-foreground">{competition.title}</h2><p className="mt-1 text-sm text-text-secondary">{competition.participantCount} participants · final scores</p></div><Trophy className="size-9 text-gold-text" /></div>{podium.length ? <div className="mx-auto mt-14 grid max-w-xl grid-cols-3 items-end gap-1.5 sm:mt-16 sm:gap-4">{[podium[1], podium[0], podium[2]].filter(Boolean).map((entry) => <PodiumColumn key={entry.rank} entry={entry} />)}</div> : <EmptyState className="mt-6" title="No final standings yet" />}</Card>
-    <section><div className="mb-3 flex items-center justify-between"><h2 className="font-display text-lg font-semibold text-foreground">Final standings</h2><span className="text-xs text-text-secondary">{competition.participantCount} players</span></div><Card className="overflow-hidden p-0"><div className="grid grid-cols-[2rem_minmax(0,1fr)_auto] gap-2 border-b border-border bg-surface-subtle px-3 py-2 text-2xs font-semibold uppercase tracking-wider text-text-muted sm:grid-cols-[3rem_minmax(0,1fr)_9rem] sm:px-4"><span>Rank</span><span>Player</span><span className="text-right">Points / time</span></div>{remaining.length ? remaining.map((entry) => <StandingRow key={`${entry.rank}-${entry.name}`} entry={entry} />) : <div className="px-4 py-8 text-center text-sm text-text-secondary">Only the podium finishers took part in this contest.</div>}</Card></section>
+    <Card className="p-5 sm:p-7"><div><StatusPill tone="success">Results final</StatusPill><h2 className="mt-3 font-display text-xl font-semibold text-foreground">{competition.title}</h2></div>{podium.length ? <div className="mx-auto mt-12 grid max-w-xl grid-cols-3 items-end gap-1 sm:mt-14 sm:gap-4">{[podium[1], podium[0], podium[2]].filter(Boolean).map((entry) => <PodiumColumn key={entry.rank} entry={entry} />)}</div> : <EmptyState className="mt-6" title="No final standings yet" />}</Card>
+    <section><div className="mb-3 flex items-center justify-between"><h2 className="font-display text-lg font-semibold text-foreground">Final standings</h2><span className="text-xs text-text-secondary">{competition.participantCount} players</span></div><Card className="overflow-hidden p-0"><div className="flex items-center gap-2.5 border-b border-border bg-surface-subtle px-3 py-2 text-2xs font-semibold uppercase tracking-wider text-text-muted sm:px-4"><span className="w-7 shrink-0 sm:w-9">Rank</span><span className="min-w-0 flex-1">Player</span><span className="shrink-0 text-right">Points / time</span></div>{remaining.length ? remaining.map((entry) => <StandingRow key={`${entry.rank}-${entry.name}`} entry={entry} />) : <div className="px-4 py-8 text-center text-sm text-text-secondary">Only the podium finishers took part in this contest.</div>}</Card></section>
     {currentUser && <YourStandingBar entry={currentUser} />}
   </div>;
 }
