@@ -49,5 +49,9 @@ export function useCompetitionAnswer(competitionId: string) {
 }
 
 export function useSubmitCompetition(competitionId: string) {
-  return useMutation({ mutationFn: () => submitCompetitionArena(competitionId) });
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => submitCompetitionArena(competitionId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [...competitionsKey, "arena", competitionId] }),
+  });
 }

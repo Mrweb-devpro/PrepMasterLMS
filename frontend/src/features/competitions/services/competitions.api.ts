@@ -160,10 +160,12 @@ export interface ArenaData {
   competition: { id: string; title: string; deadline: string };
   questions: Pick<Question, "id" | "text" | "options" | "topic">[];
   answers: Record<string, number>;
+  entry: { submitted: boolean; score: number };
   standings: Competition["standings"];
 }
 
 const mockAnswers = new Map<string, Record<string, number>>();
+const mockSubmitted = new Set<string>();
 let mockScoreShift = 0;
 
 async function withinArenaTimeout<T>(operation: Promise<T>): Promise<T> {
@@ -194,6 +196,7 @@ export async function enterCompetitionArena(competitionId: string): Promise<Aren
         ...(topic ? { topic } : {}),
       })),
       answers: mockAnswers.get(competitionId) ?? {},
+      entry: { submitted: mockSubmitted.has(competitionId), score: 825 },
       standings: competition.standings.map((entry, index) => entry.isCurrentUser ? entry : { ...entry, score: entry.score + ((mockScoreShift + index) % 3) * 10 }),
     };
   }
@@ -212,6 +215,9 @@ export async function saveCompetitionAnswer(competitionId: string, questionId: s
 }
 
 export async function submitCompetitionArena(competitionId: string) {
-  if (!LIVE) return { score: 825, rank: 8, participantCount: 86, standings: mockCompetitions.find((item) => item.id === competitionId)?.standings ?? [] };
+  if (!LIVE) {
+    mockSubmitted.add(competitionId);
+    return { score: 825, rank: 8, participantCount: 86, standings: mockCompetitions.find((item) => item.id === competitionId)?.standings ?? [] };
+  }
   return api.post<{ score: number; rank: number | null; participantCount: number; standings: Competition["standings"] }>(`/competitions/${competitionId}/submit`);
 }

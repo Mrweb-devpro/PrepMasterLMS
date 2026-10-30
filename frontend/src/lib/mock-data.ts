@@ -85,6 +85,7 @@ export type CompetitionStatus = "scheduled" | "live" | "completed" | "cancelled"
 export interface CompetitionStanding {
   rank: number;
   name: string;
+  avatarUrl?: string;
   score: number;
   speedSeconds: number;
   isCurrentUser?: boolean;

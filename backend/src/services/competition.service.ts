@@ -167,7 +167,7 @@ type CompetitionRow = {
     score: number;
     speed_seconds: number;
     final_rank: number | null;
-    profiles: { first_name: string; last_name: string } | null;
+    profiles: { first_name: string; last_name: string; avatar_url: string | null } | null;
   }[];
 };
 
@@ -177,7 +177,7 @@ export async function listCompetitions(userId: string, isAdmin = false) {
   const rows = must<CompetitionRow[]>(
     await db
       .from("competitions")
-      .select("*, courses(code), cbts!competitions_cbt_id_fkey(competition_id), competition_entries(user_id, score, speed_seconds, final_rank, profiles(first_name, last_name))")
+      .select("*, courses(code), cbts!competitions_cbt_id_fkey(competition_id), competition_entries(user_id, score, speed_seconds, final_rank, profiles(first_name, last_name, avatar_url))")
       .neq("status", "cancelled")
       .order("starts_at", { ascending: false }),
   );
@@ -195,6 +195,7 @@ export async function listCompetitions(userId: string, isAdmin = false) {
       .map((entry, index) => ({
         rank: index + 1,
         name: [entry.profiles?.first_name, entry.profiles?.last_name].filter(Boolean).join(" ") || "Student",
+        ...(entry.profiles?.avatar_url ? { avatarUrl: entry.profiles.avatar_url } : {}),
         score: entry.score,
         speedSeconds: Number(entry.speed_seconds),
         ...(entry.user_id === userId ? { isCurrentUser: true } : {}),
@@ -369,16 +370,26 @@ function assertArenaOpen(competition: ArenaCompetition) {
 }
 
 async function standingsFor(competitionId: string, currentUserId: string) {
-  const rows = must<{ user_id: string; score: number; speed_seconds: number; final_rank: number | null; profiles: { first_name: string; last_name: string }[] | null }[]>(
-    await db.from("competition_entries").select("user_id, score, speed_seconds, final_rank, profiles(first_name, last_name)").eq("competition_id", competitionId),
+  const rows = must<{
+    user_id: string;
+    score: number;
+    speed_seconds: number;
+    final_rank: number | null;
+    profiles: { first_name: string; last_name: string; avatar_url: string | null } | { first_name: string; last_name: string; avatar_url: string | null }[] | null;
+  }[]>(
+    await db.from("competition_entries").select("user_id, score, speed_seconds, final_rank, profiles(first_name, last_name, avatar_url)").eq("competition_id", competitionId),
   );
-  return rows.sort((a, b) => b.score - a.score || Number(a.speed_seconds) - Number(b.speed_seconds) || a.user_id.localeCompare(b.user_id)).map((row, index) => ({
-    rank: index + 1,
-    name: [row.profiles?.[0]?.first_name, row.profiles?.[0]?.last_name].filter(Boolean).join(" ") || "Student",
-    score: row.score,
-    speedSeconds: Number(row.speed_seconds),
-    ...(row.user_id === currentUserId ? { isCurrentUser: true } : {}),
-  }));
+  return rows.sort((a, b) => b.score - a.score || Number(a.speed_seconds) - Number(b.speed_seconds) || a.user_id.localeCompare(b.user_id)).map((row, index) => {
+    const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
+    return {
+      rank: index + 1,
+      name: [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || "Student",
+      ...(profile?.avatar_url ? { avatarUrl: profile.avatar_url } : {}),
+      score: row.score,
+      speedSeconds: Number(row.speed_seconds),
+      ...(row.user_id === currentUserId ? { isCurrentUser: true } : {}),
+    };
+  });
 }
 
 /** Starts an eligible contestant and exposes only public question fields. */
@@ -387,14 +398,15 @@ export async function enterArena(competitionId: string, userId: string) {
   const competition = await getArenaCompetition(competitionId);
   assertArenaOpen(competition);
   const entry = await getEntry(competitionId, userId);
-  if (entry.submitted_at) throw conflict("You have already completed this competition.");
   const startedAt = entry.started_at ?? new Date().toISOString();
   if (!entry.started_at) await db.from("competition_entries").update({ started_at: startedAt }).eq("id", entry.id);
-  const questions = await questionsForEntry(competition, entry);
+  const submitted = Boolean(entry.submitted_at);
+  const questions = submitted ? [] : await questionsForEntry(competition, entry);
   return {
     competition: { id: competition.id, title: competition.title, deadline: new Date(deadlineFor(competition)).toISOString() },
     questions,
     answers: entry.answers ?? {},
+    entry: { submitted, score: entry.score },
     standings: await standingsFor(competitionId, userId),
   };
 }
