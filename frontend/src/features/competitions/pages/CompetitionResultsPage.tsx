@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import confetti from "canvas-confetti";
 import { ArrowLeft, Award, Crown, Trophy } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Card, EmptyState, PageHeader, StatusPill } from "@/components/prep/bits";
 import type { CompetitionStanding } from "@/lib/mock-data";
@@ -47,11 +48,14 @@ function StandingRow({ entry }: { entry: CompetitionStanding }) {
 }
 
 function YourStandingBar({ entry }: { entry: CompetitionStanding }) {
-  return <div className="fixed inset-x-0 bottom-0 z-30 border-t border-primary/30 bg-surface/95 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-10px_28px_rgb(0_0_0_/_0.12)] backdrop-blur sm:px-5">
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  return createPortal(<div className="fixed inset-x-0 bottom-0 z-50 border-t border-primary/30 bg-surface/95 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-10px_28px_rgb(0_0_0_/_0.12)] backdrop-blur sm:px-5">
     <div className="mx-auto max-w-2xl rounded-xl border border-border bg-surface p-2.5 shadow-sm sm:p-3">
     <div className="flex items-center gap-2.5 sm:gap-3"><span className="flex min-w-12 items-center justify-center rounded-lg bg-primary-soft px-2 py-2 font-display text-lg font-bold text-primary">#{entry.rank}</span><CompetitionAvatar name={entry.name} avatarUrl={entry.avatarUrl} className="size-10 text-xs sm:size-11" /><div className="min-w-0 flex-1"><div className="flex min-w-0 items-center gap-1.5"><span className="truncate text-sm font-semibold text-foreground">{entry.name}</span><span className="rounded-full bg-primary-soft px-1.5 py-0.5 text-2xs font-bold uppercase tracking-wide text-primary">You</span></div><p className="truncate text-xs text-text-secondary">Score: {entry.score.toLocaleString()} pts <span className="px-1">•</span> Time: {duration(entry.speedSeconds)}</p></div></div>
     </div>
-  </div>;
+  </div>, document.body);
 }
 
 /** Shows a completed contest's final podium and complete result board. */
