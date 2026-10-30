@@ -147,7 +147,7 @@ export async function listCompetitions(userId: string, isAdmin = false) {
   const rows = must<CompetitionRow[]>(
     await db
       .from("competitions")
-      .select("*, courses(code), cbts(competition_id), competition_entries(user_id, score, speed_seconds, final_rank, profiles(first_name, last_name))")
+      .select("*, courses(code), cbts!competitions_cbt_id_fkey(competition_id), competition_entries(user_id, score, speed_seconds, final_rank, profiles(first_name, last_name))")
       .neq("status", "cancelled")
       .order("starts_at", { ascending: false }),
   );
