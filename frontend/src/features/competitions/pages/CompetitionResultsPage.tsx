@@ -1,8 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import confetti from "canvas-confetti";
 import { ArrowLeft, Award, Crown, Trophy } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, EmptyState, PageHeader, StatusPill } from "@/components/prep/bits";
 import type { CompetitionStanding } from "@/lib/mock-data";
@@ -48,14 +47,9 @@ function StandingRow({ entry }: { entry: CompetitionStanding }) {
 }
 
 function YourStandingBar({ entry }: { entry: CompetitionStanding }) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  if (!mounted) return null;
-  return createPortal(<div className="fixed inset-x-0 bottom-0 z-50 border-t border-primary/30 bg-surface/95 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-10px_28px_rgb(0_0_0_/_0.12)] backdrop-blur sm:px-5 lg:left-64">
-    <div className="mx-auto max-w-2xl rounded-xl border border-border bg-surface p-2.5 shadow-sm sm:p-3">
+  return <div className="rounded-xl border border-primary/30 bg-surface p-2.5 shadow-sm sm:p-3">
     <div className="flex items-center gap-2.5 sm:gap-3"><span className="flex min-w-12 items-center justify-center rounded-lg bg-primary-soft px-2 py-2 font-display text-lg font-bold text-primary">#{entry.rank}</span><CompetitionAvatar name={entry.name} avatarUrl={entry.avatarUrl} className="size-10 text-xs sm:size-11" /><div className="min-w-0 flex-1"><div className="flex min-w-0 items-center gap-1.5"><span className="truncate text-sm font-semibold text-foreground">{entry.name}</span><span className="rounded-full bg-primary-soft px-1.5 py-0.5 text-2xs font-bold uppercase tracking-wide text-primary">You</span></div><p className="truncate text-xs text-text-secondary">Score: {entry.score.toLocaleString()} pts <span className="px-1">•</span> Time: {duration(entry.speedSeconds)}</p></div></div>
-    </div>
-  </div>, document.body);
+  </div>;
 }
 
 /** Shows a completed contest's final podium and complete result board. */
@@ -77,7 +71,7 @@ export function CompetitionResultsPage({ id }: { id: string }) {
   if (query.isPending) return <div className="h-56 animate-pulse rounded-lg bg-surface-subtle" />;
   if (query.isError || !competition || competition.status !== "completed") return <EmptyState title="Results not available" description="This contest does not have a published result board yet." action={<Button asChild variant="outline"><Link to="/competitions"><ArrowLeft className="size-4" />Back to competitions</Link></Button>} />;
 
-  return <div className="space-y-7 pb-24">
+  return <div className="space-y-7 pb-10">
     <PageHeader title="Hall of Fame" subtitle={`${competition.courseCode} ${competition.title} · final standings`} action={<Button asChild variant="outline"><Link to="/competitions"><ArrowLeft className="size-4" />All competitions</Link></Button>} />
     <Card className="overflow-hidden p-5 sm:p-7"><div className="flex items-start justify-between gap-3"><div><StatusPill tone="success">Results final</StatusPill><h2 className="mt-3 font-display text-xl font-semibold text-foreground">{competition.title}</h2><p className="mt-1 text-sm text-text-secondary">{competition.participantCount} participants · final scores</p></div><Trophy className="size-9 text-gold-text" /></div>{podium.length ? <div className="mx-auto mt-14 grid max-w-xl grid-cols-3 items-end gap-1.5 sm:mt-16 sm:gap-4">{[podium[1], podium[0], podium[2]].filter(Boolean).map((entry) => <PodiumColumn key={entry.rank} entry={entry} />)}</div> : <EmptyState className="mt-6" title="No final standings yet" />}</Card>
     <section><div className="mb-3 flex items-center justify-between"><h2 className="font-display text-lg font-semibold text-foreground">Final standings</h2><span className="text-xs text-text-secondary">{competition.participantCount} players</span></div><Card className="overflow-hidden p-0"><div className="grid grid-cols-[2rem_minmax(0,1fr)_auto] gap-2 border-b border-border bg-surface-subtle px-3 py-2 text-2xs font-semibold uppercase tracking-wider text-text-muted sm:grid-cols-[3rem_minmax(0,1fr)_9rem] sm:px-4"><span>Rank</span><span>Player</span><span className="text-right">Points / time</span></div>{remaining.length ? remaining.map((entry) => <StandingRow key={`${entry.rank}-${entry.name}`} entry={entry} />) : <div className="px-4 py-8 text-center text-sm text-text-secondary">Only the podium finishers took part in this contest.</div>}</Card></section>
