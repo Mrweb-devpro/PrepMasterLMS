@@ -15,15 +15,18 @@ async function itemOf(itemType: ItemType, itemId: string) {
       mode: "practice" | "live";
       closes_at: string | null;
       published: boolean;
+      competition_id: string | null;
+      releases_at: string | null;
       paused: boolean;
     }>(
       await db
         .from("cbts")
-        .select("price_kobo, title, mode, closes_at, published, paused")
+        .select("price_kobo, title, mode, closes_at, published, paused, competition_id, releases_at")
         .eq("id", itemId)
         .maybeSingle(),
       "Item not found.",
     );
+    if (row.competition_id && (!row.releases_at || new Date(row.releases_at).getTime() > Date.now())) throw badRequest("This CBT is currently unavailable.");
     if (!row.published || row.paused) throw badRequest("This CBT is currently unavailable.");
     if (row.mode === "live" && row.closes_at && new Date(row.closes_at).getTime() <= Date.now()) {
       throw badRequest("This live CBT has ended and can no longer be purchased.");

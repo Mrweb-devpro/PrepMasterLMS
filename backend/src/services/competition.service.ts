@@ -1,4 +1,4 @@
-import { badRequest, conflict, forbidden, must } from "../lib/errors.js";
+import { badRequest, conflict, forbidden, must, notFound } from "../lib/errors.js";
 import type { z } from "zod";
 import type { updateCompetitionSchema } from "../validators/competition.validator.js";
 import { db } from "../lib/supabase.js";
@@ -16,6 +16,7 @@ type CompetitionSettingsRow = {
   cbt_id: string | null;
   starts_at: string;
   duration_minutes: number;
+  ends_at: string | null;
   status: "scheduled" | "live" | "completed" | "cancelled";
 };
 
@@ -64,22 +65,16 @@ export async function updateCompetition(id: string, patch: z.infer<typeof update
   const mapping = { title: "title", description: "description", courseId: "course_id", cbtId: "cbt_id", startsAt: "starts_at", durationMinutes: "duration_minutes", level: "level", prizePoolNaira: "prize_pool_naira", prizeDescription: "prize_description", questionLimit: "question_limit" } as const;
   for (const key of Object.keys(mapping) as (keyof typeof mapping)[]) if (patch[key] !== undefined) updates[mapping[key]] = patch[key];
   const now = Date.now();
-  const existingEndsAt = new Date(existing.starts_at).getTime() + existing.duration_minutes * 60_000;
-  const isLive = existing.status !== "cancelled" && now >= new Date(existing.starts_at).getTime() && now < existingEndsAt;
-  const changesStartTime =
-    patch.startsAt !== undefined && new Date(patch.startsAt).getTime() !== new Date(existing.starts_at).getTime();
-  // During a live contest, a duration change means "minutes remaining". Moving
-  // the effective start to now keeps the existing deadline calculation intact.
-  const startsAt = changesStartTime
-    ? patch.startsAt!
-    : isLive && patch.durationMinutes !== undefined
-      ? new Date(now).toISOString()
-      : existing.starts_at;
+  const startsAt = patch.startsAt ?? existing.starts_at;
   const durationMinutes = patch.durationMinutes ?? existing.duration_minutes;
+  // A normal settings save never restarts the clock. Live edits use an explicit closing time.
+  const scheduleChanged = patch.startsAt !== undefined || patch.durationMinutes !== undefined;
+  const endsAt = patch.endsAt ?? (scheduleChanged
+    ? new Date(new Date(startsAt).getTime() + durationMinutes * 60_000).toISOString()
+    : existing.ends_at ?? new Date(new Date(startsAt).getTime() + durationMinutes * 60_000).toISOString());
+  if (new Date(endsAt).getTime() <= new Date(startsAt).getTime()) throw badRequest("Closing time must be after the start time.");
+  if (patch.endsAt !== undefined || scheduleChanged) updates.ends_at = endsAt;
   const courseId = patch.courseId !== undefined ? patch.courseId : existing.course_id;
-  if (isLive && patch.durationMinutes !== undefined && !changesStartTime) {
-    updates.starts_at = startsAt;
-  }
   const changesQuestionBank =
     patch.questionSource !== undefined ||
     patch.customQuestions !== undefined ||
@@ -122,24 +117,14 @@ export async function updateCompetition(id: string, patch: z.infer<typeof update
         durationMinutes,
         questions,
       });
-      const releasesAt = releaseAtFor(startsAt, durationMinutes);
-      await db.from("cbts").update({ course_id: courseId, releases_at: releasesAt, published: new Date(releasesAt).getTime() <= Date.now() }).eq("id", linked.data.id);
       updates.cbt_id = linked.data.id;
     } else {
       const cbt = await createCustomPracticeSet({ competitionId: id, courseId, title: patch.title ?? existing.title, startsAt, durationMinutes, questions });
       updates.cbt_id = cbt.id;
     }
     updates.question_limit = null;
-  } else if (existing.cbt_id && (patch.startsAt !== undefined || patch.durationMinutes !== undefined || patch.title !== undefined || patch.courseId !== undefined)) {
-    const linked = await db.from("cbts").select("id, competition_id").eq("id", existing.cbt_id).maybeSingle();
-    if (linked.error) throw new Error(linked.error.message);
-    if (linked.data?.competition_id === id) {
-      const releasesAt = releaseAtFor(startsAt, durationMinutes);
-      await db.from("cbts").update({ title: `🏆 Practice: ${patch.title ?? existing.title}`, ...(courseId ? { course_id: courseId } : {}), releases_at: releasesAt, published: new Date(releasesAt).getTime() <= Date.now() }).eq("id", linked.data.id);
-    }
   }
-  const endsAt = new Date(startsAt).getTime() + durationMinutes * 60_000;
-  if (existing.status !== "cancelled") updates.status = now >= endsAt ? "completed" : now >= new Date(startsAt).getTime() ? "live" : "scheduled";
+  if (existing.status !== "cancelled") updates.status = now >= new Date(endsAt).getTime() ? "completed" : now >= new Date(startsAt).getTime() ? "live" : "scheduled";
   const query = db.from("competitions").update(updates).eq("id", id).eq("starts_at", existing.starts_at).eq("duration_minutes", existing.duration_minutes);
   const result = await query.select("id").maybeSingle();
   if (result.error) throw new Error(result.error.message);
@@ -157,6 +142,7 @@ type CompetitionRow = {
   question_limit: number | null;
   starts_at: string;
   duration_minutes: number;
+  ends_at: string | null;
   level: string;
   prize_pool_naira: number;
   status: "scheduled" | "live" | "completed" | "cancelled";
@@ -166,6 +152,8 @@ type CompetitionRow = {
     user_id: string;
     score: number;
     speed_seconds: number;
+    started_at: string | null;
+    submitted_at: string | null;
     final_rank: number | null;
     profiles: { first_name: string; last_name: string; avatar_url: string | null } | null;
   }[];
@@ -177,23 +165,29 @@ export async function listCompetitions(userId: string, isAdmin = false) {
   const rows = must<CompetitionRow[]>(
     await db
       .from("competitions")
-      .select("*, courses(code), cbts!competitions_cbt_id_fkey(competition_id), competition_entries(user_id, score, speed_seconds, final_rank, profiles(first_name, last_name, avatar_url))")
+      .select("*, courses(code), cbts!competitions_cbt_id_fkey(competition_id), competition_entries(user_id, score, speed_seconds, started_at, submitted_at, final_rank, profiles(first_name, last_name, avatar_url))")
       .neq("status", "cancelled")
       .order("starts_at", { ascending: false }),
   );
-  return rows.filter((row) => isAdmin || row.level === "all" || row.level === profile?.level).map((competition) => {
+  return rows.filter((row) => isAdmin || row.level === "all" || row.level === profile?.level || row.competition_entries.some((entry) => entry.user_id === userId && entry.started_at)).map((competition) => {
     const start = new Date(competition.starts_at).getTime();
-    const end = start + competition.duration_minutes * 60_000;
+    const end = competition.ends_at ? new Date(competition.ends_at).getTime() : start + competition.duration_minutes * 60_000;
     const effectiveStatus =
       (competition.status === "scheduled" || competition.status === "live") && Date.now() >= end
         ? "completed"
         : competition.status === "scheduled" && Date.now() >= start
           ? "live"
           : competition.status;
-    const standings = [...competition.competition_entries]
-      .sort((left, right) => right.score - left.score || Number(left.speed_seconds) - Number(right.speed_seconds) || left.user_id.localeCompare(right.user_id))
+    const standings = competition.competition_entries.map((entry) => ({ ...entry,
+      speed_seconds: effectiveStatus === "completed" && entry.started_at && !entry.submitted_at
+        ? Math.max(0, Math.floor((end - new Date(entry.started_at).getTime()) / 1000)) : Number(entry.speed_seconds),
+    }))
+      .sort((left, right) => right.score - left.score || Number(Boolean(right.started_at)) - Number(Boolean(left.started_at)) || Number(left.speed_seconds) - Number(right.speed_seconds) || left.user_id.localeCompare(right.user_id))
       .map((entry, index) => ({
         rank: index + 1,
+        userId: entry.user_id,
+        started: Boolean(entry.started_at),
+        submittedAt: entry.submitted_at,
         name: [entry.profiles?.first_name, entry.profiles?.last_name].filter(Boolean).join(" ") || "Student",
         ...(entry.profiles?.avatar_url ? { avatarUrl: entry.profiles.avatar_url } : {}),
         score: entry.score,
@@ -212,6 +206,8 @@ export async function listCompetitions(userId: string, isAdmin = false) {
       ...(competition.cbt_id ? { cbtId: competition.cbt_id } : {}),
       startsAt: competition.starts_at,
       durationMinutes: competition.duration_minutes,
+      endsAt: new Date(end).toISOString(),
+      hasStarted: competition.competition_entries.some((entry) => Boolean(entry.started_at)),
       level: competition.level,
       prizePoolNaira: competition.prize_pool_naira,
       status: effectiveStatus,
@@ -288,160 +284,95 @@ export async function createCompetition(input: {
     durationMinutes: input.durationMinutes,
     questions: input.customQuestions!,
   });
-  await db.from("competitions").update({ cbt_id: cbt.id }).eq("id", competition.id);
+  must(await db.from("competitions").update({ cbt_id: cbt.id }).eq("id", competition.id).select("id").single());
   return { ...competition, cbt_id: cbt.id };
 }
 
 type ArenaCompetition = {
-  id: string;
-  cbt_id: string | null;
-  title: string;
-  starts_at: string;
-  duration_minutes: number;
-  question_limit: number | null;
+  id: string; cbt_id: string | null; title: string; starts_at: string;
+  duration_minutes: number; ends_at: string | null; scoring_ends_at: string | null;
+  question_limit: number | null; level: string;
   status: "scheduled" | "live" | "completed" | "cancelled";
 };
 type ArenaEntry = {
-  id: string;
-  started_at: string | null;
-  submitted_at: string | null;
-  score: number;
-  answers: Record<string, number>;
-  question_answered_at: Record<string, string>;
-  question_ids: string[];
+  id: string; started_at: string | null; submitted_at: string | null; score: number;
+  answers: Record<string, number | null>; next_index: number;
+  question_snapshot: { id: string; text: string; options: string[]; topic: string; answer_index: number }[];
 };
+const deadlineFor = (competition: ArenaCompetition) => competition.ends_at
+  ? new Date(competition.ends_at).getTime()
+  : new Date(competition.starts_at).getTime() + competition.duration_minutes * 60_000;
 
-const deadlineFor = (competition: ArenaCompetition) =>
-  new Date(competition.starts_at).getTime() + competition.duration_minutes * 60_000;
-
-async function getArenaCompetition(competitionId: string) {
-  return must<ArenaCompetition>(
-    await db.from("competitions").select("id, cbt_id, title, starts_at, duration_minutes, question_limit, status").eq("id", competitionId).maybeSingle(),
-    "Competition not found.",
-  );
+async function getArenaCompetition(id: string) {
+  return must<ArenaCompetition>(await db.from("competitions").select("*").eq("id", id).maybeSingle(), "Competition not found.");
 }
 
-async function getEntry(competitionId: string, userId: string) {
-  const fields = "id, started_at, submitted_at, score, answers, question_answered_at, question_ids";
-  const { data: existing, error: existingError } = await db.from("competition_entries").select(fields).eq("competition_id", competitionId).eq("user_id", userId).maybeSingle();
-  if (existingError) throw new Error(existingError.message);
-  if (existing) return existing;
-  const created = await db.from("competition_entries").upsert(
-    { competition_id: competitionId, user_id: userId },
-    { onConflict: "competition_id,user_id", ignoreDuplicates: true },
-  ).select(fields).maybeSingle();
-  if (created.data) return created.data as ArenaEntry;
-  return must<ArenaEntry>(
-    await db.from("competition_entries").select(fields).eq("competition_id", competitionId).eq("user_id", userId).single(),
-  );
-}
-
-/** Chooses a question subset once and stores its ids so refreshes cannot reshuffle a live arena. */
-async function questionsForEntry(competition: ArenaCompetition, entry: ArenaEntry) {
-  const all = must<{ id: string; position: number; text: string; options: string[]; topic: string }[]>(
-    await db.from("cbt_questions").select("id, position, text, options, topic").eq("cbt_id", competition.cbt_id!).order("position"),
-  );
-  if (!all.length) throw badRequest("This competition's question bank has no questions.");
-  let ids = entry.question_ids ?? [];
-  if (!ids.length) {
-    const limit = Math.min(competition.question_limit ?? all.length, all.length);
-    ids = [...all].sort(() => Math.random() - 0.5).slice(0, limit).map((question) => question.id);
-    const { error } = await db.from("competition_entries").update({ question_ids: ids }).eq("id", entry.id);
-    if (error) throw new Error(error.message);
+async function arenaAction<T>(competitionId: string, userId: string, action: string, questionId?: string, selectedIndex?: number | null): Promise<T> {
+  const { data, error } = await db.rpc("competition_arena_action", {
+    p_competition_id: competitionId, p_user_id: userId, p_action: action,
+    p_question_id: questionId ?? null, p_selected_index: selectedIndex ?? null,
+  });
+  if (error) {
+    if (error.message === "Competition not found.") throw notFound(error.message);
+    if (error.message.includes("different study level")) throw forbidden(error.message);
+    if (error.code === "P0001") throw conflict(error.message);
+    throw new Error("The arena could not save your progress. Please try again.");
   }
-  const byId = new Map(all.map((question) => [question.id, question]));
-  // Older edits could rebuild a custom bank and replace its question IDs after
-  // entrants had started. Recover those entries from the current bank instead
-  // of leaving the arena with an empty question set.
-  if (ids.some((id) => !byId.has(id))) {
-    const limit = Math.min(competition.question_limit ?? all.length, all.length);
-    ids = all.slice(0, limit).map((question) => question.id);
-    const { error } = await db.from("competition_entries").update({ question_ids: ids }).eq("id", entry.id);
-    if (error) throw new Error(error.message);
-  }
-  return ids.map((id) => byId.get(id)).filter((question): question is (typeof all)[number] => Boolean(question));
+  return data as T;
 }
 
-function assertArenaOpen(competition: ArenaCompetition) {
-  const start = new Date(competition.starts_at).getTime();
-  if (competition.status === "cancelled" || Date.now() < start) throw conflict("This competition has not started yet.");
-  if (competition.status === "completed" || Date.now() >= deadlineFor(competition)) throw conflict("This competition has ended.");
-  if (!competition.cbt_id) throw badRequest("This competition does not have a question bank yet.");
-}
-
-async function standingsFor(competitionId: string, currentUserId: string) {
+async function standingsFor(competitionId: string, currentUserId: string, competition: ArenaCompetition) {
   const rows = must<{
-    user_id: string;
-    score: number;
-    speed_seconds: number;
-    final_rank: number | null;
+    user_id: string; score: number; speed_seconds: number; started_at: string | null; submitted_at: string | null;
     profiles: { first_name: string; last_name: string; avatar_url: string | null } | { first_name: string; last_name: string; avatar_url: string | null }[] | null;
-  }[]>(
-    await db.from("competition_entries").select("user_id, score, speed_seconds, final_rank, profiles(first_name, last_name, avatar_url)").eq("competition_id", competitionId),
-  );
-  return rows.sort((a, b) => b.score - a.score || Number(a.speed_seconds) - Number(b.speed_seconds) || a.user_id.localeCompare(b.user_id)).map((row, index) => {
+  }[]>(await db.from("competition_entries").select("user_id, score, speed_seconds, started_at, submitted_at, profiles(first_name, last_name, avatar_url)").eq("competition_id", competitionId));
+  const ended = competition.status === "completed" || Date.now() >= deadlineFor(competition);
+  for (const row of rows) if (ended && row.started_at && !row.submitted_at) row.speed_seconds = Math.max(0, Math.floor((deadlineFor(competition) - new Date(row.started_at).getTime()) / 1000));
+  return rows.sort((a, b) => b.score - a.score || Number(Boolean(b.started_at)) - Number(Boolean(a.started_at)) || Number(a.speed_seconds) - Number(b.speed_seconds) || a.user_id.localeCompare(b.user_id)).map((row, index) => {
     const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
     return {
-      rank: index + 1,
+      rank: index + 1, userId: row.user_id, started: Boolean(row.started_at), submittedAt: row.submitted_at,
       name: [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || "Student",
       ...(profile?.avatar_url ? { avatarUrl: profile.avatar_url } : {}),
-      score: row.score,
-      speedSeconds: Number(row.speed_seconds),
+      score: row.score, speedSeconds: Number(row.speed_seconds),
       ...(row.user_id === currentUserId ? { isCurrentUser: true } : {}),
     };
   });
 }
 
-/** Starts an eligible contestant and exposes only public question fields. */
-export async function enterArena(competitionId: string, userId: string) {
-  await assertEligible(competitionId, userId);
+/** Read-only updates: polling never re-enters the contest or downloads question banks. */
+export async function arenaState(competitionId: string, userId: string) {
   const competition = await getArenaCompetition(competitionId);
-  assertArenaOpen(competition);
-  const entry = await getEntry(competitionId, userId);
-  const startedAt = entry.started_at ?? new Date().toISOString();
-  if (!entry.started_at) await db.from("competition_entries").update({ started_at: startedAt }).eq("id", entry.id);
-  const submitted = Boolean(entry.submitted_at);
-  const questions = submitted ? [] : await questionsForEntry(competition, entry);
+  const entry = must<{ started_at: string | null; submitted_at: string | null; score: number; next_index: number; answers: Record<string, number | null> }[]>(
+    await db.from("competition_entries").select("started_at, submitted_at, score, next_index, answers").eq("competition_id", competitionId).eq("user_id", userId),
+  )[0];
+  if (!entry?.started_at) await assertEligible(competitionId, userId);
+  const stamp = Date.now();
+  const deadline = deadlineFor(competition);
+  const status = competition.status === "cancelled" ? "cancelled" : competition.status === "completed" || stamp >= deadline ? "completed" : stamp < new Date(competition.starts_at).getTime() ? "scheduled" : "live";
   return {
-    competition: { id: competition.id, title: competition.title, deadline: new Date(deadlineFor(competition)).toISOString() },
-    questions,
-    answers: entry.answers ?? {},
-    entry: { submitted, score: entry.score },
-    standings: await standingsFor(competitionId, userId),
+    serverNow: new Date(stamp).toISOString(),
+    competition: { id: competition.id, title: competition.title, startsAt: competition.starts_at, deadline: new Date(deadline).toISOString(), scoringEndsAt: competition.scoring_ends_at, status },
+    entry: { started: Boolean(entry?.started_at), submitted: Boolean(entry?.submitted_at), score: entry?.score ?? 0, nextIndex: entry?.next_index ?? 0 },
+    answers: entry?.answers ?? {}, standings: await standingsFor(competitionId, userId, competition),
   };
 }
 
-/** Saves a first answer only and calculates its score entirely on the server clock. */
-export async function saveArenaAnswer(competitionId: string, userId: string, questionId: string, selectedIndex: number) {
-  await assertEligible(competitionId, userId);
-  const competition = await getArenaCompetition(competitionId);
-  assertArenaOpen(competition);
-  const entry = await getEntry(competitionId, userId);
-  if (entry.submitted_at) throw conflict("This competition entry is complete.");
-  if (entry.answers?.[questionId] !== undefined) return { saved: true, score: entry.score };
-  const question = must<{ cbt_id: string; options: string[]; answer_index: number }>(
-    await db.from("cbt_questions").select("cbt_id, options, answer_index").eq("id", questionId).maybeSingle(),
-    "Question not found.",
-  );
-  if (question.cbt_id !== competition.cbt_id || !entry.question_ids.includes(questionId) || selectedIndex >= question.options.length) throw badRequest("Invalid answer.");
-  const answeredAt = new Date();
-  const secondsRemaining = Math.max(0, Math.floor((deadlineFor(competition) - answeredAt.getTime()) / 1_000));
-  const awarded = selectedIndex === question.answer_index ? 100 + Math.floor(secondsRemaining * 2) : 0;
-  const answers = { ...(entry.answers ?? {}), [questionId]: selectedIndex };
-  const answeredAtByQuestion = { ...(entry.question_answered_at ?? {}), [questionId]: answeredAt.toISOString() };
-  const score = entry.score + awarded;
-  const saved = await db.from("competition_entries").update({ answers, question_answered_at: answeredAtByQuestion, score, speed_seconds: Math.max(0, Math.floor((answeredAt.getTime() - new Date(entry.started_at ?? answeredAt).getTime()) / 1_000)) }).eq("id", entry.id);
-  if (saved.error) throw conflict("Answer could not be saved. The contest may have ended.");
-  return { saved: true, score, awarded };
+/** A single entry request snapshots questions. Answer keys never leave the service. */
+export async function enterArena(competitionId: string, userId: string) {
+  const entry = await arenaAction<ArenaEntry>(competitionId, userId, "enter");
+  return {
+    ...await arenaState(competitionId, userId),
+    questions: entry.submitted_at ? [] : entry.question_snapshot.map(({ answer_index: _answer, ...question }) => question),
+  };
 }
 
-/** Locks a completed entry and returns rank data for the victory screen. */
+export async function saveArenaAnswer(competitionId: string, userId: string, questionId: string, selectedIndex: number | null) {
+  return arenaAction<{ saved: boolean; score: number; selectedIndex: number | null; awarded: number }>(competitionId, userId, "answer", questionId, selectedIndex);
+}
+
 export async function submitArena(competitionId: string, userId: string) {
-  await assertEligible(competitionId, userId);
-  const competition = await getArenaCompetition(competitionId);
-  const entry = await getEntry(competitionId, userId);
-  if (!entry.submitted_at) await db.from("competition_entries").update({ submitted_at: new Date().toISOString() }).eq("id", entry.id);
-  const standings = await standingsFor(competitionId, userId);
-  const mine = standings.find((row) => row.isCurrentUser);
-  return { score: entry.score, rank: mine?.rank ?? null, participantCount: standings.length, standings };
+  const entry = await arenaAction<ArenaEntry>(competitionId, userId, "submit");
+  const standings = await standingsFor(competitionId, userId, await getArenaCompetition(competitionId));
+  return { score: entry.score, rank: standings.find((row) => row.isCurrentUser)?.rank ?? null, participantCount: standings.length, standings };
 }

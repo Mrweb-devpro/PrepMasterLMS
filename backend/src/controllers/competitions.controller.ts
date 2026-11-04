@@ -17,6 +17,9 @@ export const competitionsController = new Hono<AppEnv>()
   .post("/:id/enter", zValidator("param", idParam), async (c) =>
     c.json(await competitions.enterArena(c.req.valid("param").id, c.get("user").id)),
   )
+  .get("/:id/arena", zValidator("param", idParam), async (c) =>
+    c.json(await competitions.arenaState(c.req.valid("param").id, c.get("user").id)),
+  )
   .put("/:id/answers", zValidator("param", idParam), zValidator("json", competitionAnswerBody), async (c) => {
     const body = c.req.valid("json");
     return c.json(await competitions.saveArenaAnswer(c.req.valid("param").id, c.get("user").id, body.questionId, body.selectedIndex));

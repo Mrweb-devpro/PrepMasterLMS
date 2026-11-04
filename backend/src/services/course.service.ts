@@ -31,7 +31,7 @@ export async function catalog(userId: string, isAdmin: boolean) {
     must<Material[]>(await db.from("course_materials").select("*").order("created_at", { ascending: false })),
     must(await (isAdmin
       ? cbtQuery
-      : cbtQuery.or(`published.eq.true,and(competition_id.not.is.null,releases_at.lte.${new Date().toISOString()})`))),
+      : cbtQuery.or(`and(competition_id.is.null,published.eq.true),and(competition_id.not.is.null,releases_at.lte.${new Date().toISOString()})`))),
     library(userId),
     must<{ cbt_id: string }[]>(await db.from("cbt_attempts").select("cbt_id").eq("user_id", userId)),
   ]);

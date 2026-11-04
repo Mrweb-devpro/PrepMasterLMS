@@ -83,6 +83,9 @@ export interface Cbt {
 export type CompetitionStatus = "scheduled" | "live" | "completed" | "cancelled";
 
 export interface CompetitionStanding {
+  userId?: string;
+  started?: boolean;
+  submittedAt?: string | null;
   rank: number;
   name: string;
   avatarUrl?: string;
@@ -92,6 +95,8 @@ export interface CompetitionStanding {
 }
 
 export interface Competition {
+  endsAt?: string;
+  hasStarted?: boolean;
   courseId?: string | null;
   prizeDescription?: string;
   questionSource?: "bank" | "custom";

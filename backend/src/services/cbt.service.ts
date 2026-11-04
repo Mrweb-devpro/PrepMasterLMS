@@ -66,7 +66,7 @@ async function publicQuestions(cbtId: string, isPractice = false): Promise<Publi
 /** Starts or resumes an attempt. Practice attempts have a long server window; their timer is client-configured. */
 export async function startAttempt(cbtId: string, userId: string) {
   const cbt = await getCbt(cbtId);
-  if (!cbt.published && !isReleasedCompetitionPractice(cbt)) throw notFound("CBT not found.");
+  if (cbt.competition_id ? !isReleasedCompetitionPractice(cbt) : !cbt.published) throw notFound("CBT not found.");
   if (cbt.paused) throw forbidden("This CBT is pending release.");
   if (cbt.mode === "live" && new Date(cbt.opens_at).getTime() > now())
     throw forbidden("This CBT hasn't opened yet.");
@@ -467,6 +467,17 @@ export interface CbtPatch {
 /** Edits settings and (optionally) replaces the question list. Works whether the CBT is live or not. */
 export async function updateCbt(cbtId: string, patch: CbtPatch) {
   const existing = await getCbt(cbtId);
+  if (existing.competition_id && patch.published && !isReleasedCompetitionPractice(existing)) {
+    throw conflict("This contest's practice set stays hidden until its release time.");
+  }
+  if (patch.questions) {
+    const linked = must<{ id: string; starts_at: string; duration_minutes: number; ends_at: string | null; competition_entries: { started_at: string | null }[] }[]>(
+      await db.from("competitions").select("id, starts_at, duration_minutes, ends_at, competition_entries(started_at)").eq("cbt_id", cbtId).neq("status", "cancelled"),
+    );
+    if (linked.some((contest) => (contest.ends_at ? new Date(contest.ends_at).getTime() : new Date(contest.starts_at).getTime() + contest.duration_minutes * 60_000) > Date.now() && contest.competition_entries.some((entry) => entry.started_at))) {
+      throw conflict("Students have started this competition. Its question bank is locked until it ends.");
+    }
+  }
   const touchesWindow = patch.opensAt !== undefined || patch.closesAt !== undefined;
   if (existing.mode === "live" && touchesWindow) {
     const closesAt = patch.closesAt !== undefined ? patch.closesAt : existing.closes_at;
@@ -560,6 +571,9 @@ export async function updateCbt(cbtId: string, patch: CbtPatch) {
 }
 
 export async function deleteCbt(cbtId: string) {
+  const { count, error } = await db.from("competitions").select("id", { count: "exact", head: true }).eq("cbt_id", cbtId);
+  if (error) throw new Error(error.message);
+  if (count) throw conflict("This CBT is linked to a competition and cannot be deleted.");
   must(await db.from("cbts").delete().eq("id", cbtId).select("id"));
   return { deleted: true };
 }

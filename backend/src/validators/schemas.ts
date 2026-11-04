@@ -129,7 +129,7 @@ export const competitionBody = z.object({
 });
 export const competitionAnswerBody = z.object({
   questionId: uuid,
-  selectedIndex: z.number().int().min(0).max(5),
+  selectedIndex: z.number().int().min(0).max(5).nullable(),
 });
 
 export const subfolderBody = z.object({ category, slug, name: z.string().min(1).max(80) });

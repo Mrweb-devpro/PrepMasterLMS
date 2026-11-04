@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/features/auth/session";
-import { visibleForLevel } from "../utils/visibility";
-import { createCompetition, enterCompetitionArena, fetchCompetitionQuestionBank, fetchCompetitions, registerForCompetition, saveCompetitionAnswer, submitCompetitionArena, type CreateCompetitionInput } from "../services/competitions.api";
+import { createCompetition, enterCompetitionArena, fetchArenaState, fetchCompetitionQuestionBank, fetchCompetitions, registerForCompetition, submitCompetitionArena, type CreateCompetitionInput } from "../services/competitions.api";
 
 export const competitionsKey = ["competitions"] as const;
 
@@ -34,24 +33,31 @@ export function useCompetitionQuestionBank(cbtId?: string, enabled = true) {
   });
 }
 
+export const arenaKey = (id: string, userId?: string) => [...competitionsKey, "arena", id, userId] as const;
+
 export function useCompetitionArena(competitionId: string) {
   const { user } = useSession();
-  return useQuery({ queryKey: [...competitionsKey, "arena", competitionId, user?.id, user?.level], enabled: !!user, retry: false, queryFn: async () => {
-    const competitions = await fetchCompetitions();
-    const competition = competitions.find((item) => item.id === competitionId);
-    if (!competition || !visibleForLevel(competition, user)) throw new Error("This competition is unavailable for your level.");
-    return enterCompetitionArena(competitionId);
-  }, refetchInterval: 4_000 });
+  return useQuery({
+    queryKey: arenaKey(competitionId, user?.id), enabled: !!user,
+    queryFn: () => fetchArenaState(competitionId, user!.id), retry: false,
+    refetchInterval: (query) => ["completed", "cancelled"].includes(query.state.data?.competition.status ?? "") ? false : 4_000,
+  });
 }
 
-export function useCompetitionAnswer(competitionId: string) {
-  return useMutation({ mutationFn: ({ questionId, selectedIndex }: { questionId: string; selectedIndex: number }) => saveCompetitionAnswer(competitionId, questionId, selectedIndex) });
+export function useArenaQuestions(competitionId: string, enabled: boolean) {
+  const { user } = useSession();
+  return useQuery({
+    queryKey: ["competition-questions", competitionId, user?.id], enabled: enabled && !!user,
+    queryFn: () => enterCompetitionArena(competitionId, user!.id),
+    retry: false, staleTime: Infinity, gcTime: 0, refetchOnWindowFocus: false,
+  });
 }
 
 export function useSubmitCompetition(competitionId: string) {
+  const { user } = useSession();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => submitCompetitionArena(competitionId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [...competitionsKey, "arena", competitionId] }),
+    mutationFn: () => submitCompetitionArena(competitionId, user!.id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: competitionsKey }),
   });
 }
