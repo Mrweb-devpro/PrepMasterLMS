@@ -204,7 +204,9 @@ async function arenaRequest<T>(request: Promise<T>): Promise<T> {
     return await Promise.race([request, new Promise<never>((_, reject) => {
       timeout = setTimeout(() => reject(new Error("The connection is taking too long. Your locked answers will retry automatically.")), 15_000);
     })]);
-  } finally { clearTimeout(timeout); }
+  } finally {
+    if (timeout !== undefined) clearTimeout(timeout);
+  }
 }
 
 export async function fetchArenaState(id: string, userId: string): Promise<ArenaState> {

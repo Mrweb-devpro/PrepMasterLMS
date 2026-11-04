@@ -154,6 +154,7 @@ function ArenaSession({ competitionId }: { competitionId: string }) {
   const timerLabel = `${String(Math.floor(secondsLeft / 60)).padStart(2, "0")}:${String(secondsLeft % 60).padStart(2, "0")}`;
   const leave = async () => {
     if (!isSpectating && status === "live" && !(await confirm({ title: "Leave the arena?", description: "The shared timer will keep running. Your accepted answers stay locked, and you can return before closing.", confirmLabel: "Leave arena", destructive: true }))) return;
+    allowExit.current = true;
     void navigate({ to: "/competitions" });
   };
   return <div className="min-h-screen bg-background">
