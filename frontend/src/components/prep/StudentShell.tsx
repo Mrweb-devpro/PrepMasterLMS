@@ -18,6 +18,7 @@ import { fullName } from "@/features/auth/utils/profile";
 import { ProfileAvatar } from "@/features/auth/components/ProfileAvatar";
 import { useCatalog } from "@/features/catalog/useCatalog";
 import { isAttemptableLiveCbt } from "@/features/cbt/utils/cbt-lifecycle";
+import { HistoryFlyout } from "@/features/history/components/HistoryFlyout";
 import { cn } from "@/lib/utils";
 import { WarningNoticeDialog } from "./WarningNoticeDialog";
 
@@ -93,6 +94,7 @@ export function StudentShell({ children }: { children: ReactNode }) {
       brand={<Brand name="PrepMaster" to="/" />}
       groups={groups}
       footer={<StudentFooter />}
+      topbar={<div className="ml-auto"><HistoryFlyout /></div>}
     >
       {children}
       <WarningNoticeDialog key={user?.id} />
