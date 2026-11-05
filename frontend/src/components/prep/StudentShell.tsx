@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { AppFrame, Brand, type NavGroup, useSidebarCollapsed } from "@/components/layout/AppSidebar";
-import { PythonIcon } from "@/components/common/PythonIcon";
+import { CppIcon } from "@/components/common/CppIcon";
 import { useMainAppGuard } from "@/features/auth/hooks/useGuards";
 import { useSession } from "@/features/auth/session";
 import { fullName } from "@/features/auth/utils/profile";
@@ -84,7 +84,7 @@ export function StudentShell({ children }: { children: ReactNode }) {
       label: "Programs",
       items: [
         { to: isSwRegistered ? "/solidworks" : "/learn-solidworks", label: "SolidWorks", icon: Box },
-        { to: "/python", label: "Python Web Book", icon: PythonIcon, badge: "Soon" },
+        { to: "/books/cpp", label: "C++ Web Book", icon: CppIcon },
       ],
     },
     { label: "Account", items: [{ to: "/account", label: "Settings", icon: Settings }] },
