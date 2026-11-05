@@ -28,6 +28,7 @@ import { Route as AdminSwTasksRouteImport } from './routes/admin.sw-tasks'
 import { Route as AttemptCbtIdRouteImport } from './routes/attempt.$cbtId'
 import { Route as AttemptsIndexRouteImport } from './routes/attempts.index'
 import { Route as AttemptsAttemptIdRouteImport } from './routes/attempts.$attemptId'
+import { Route as BooksCppRouteImport } from './routes/books.cpp'
 import { Route as CbtsIndexRouteImport } from './routes/cbts.index'
 import { Route as CbtsCbtIdRouteImport } from './routes/cbts.$cbtId'
 import { Route as CompetitionsIndexRouteImport } from './routes/competitions.index'
@@ -161,6 +162,11 @@ const AttemptsIndexRoute = AttemptsIndexRouteImport.update({
 const AttemptsAttemptIdRoute = AttemptsAttemptIdRouteImport.update({
   id: '/attempts/$attemptId',
   path: '/attempts/$attemptId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BooksCppRoute = BooksCppRouteImport.update({
+  id: '/books/cpp',
+  path: '/books/cpp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CbtsIndexRoute = CbtsIndexRouteImport.update({
@@ -385,6 +391,7 @@ export interface FileRoutesByFullPath {
   '/admin/sw-tasks': typeof AdminSwTasksRoute
   '/attempt/$cbtId': typeof AttemptCbtIdRoute
   '/attempts/$attemptId': typeof AttemptsAttemptIdRoute
+  '/books/cpp': typeof BooksCppRoute
   '/cbts/$cbtId': typeof CbtsCbtIdRoute
   '/payment/callback': typeof PaymentCallbackRoute
   '/solidworks/premium': typeof SolidworksPremiumRoute
@@ -443,6 +450,7 @@ export interface FileRoutesByTo {
   '/admin/sw-tasks': typeof AdminSwTasksRoute
   '/attempt/$cbtId': typeof AttemptCbtIdRoute
   '/attempts/$attemptId': typeof AttemptsAttemptIdRoute
+  '/books/cpp': typeof BooksCppRoute
   '/cbts/$cbtId': typeof CbtsCbtIdRoute
   '/payment/callback': typeof PaymentCallbackRoute
   '/solidworks/premium': typeof SolidworksPremiumRoute
@@ -504,6 +512,7 @@ export interface FileRoutesById {
   '/admin/sw-tasks': typeof AdminSwTasksRoute
   '/attempt/$cbtId': typeof AttemptCbtIdRoute
   '/attempts/$attemptId': typeof AttemptsAttemptIdRoute
+  '/books/cpp': typeof BooksCppRoute
   '/cbts/$cbtId': typeof CbtsCbtIdRoute
   '/payment/callback': typeof PaymentCallbackRoute
   '/solidworks/premium': typeof SolidworksPremiumRoute
@@ -566,6 +575,7 @@ export interface FileRouteTypes {
     | '/admin/sw-tasks'
     | '/attempt/$cbtId'
     | '/attempts/$attemptId'
+    | '/books/cpp'
     | '/cbts/$cbtId'
     | '/payment/callback'
     | '/solidworks/premium'
@@ -624,6 +634,7 @@ export interface FileRouteTypes {
     | '/admin/sw-tasks'
     | '/attempt/$cbtId'
     | '/attempts/$attemptId'
+    | '/books/cpp'
     | '/cbts/$cbtId'
     | '/payment/callback'
     | '/solidworks/premium'
@@ -684,6 +695,7 @@ export interface FileRouteTypes {
     | '/admin/sw-tasks'
     | '/attempt/$cbtId'
     | '/attempts/$attemptId'
+    | '/books/cpp'
     | '/cbts/$cbtId'
     | '/payment/callback'
     | '/solidworks/premium'
@@ -745,6 +757,7 @@ export interface RootRouteChildren {
   AdminSwTasksRoute: typeof AdminSwTasksRoute
   AttemptCbtIdRoute: typeof AttemptCbtIdRoute
   AttemptsAttemptIdRoute: typeof AttemptsAttemptIdRoute
+  BooksCppRoute: typeof BooksCppRoute
   CbtsCbtIdRoute: typeof CbtsCbtIdRoute
   PaymentCallbackRoute: typeof PaymentCallbackRoute
   SolidworksRegisterRoute: typeof SolidworksRegisterRoute
@@ -908,6 +921,13 @@ declare module '@tanstack/react-router' {
       path: '/attempts/$attemptId'
       fullPath: '/attempts/$attemptId'
       preLoaderRoute: typeof AttemptsAttemptIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/books/cpp': {
+      id: '/books/cpp'
+      path: '/books/cpp'
+      fullPath: '/books/cpp'
+      preLoaderRoute: typeof BooksCppRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cbts/': {
@@ -1250,6 +1270,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminSwTasksRoute: AdminSwTasksRoute,
   AttemptCbtIdRoute: AttemptCbtIdRoute,
   AttemptsAttemptIdRoute: AttemptsAttemptIdRoute,
+  BooksCppRoute: BooksCppRoute,
   CbtsCbtIdRoute: CbtsCbtIdRoute,
   PaymentCallbackRoute: PaymentCallbackRoute,
   SolidworksRegisterRoute: SolidworksRegisterRoute,

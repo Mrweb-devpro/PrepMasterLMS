@@ -1,14 +1,13 @@
-import { Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, Bookmark, BookOpen, Check, ChevronLeft, Lightbulb, Menu, TriangleAlert } from "lucide-react";
-import { useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { ArrowLeft, ArrowRight, Bookmark, BookOpen, Check, Lightbulb, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useSession } from "@/features/auth/session";
 import { cn } from "@/lib/utils";
 import { cppChapters, type CalloutTone } from "../cpp-book.content";
 import { useCppBookProgress, type ReaderFontSize } from "../cpp-book.store";
 import { ChapterNav } from "../components/ChapterNav";
+import { CppBookShell } from "../components/CppBookShell";
 import { CppCodeBlock } from "../components/CppCodeBlock";
 
 const proseSize: Record<ReaderFontSize, string> = { sm: "text-sm leading-7", base: "text-base leading-8", lg: "text-lg leading-9" };
@@ -24,9 +23,7 @@ function ReaderChapters({ activeChapterId, completedChapterIds, selectChapter }:
 
 export function CppBookPage() {
   const { user } = useSession();
-  const navigate = useNavigate();
   const { progress, update } = useCppBookProgress(user?.id);
-  const [chaptersOpen, setChaptersOpen] = useState(false);
   const activeIndex = Math.max(0, cppChapters.findIndex((chapter) => chapter.id === progress.activeChapterId));
   const chapter = cppChapters[activeIndex];
   const readPercent = Math.round((progress.completedChapterIds.length / cppChapters.length) * 100);
@@ -37,7 +34,6 @@ export function CppBookPage() {
 
   const selectChapter = (chapterId: string) => {
     update((current) => ({ ...current, activeChapterId: chapterId }));
-    setChaptersOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   const changeFont = (delta: -1 | 1) => {
@@ -61,39 +57,28 @@ export function CppBookPage() {
     if (nextChapter) window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const renderChapterNav = () => <ReaderChapters activeChapterId={chapter.id} completedChapterIds={progress.completedChapterIds} selectChapter={selectChapter} />;
+  const renderChapterNav = (closeNavigation: () => void) => <ReaderChapters activeChapterId={chapter.id} completedChapterIds={progress.completedChapterIds} selectChapter={(chapterId) => { selectChapter(chapterId); closeNavigation(); }} />;
 
-  return <div className="-mt-6 min-h-[calc(100vh-3.5rem)] md:-mt-8">
+  return <CppBookShell renderChapterNav={renderChapterNav}><div className="min-h-[calc(100vh-3.5rem)]">
     <div className="sticky top-14 z-10 border-b border-border bg-background/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2.5 sm:px-6 md:px-8">
-        <Button type="button" variant="ghost" size="sm" onClick={() => window.history.length > 1 ? window.history.back() : navigate({ to: "/" })}>
-          <ChevronLeft /> <span className="hidden sm:inline">Back</span>
-        </Button>
         <div className="min-w-0 flex-1">
-          <p className="truncate font-display text-sm font-semibold text-foreground">C++ for Engineers</p>
+          <p className="truncate font-display text-sm font-semibold text-foreground">{chapter.title}</p>
           <p className="hidden text-2xs text-text-muted sm:block">{readPercent}% complete</p>
         </div>
         <div className="flex items-center gap-1">
           <Button type="button" variant="ghost" size="sm" className="font-display" onClick={() => changeFont(-1)} disabled={progress.fontSizePreference === "sm"} aria-label="Decrease text size">A−</Button>
           <Button type="button" variant="ghost" size="sm" className="font-display" onClick={() => changeFont(1)} disabled={progress.fontSizePreference === "lg"} aria-label="Increase text size">A+</Button>
           <Button type="button" variant={bookmarked ? "secondary" : "ghost"} size="icon" onClick={toggleBookmark} aria-label={bookmarked ? "Remove bookmark" : "Bookmark chapter"}><Bookmark className={cn(bookmarked && "fill-current text-primary")} /></Button>
-          <Sheet open={chaptersOpen} onOpenChange={setChaptersOpen}>
-            <SheetTrigger asChild><Button type="button" variant="ghost" size="icon" className="lg:hidden" aria-label="Open chapters"><Menu /></Button></SheetTrigger>
-            <SheetContent side="right" className="w-[min(22rem,90vw)] overflow-y-auto p-5"><SheetTitle>C++ chapters</SheetTitle><div className="mt-5">{renderChapterNav()}</div></SheetContent>
-          </Sheet>
         </div>
       </div>
       <div className="h-0.5 bg-surface-subtle"><div className="h-full bg-primary transition-[width] duration-300" style={{ width: `${readPercent}%` }} /></div>
     </div>
 
-    <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[15rem_minmax(0,1fr)] lg:px-8">
-      <aside className="hidden lg:block"><div className="sticky top-28 max-h-[calc(100vh-8rem)] overflow-y-auto pr-2">{renderChapterNav()}</div></aside>
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <article className="mx-auto w-full max-w-3xl">
         <p className="text-xs font-semibold uppercase tracking-wider text-primary">{chapter.module}</p>
-        <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
-          <div><h1 className="font-display text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">{chapter.title}</h1><p className="mt-3 max-w-2xl text-base leading-7 text-text-secondary">{chapter.intro}</p></div>
-          <span className="shrink-0 rounded-full border border-border bg-surface-subtle px-2.5 py-1 text-xs text-text-secondary">{chapter.minutes} min read</span>
-        </div>
+        <div className="mt-3"><h1 className="font-display text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">{chapter.title}</h1><p className="mt-3 max-w-2xl text-base leading-7 text-text-secondary">{chapter.intro}</p></div>
         <div className="mt-10 space-y-10">
           {chapter.sections.map((section) => <section key={section.heading}>
             <h2 className="font-display text-xl font-semibold tracking-tight text-foreground sm:text-2xl">{section.heading}</h2>
@@ -110,5 +95,5 @@ export function CppBookPage() {
         <div className="mt-5 flex justify-end"><Button type="button" onClick={completeAndContinue}>{progress.completedChapterIds.includes(chapter.id) ? <Check /> : <BookOpen />}{completeLabel}</Button></div>
       </article>
     </div>
-  </div>;
+  </div></CppBookShell>;
 }

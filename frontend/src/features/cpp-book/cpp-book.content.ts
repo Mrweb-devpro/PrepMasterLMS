@@ -3,8 +3,8 @@ export type CalloutTone = "tip" | "warning" | "memory";
 export interface CppChapter {
   id: string;
   module: string;
+  navTitle: string;
   title: string;
-  minutes: number;
   intro: string;
   sections: Array<{
     heading: string;
@@ -15,167 +15,194 @@ export interface CppChapter {
   }>;
 }
 
+const lesson = (
+  id: string,
+  module: string,
+  navTitle: string,
+  title: string,
+  intro: string,
+  heading: string,
+  paragraphs: string[],
+  code?: { fileName: string; source: string; output?: string },
+  callout?: { tone: CalloutTone; title: string; body: string },
+): CppChapter => ({ id, module, navTitle, title, intro, sections: [{ heading, paragraphs, ...(code ? { code } : {}), ...(callout ? { callout } : {}) }] });
+
 export const cppChapters: CppChapter[] = [
   {
-    id: "cpp-1-1",
-    module: "Module 1 · Foundations & Compilation",
-    title: "Hello World, g++ & the Build Pipeline",
-    minutes: 6,
-    intro: "Your first C++ program is small, but it introduces the same build process used for engineering software.",
+    id: "cpp-intro",
+    module: "Getting Started",
+    navTitle: "Intro",
+    title: "What is C++?",
+    intro: "C++ is a programming language used to build fast programs, from engineering tools and simulations to embedded systems.",
+    sections: [{
+      heading: "C++ in simple terms",
+      paragraphs: [
+        "C++ lets you write instructions for a computer. It is popular when software needs speed, careful memory use, or direct contact with hardware.",
+        "C++ is a high-level language because people can write readable words and symbols. The compiler translates that code into low-level machine instructions the computer can run.",
+      ],
+      diagram: "C++ code  →  compiler  →  machine instructions  →  computer",
+      callout: { tone: "tip", title: "No experience needed", body: "Start with the small examples. Each lesson builds on the last one." },
+    }],
+  },
+  {
+    id: "cpp-get-started",
+    module: "Getting Started",
+    navTitle: "Get Started",
+    title: "Install C++ and Set Up Your Tools",
+    intro: "You need two things before writing C++: an editor for writing code and a compiler for building it.",
     sections: [
       {
-        heading: "Your first program",
+        heading: "Choose your tools",
         paragraphs: [
-          "A C++ program starts in main(). The compiler turns your source file into a program your computer can run.",
-          "Use #include to bring in the tools for input and output. std::cout writes text to the terminal.",
+          "Use Visual Studio Code as your editor. Then install a C++ compiler approved by your lecturer or school. On Windows, common choices are MSYS2/MinGW-w64 or Visual Studio Build Tools.",
+          "Open a terminal after installation and run g++ --version. A version number means the compiler is ready.",
         ],
-        code: {
-          fileName: "main.cpp",
-          source: '#include <iostream>\n\nint main() {\n  std::cout << "Hello, engineer!\\n";\n  return 0;\n}',
-          output: "Hello, engineer!",
-        },
-        callout: { tone: "tip", title: "Compile it", body: "Run g++ main.cpp -o hello, then run ./hello. The -o option gives the finished program a name." },
+        code: { fileName: "terminal", source: "g++ --version" },
+        callout: { tone: "memory", title: "Two different jobs", body: "VS Code helps you write code. g++ checks and turns that code into a program." },
       },
       {
-        heading: "What happens when you build?",
-        paragraphs: ["Your source code is checked, translated, and linked with library code before it becomes an executable file."],
-        diagram: "main.cpp  →  compiler  →  object code  →  linker  →  program",
+        heading: "Create your first folder",
+        paragraphs: ["Create a folder named cpp-learning. Inside it, create a file named main.cpp. This is where your first C++ program will live."],
+        diagram: "cpp-learning/\n└── main.cpp",
       },
     ],
   },
-  {
-    id: "cpp-1-2",
-    module: "Module 1 · Foundations & Compilation",
-    title: "Primitive Types, sizeof & Streams",
-    minutes: 8,
-    intro: "Numbers have different sizes and meanings. Choosing a suitable type prevents surprising calculations later.",
-    sections: [
-      {
-        heading: "Store the right kind of value",
-        paragraphs: ["int stores whole numbers. double stores decimal values. char stores one character, and bool stores true or false."],
-        code: {
-          fileName: "types.cpp",
-          source: '#include <iostream>\n\nint main() {\n  int bolts = 12;\n  double diameter = 8.5;\n  std::cout << "int uses " << sizeof(int) << " bytes\\n";\n  std::cout << bolts * diameter << " mm\\n";\n}',
-          output: "int uses 4 bytes\n102 mm",
-        },
-        callout: { tone: "warning", title: "Watch integer division", body: "5 / 2 is 2 when both values are int. Use 5.0 / 2 or a double when you need 2.5." },
-      },
-      {
-        heading: "Read input with std::cin",
-        paragraphs: ["std::cin waits for a value typed in the terminal. std::cout displays it back to the user."],
-        code: {
-          fileName: "input.cpp",
-          source: 'double force{};\nstd::cout << "Enter force: ";\nstd::cin >> force;\nstd::cout << "Force = " << force << " N\\n";',
-        },
-      },
-    ],
-  },
-  {
-    id: "cpp-2-1",
-    module: "Module 2 · Memory & Pointers",
-    title: "Stack vs. Heap Memory",
-    minutes: 7,
-    intro: "C++ gives you direct access to memory. First, learn where local values live and when memory must outlast a function.",
-    sections: [
-      {
-        heading: "Two useful places for data",
-        paragraphs: ["Local variables normally live on the stack and disappear when their function ends. Heap memory stays available until it is released or owned by an object."],
-        diagram: "Stack: local variables, automatic cleanup\nHeap: dynamic objects, explicit ownership",
-        callout: { tone: "memory", title: "Engineering rule", body: "Prefer ordinary local objects first. Reach for dynamic memory only when you truly need a longer lifetime or dynamic size." },
-      },
-    ],
-  },
-  {
-    id: "cpp-2-2",
-    module: "Module 2 · Memory & Pointers",
-    title: "Pointers, Dereferencing & References",
-    minutes: 9,
-    intro: "A pointer stores an address. A reference gives another name to an existing value. Both help functions work with real data without unnecessary copies.",
-    sections: [
-      {
-        heading: "Look at an address",
-        paragraphs: ["The & operator gets an address. The * operator follows a pointer to the value stored at that address."],
-        code: {
-          fileName: "pointers.cpp",
-          source: 'int temperature = 25;\nint* sensor = &temperature;\n\n*sensor = 30;\nstd::cout << temperature << " C\\n";',
-          output: "30 C",
-        },
-        callout: { tone: "warning", title: "Never dereference a null pointer", body: "A pointer with no valid address must not be used with *. Check it, or use safer ownership tools." },
-      },
-      {
-        heading: "Use a reference for clear function calls",
-        paragraphs: ["A reference parameter can update the original value without pointer syntax at the call site."],
-        code: { fileName: "reference.cpp", source: "void calibrate(double& value) {\n  value += 0.25;\n}" },
-      },
-    ],
-  },
-  {
-    id: "cpp-2-3",
-    module: "Module 2 · Memory & Pointers",
-    title: "Dynamic Allocation & Memory Leaks",
-    minutes: 8,
-    intro: "Dynamic allocation can be useful, but raw new and delete are easy to misuse. Modern C++ gives you safer tools.",
-    sections: [
-      {
-        heading: "The risky old pattern",
-        paragraphs: ["Every successful new must have one matching delete. Forgetting delete creates a memory leak: memory that your program can no longer use or release."],
-        code: { fileName: "legacy.cpp", source: "double* readings = new double[100];\n// use readings\ndelete[] readings;" },
-        callout: { tone: "memory", title: "Prefer containers", body: "std::vector owns its memory and releases it automatically. In modern C++, it is usually the better default." },
-      },
-    ],
-  },
-  {
-    id: "cpp-3-1",
-    module: "Module 3 · Object-Oriented Engineering",
-    title: "Classes, Constructors & RAII",
-    minutes: 10,
-    intro: "Classes group related data and actions. Constructors prepare an object, while destructors clean up automatically when it leaves scope.",
-    sections: [
-      {
-        heading: "Model a sensor",
-        paragraphs: ["RAII means a resource belongs to an object. When the object is created, it acquires what it needs; when it is destroyed, cleanup happens automatically."],
-        code: {
-          fileName: "sensor.cpp",
-          source: "class Sensor {\n public:\n  explicit Sensor(double offset) : offset_{offset} {}\n  double read(double raw) const { return raw + offset_; }\n\n private:\n  double offset_;\n};",
-        },
-        callout: { tone: "tip", title: "Why this matters", body: "RAII prevents cleanup being forgotten when a function returns early or an error happens." },
-      },
-    ],
-  },
-  {
-    id: "cpp-3-2",
-    module: "Module 3 · Object-Oriented Engineering",
-    title: "Operator Overloading for Engineering Vectors",
-    minutes: 9,
-    intro: "Operator overloading lets your own types behave naturally, so vector addition can read like the mathematics it represents.",
-    sections: [
-      {
-        heading: "Make addition meaningful",
-        paragraphs: ["Only overload operators when the meaning is clear to another engineer reading the code."],
-        code: {
-          fileName: "vector2.cpp",
-          source: "struct Vector2 {\n  double x;\n  double y;\n\n  Vector2 operator+(const Vector2& other) const {\n    return {x + other.x, y + other.y};\n  }\n};",
-        },
-      },
-    ],
-  },
-  {
-    id: "cpp-4-1",
-    module: "Module 4 · Standard Template Library",
-    title: "Vectors, Maps & Algorithms",
-    minutes: 10,
-    intro: "The Standard Template Library gives you tested containers and algorithms, so you can focus on the engineering problem instead of rebuilding basic tools.",
-    sections: [
-      {
-        heading: "Use std::vector and std::sort",
-        paragraphs: ["A vector grows as you add items. Algorithms such as std::sort and std::find work with many containers."],
-        code: {
-          fileName: "stl.cpp",
-          source: "#include <algorithm>\n#include <vector>\n\nstd::vector<double> readings{4.2, 1.8, 3.6};\nstd::sort(readings.begin(), readings.end());",
-          output: "readings: 1.8, 3.6, 4.2",
-        },
-        callout: { tone: "tip", title: "Use the library", body: "Before writing a loop from scratch, check whether the STL already describes what you want to do." },
-      },
-    ],
-  },
+  lesson(
+    "cpp-syntax", "Basics", "Syntax", "C++ Syntax",
+    "Every C++ program follows a small set of rules. Learn the pieces you will see in nearly every program.",
+    "A complete program",
+    ["#include gives your program useful library tools. main() is where a program begins. Curly brackets hold the instructions to run."],
+    { fileName: "main.cpp", source: '#include <iostream>\n\nint main() {\n  std::cout << "Hello World!\\n";\n  return 0;\n}', output: "Hello World!" },
+    { tone: "warning", title: "C++ is case-sensitive", body: "cout and Cout are different names. End ordinary statements with a semicolon." },
+  ),
+  lesson(
+    "cpp-output", "Basics", "Output", "C++ Output",
+    "Use std::cout to display text, numbers, and calculation results in the terminal.",
+    "Print a result",
+    ["The << symbols send values to std::cout. Use \\n to move to a new line."],
+    { fileName: "output.cpp", source: 'double load = 18.5;\nstd::cout << "Load: " << load << " N\\n";', output: "Load: 18.5 N" },
+  ),
+  lesson(
+    "cpp-comments", "Basics", "Comments", "C++ Comments",
+    "Comments explain your thinking to another person reading the code. The compiler ignores them.",
+    "Write helpful notes",
+    ["Use // for a short note on one line. Explain why you made a choice instead of repeating what obvious code already says."],
+    { fileName: "comments.cpp", source: "// Convert kilograms to newtons\ndouble force = mass * 9.81;" },
+    { tone: "tip", title: "Keep comments current", body: "An old comment can be more confusing than no comment at all." },
+  ),
+  lesson(
+    "cpp-variables", "Variables & Data Types", "Variables", "C++ Variables",
+    "A variable is a named place for a value your program needs to remember.",
+    "Create a variable",
+    ["Write the type first, then a clear name, then its starting value. Choose names that explain the measurement or job of the value."],
+    { fileName: "variables.cpp", source: "int boltCount = 12;\ndouble diameter = 8.5;\nchar grade = 'A';" },
+  ),
+  lesson(
+    "cpp-user-input", "Variables & Data Types", "User Input", "C++ User Input",
+    "Use std::cin to accept a value typed by the person running your program.",
+    "Read a measurement",
+    ["std::cin places the entered value inside your variable. Make sure the variable type matches the value you expect."],
+    { fileName: "input.cpp", source: 'double mass{};\nstd::cout << "Enter mass in kg: ";\nstd::cin >> mass;\nstd::cout << "Mass: " << mass << " kg\\n";' },
+  ),
+  lesson(
+    "cpp-data-types", "Variables & Data Types", "Data Types", "C++ Data Types",
+    "A data type tells C++ what kind of value a variable can hold.",
+    "Choose the right type",
+    ["Use int for whole numbers, double for decimal measurements, char for one character, bool for true or false, and std::string for text."],
+    { fileName: "types.cpp", source: "int students = 42;\ndouble voltage = 12.6;\nbool isSafe = true;" },
+    { tone: "warning", title: "Whole-number division", body: "5 / 2 gives 2 because both values are int. Use 5.0 / 2 when you need 2.5." },
+  ),
+  lesson(
+    "cpp-operators", "Variables & Data Types", "Operators", "C++ Operators",
+    "Operators let you calculate, compare values, and combine true or false conditions.",
+    "Calculate and compare",
+    ["Arithmetic operators include +, -, *, /, and %. Comparison operators such as == and < produce true or false."],
+    { fileName: "operators.cpp", source: "double area = length * width;\nbool isLarge = area > 10.0;" },
+  ),
+  lesson(
+    "cpp-strings", "Variables & Data Types", "Strings", "C++ Strings",
+    "A string stores words and sentences, such as a material name or a student's name.",
+    "Work with text",
+    ["Include <string> when you use std::string. The + operator can join pieces of text."],
+    { fileName: "strings.cpp", source: '#include <string>\n\nstd::string material = "Aluminium";\nstd::cout << "Material: " << material << "\\n";' },
+  ),
+  lesson(
+    "cpp-math", "Variables & Data Types", "Math", "C++ Math",
+    "The <cmath> library gives you useful engineering calculations such as square roots and powers.",
+    "Use the math library",
+    ["Functions in std:: use the <cmath> header. For example, std::sqrt finds a square root."],
+    { fileName: "math.cpp", source: "#include <cmath>\n\ndouble hypotenuse = std::sqrt(a * a + b * b);" },
+  ),
+  lesson(
+    "cpp-booleans", "Variables & Data Types", "Booleans", "C++ Booleans",
+    "A boolean stores one of two answers: true or false.",
+    "Ask a yes-or-no question",
+    ["Booleans are useful for checks such as whether a reading is inside a safe range."],
+    { fileName: "booleans.cpp", source: "bool withinLimit = temperature <= maxTemperature;" },
+  ),
+  lesson(
+    "cpp-if-else", "Control Flow", "If...Else", "C++ If...Else",
+    "An if statement lets a program choose what to do when a condition is true or false.",
+    "Make a decision",
+    ["The condition inside parentheses must become true or false. The matching block of code then runs."],
+    { fileName: "if-else.cpp", source: 'if (pressure > limit) {\n  std::cout << "Warning: pressure is high\\n";\n} else {\n  std::cout << "Pressure is safe\\n";\n}' },
+  ),
+  lesson(
+    "cpp-switch", "Control Flow", "Switch", "C++ Switch",
+    "A switch is useful when one value can match several clear options.",
+    "Choose from known options",
+    ["Use break after each case so C++ does not continue into the next case by accident."],
+    { fileName: "switch.cpp", source: 'switch (mode) {\n  case 1: std::cout << "Manual\\n"; break;\n  case 2: std::cout << "Automatic\\n"; break;\n  default: std::cout << "Unknown mode\\n";\n}' },
+  ),
+  lesson(
+    "cpp-while", "Control Flow", "While Loop", "C++ While Loop",
+    "A while loop repeats while its condition remains true.",
+    "Repeat carefully",
+    ["Change something inside the loop so its condition can eventually become false. Otherwise, the loop may never stop."],
+    { fileName: "while.cpp", source: "int attempt = 0;\nwhile (attempt < 3) {\n  ++attempt;\n}" },
+    { tone: "warning", title: "Avoid endless loops", body: "Always check how the loop condition will become false." },
+  ),
+  lesson(
+    "cpp-for", "Control Flow", "For Loop", "C++ For Loop",
+    "A for loop is a compact way to repeat something a known number of times.",
+    "Count through values",
+    ["The first part starts a counter, the second checks when to stop, and the third updates the counter."],
+    { fileName: "for.cpp", source: 'for (int sample = 1; sample <= 5; ++sample) {\n  std::cout << sample << "\\n";\n}' },
+  ),
+  lesson(
+    "cpp-break-continue", "Control Flow", "Break/Continue", "C++ Break and Continue",
+    "break ends a loop early. continue skips the remaining work for one loop cycle.",
+    "Control a loop",
+    ["Use these sparingly. A simple loop condition is often easier to read."],
+    { fileName: "break.cpp", source: "if (reading < 0) {\n  continue; // Ignore an invalid reading\n}" },
+  ),
+  lesson(
+    "cpp-arrays", "Functions & Memory", "Arrays", "C++ Arrays",
+    "An array keeps several values of the same type together in order.",
+    "Store a fixed set",
+    ["Array positions begin at zero. For flexible lists, you will later use std::vector."],
+    { fileName: "arrays.cpp", source: 'double readings[3] = {4.2, 3.8, 4.0};\nstd::cout << readings[0] << "\\n";' },
+  ),
+  lesson(
+    "cpp-functions", "Functions & Memory", "Functions", "C++ Functions",
+    "A function is a named block of code you can run whenever you need the same task done.",
+    "Reuse a calculation",
+    ["Functions make large programs easier to test and understand. Give a function one focused job."],
+    { fileName: "functions.cpp", source: "double area(double length, double width) {\n  return length * width;\n}" },
+  ),
+  lesson(
+    "cpp-references", "Functions & Memory", "References", "C++ References",
+    "A reference is another name for an existing variable. It is useful when a function should update the original value.",
+    "Pass by reference",
+    ["The & in a parameter means the function can work with the caller's original value."],
+    { fileName: "references.cpp", source: "void calibrate(double& value) {\n  value += 0.25;\n}" },
+  ),
+  lesson(
+    "cpp-pointers", "Functions & Memory", "Pointers", "C++ Pointers",
+    "A pointer stores the address of another value. Pointers are powerful, but require careful handling.",
+    "Follow an address",
+    ["& gets a variable's address. * follows a pointer to the value stored at that address."],
+    { fileName: "pointers.cpp", source: "int temperature = 25;\nint* sensor = &temperature;\n*sensor = 30;" },
+    { tone: "memory", title: "Use pointers carefully", body: "Never follow a pointer unless it points to a valid value." },
+  ),
 ];

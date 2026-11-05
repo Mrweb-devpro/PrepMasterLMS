@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { StudentShell } from "@/components/prep/StudentShell";
 import { CppBookPage } from "@/features/cpp-book/pages/CppBookPage";
 import { pageHead } from "@/lib/seo";
 
@@ -9,5 +8,5 @@ export const Route = createFileRoute("/books/cpp")({
 });
 
 function CppBookRoute() {
-  return <StudentShell><CppBookPage /></StudentShell>;
+  return <CppBookPage />;
 }
