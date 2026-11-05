@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, Code2, Menu } from "lucide-react";
+import { ArrowLeft, Menu } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { ProfileAvatar } from "@/features/auth/components/ProfileAvatar";
 import { useMainAppGuard } from "@/features/auth/hooks/useGuards";
@@ -7,6 +7,7 @@ import { useSession } from "@/features/auth/session";
 import { fullName } from "@/features/auth/utils/profile";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { CppIcon } from "@/components/common/CppIcon";
 
 /** A focused program shell for the C++ reader, separate from the student dashboard. */
 export function CppBookShell({ children, renderChapterNav }: { children: ReactNode; renderChapterNav: (closeNavigation: () => void) => ReactNode }) {
@@ -25,7 +26,7 @@ export function CppBookShell({ children, renderChapterNav }: { children: ReactNo
           <ArrowLeft className="size-4" /> Go back to PrepMaster
         </Link>
       </div>
-      <div className="flex items-center gap-2 px-5 pt-5"><Code2 className="size-4 text-primary" /><span className="font-display text-sm font-semibold text-sidebar-foreground">C++ for Engineers</span></div>
+      <div className="flex items-center gap-2 px-5 pt-5"><CppIcon className="size-5" /><span className="font-display text-sm font-semibold text-sidebar-foreground">C++ Web Book</span></div>
       {navigation}
       <div className="border-t border-sidebar-border p-3">
         <Link to="/account" className="flex items-center gap-2.5 rounded-md p-1.5 transition-colors hover:bg-surface-hover">
@@ -44,12 +45,12 @@ export function CppBookShell({ children, renderChapterNav }: { children: ReactNo
             <div className="border-b border-sidebar-border px-3 py-4 pr-12">
               <Link to="/" onClick={() => setNavigationOpen(false)} className="flex h-9 items-center gap-2 rounded-md px-2.5 text-sm text-sidebar-muted transition-colors hover:bg-surface-hover hover:text-sidebar-foreground"><ArrowLeft className="size-4" /> Go back to PrepMaster</Link>
             </div>
-            <div className="flex items-center gap-2 px-5 pt-5"><Code2 className="size-4 text-primary" /><span className="font-display text-sm font-semibold text-sidebar-foreground">C++ for Engineers</span></div>
+            <div className="flex items-center gap-2 px-5 pt-5"><CppIcon className="size-5" /><span className="font-display text-sm font-semibold text-sidebar-foreground">C++ Web Book</span></div>
             {navigation}
             <div className="border-t border-sidebar-border p-3"><Link to="/account" onClick={() => setNavigationOpen(false)} className="flex items-center gap-2.5 rounded-md p-1.5"><ProfileAvatar user={user} /><span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium text-sidebar-foreground">{user ? fullName(user) : ""}</span><span className="block truncate text-2xs text-sidebar-muted">{user?.email}</span></span></Link></div>
           </SheetContent>
         </Sheet>
-        <div className="min-w-0 flex-1"><p className="truncate font-display text-sm font-semibold text-foreground">C++ for Engineers</p><p className="hidden text-2xs text-text-muted sm:block">PrepMaster learning program</p></div>
+        <div className="min-w-0 flex-1"><p className="truncate font-display text-sm font-semibold text-foreground">C++ Web Book</p><p className="hidden text-2xs text-text-muted sm:block">PrepMaster learning program</p></div>
         <ThemeToggle className="hidden sm:inline-flex" />
         <ThemeToggle compact className="sm:hidden" />
       </header>

@@ -3,7 +3,6 @@ import { authController } from "../controllers/auth.controller.js";
 import { attemptsController, cbtsController } from "../controllers/cbts.controller.js";
 import { catalogController, coursesController, materialsController } from "../controllers/courses.controller.js";
 import { paymentsController, paystackWebhook } from "../controllers/payments.controller.js";
-import { pythonController } from "../controllers/python.controller.js";
 import { adminStudentsController, meController } from "../controllers/students.controller.js";
 import { swController } from "../controllers/sw.controller.js";
 import { competitionsController } from "../controllers/competitions.controller.js";
@@ -19,7 +18,6 @@ const protectedRoutes = new Hono<AppEnv>()
   .route("/cbts", cbtsController)
   .route("/attempts", attemptsController)
   .route("/payments", paymentsController)
-  .route("/python", pythonController)
   .route("/competitions", competitionsController)
   .route("/solidworks", swController)
   .route("/admin/students", adminStudentsController);
