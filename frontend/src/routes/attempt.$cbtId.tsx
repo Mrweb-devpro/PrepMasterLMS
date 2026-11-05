@@ -312,8 +312,8 @@ function AttemptPage() {
             isPractice={isPractice}
             instantFeedback={isPractice && activePracticeConfig.feedback === "instant"}
             showExplanation={activePracticeConfig.feedback === "instant"}
-            correctIndex={q.correctIndex}
-            explanation={q.explanation}
+            {...(q.correctIndex !== undefined ? { correctIndex: q.correctIndex } : {})}
+            {...(q.explanation !== undefined ? { explanation: q.explanation } : {})}
             onSelect={(i) => {
               setAnswers((a) => ({ ...a, [q.id]: i }));
               if (LIVE) live.save(q.id, i, liveSubmit);
