@@ -36,6 +36,13 @@ Avatar profile fields: `gender: "male" | "female" | "other" | "prefer_not_to_say
 
 ## Catalog
 
+## Competitions
+
+- `GET /competitions`: admins see all contests; students only see their level or all-level contests, including past results.
+- `POST /competitions/admin`: admin-only. Uses `questionSource: "bank" | "custom"`. Bank competitions provide `cbtId` and optional `questionLimit`; custom competitions provide `courseId` plus `customQuestions` (four choices, correct-answer index, optional explanation). Custom questions create a hidden zero-price practice CBT with a 90-minute post-contest release timestamp.
+- `PATCH /competitions/admin/:id`: admin-only. Any non-cancelled contest accepts settings (`title`, `description`, `courseId`, `cbtId`, `level`, `startsAt`, `durationMinutes`, `prizePoolNaira`, `prizeDescription`, question-source fields) immediately; its lifecycle status is recalculated from the saved schedule.
+- Registration and arena operations enforce the student's profile level server-side. Eligible students can enter a live arena directly; an entry record is created automatically when needed.
+
 | GET | `/catalog` | Role-aware list of courses → subfolders → materials, and CBTs, each with `owned: boolean` and `price` (kobo). Every course includes `level` (`100`–`600`, `Postgraduate`, or `all`) plus `departments: string[]`; `[]` means general/open to all. |
 | --- | ---------- | ------------------------------------------------------------------------------------------------------------- |
 

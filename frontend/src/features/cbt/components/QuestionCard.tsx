@@ -17,6 +17,7 @@ export function QuestionCard({
   showExplanation,
   correctIndex,
   explanation,
+  disabled = false,
 }: {
   question: Question;
   index: number;
@@ -30,6 +31,7 @@ export function QuestionCard({
   /** Present only for practice questions; live questions never receive this value. */
   correctIndex?: number;
   explanation?: string;
+  disabled?: boolean;
 }) {
   const shouldShowExplanation =
     isPractice && instantFeedback && showExplanation !== false && selected !== undefined && !compact;
@@ -55,6 +57,8 @@ export function QuestionCard({
             <button
               key={i}
               type="button"
+              disabled={disabled}
+              aria-pressed={active}
               onClick={() => onSelect(i)}
               className={cn(
                 "flex w-full items-center gap-3 rounded-md border bg-surface text-left transition-all",

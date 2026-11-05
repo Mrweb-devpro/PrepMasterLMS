@@ -8,6 +8,7 @@ import {
   MonitorCheck,
   Settings,
   ShieldCheck,
+  Trophy,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { AppFrame, Brand, type NavGroup, useSidebarCollapsed } from "@/components/layout/AppSidebar";
@@ -21,6 +22,7 @@ import { isAttemptableLiveCbt } from "@/features/cbt/utils/cbt-lifecycle";
 import { HistoryFlyout } from "@/features/history/components/HistoryFlyout";
 import { cn } from "@/lib/utils";
 import { WarningNoticeDialog } from "./WarningNoticeDialog";
+import { TopBroadcastBanner } from "./TopBroadcastBanner";
 
 function StudentFooter() {
   const { user } = useSession();
@@ -73,6 +75,7 @@ export function StudentShell({ children }: { children: ReactNode }) {
         { to: "/", label: "Home", icon: Home, exact: true },
         { to: "/drive", label: "Drive", icon: FolderClosed },
         { to: "/cbts", label: "CBTs", icon: MonitorCheck, liveIndicator: hasLiveCbt },
+        { to: "/competitions", label: "Competitions", icon: Trophy },
         { to: "/attempts", label: "My attempts", icon: History },
         { to: "/library", label: "My Library", icon: BookMarked },
       ],
@@ -95,6 +98,7 @@ export function StudentShell({ children }: { children: ReactNode }) {
       groups={groups}
       footer={<StudentFooter />}
       topbar={<div className="ml-auto"><HistoryFlyout /></div>}
+      announcement={<TopBroadcastBanner />}
     >
       {children}
       <WarningNoticeDialog key={user?.id} />

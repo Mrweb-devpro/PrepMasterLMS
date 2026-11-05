@@ -5,6 +5,7 @@ import { useSession } from "@/features/auth/session";
 import { catalogKey, updateMockMaterial, useCatalogQuery } from "@/features/catalog/useCatalog";
 import { api, toKobo } from "./api/client";
 import { LIVE } from "./api/config";
+import { updateCompetition as saveCompetition, type CompetitionUpdate } from "@/features/competitions/services/competitions.api";
 import {
   cbts as seedCbts,
   courses as seedCourses,
@@ -22,6 +23,7 @@ export interface Warning {
 }
 
 interface AdminState {
+  updateCompetition: (id: string, updates: CompetitionUpdate) => Promise<void>;
   courses: Course[];
   cbts: Cbt[];
   students: Student[];
@@ -94,6 +96,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const [warnings, setWarnings] = useState<Record<string, Warning[]>>({});
 
   const value = useMemo<AdminState>(() => {
+    const updateCompetition = async (id: string, updates: CompetitionUpdate) => {
+      await saveCompetition(id, updates);
+      await qc.invalidateQueries({ queryKey: ["competitions"] });
+    };
     const refreshCatalog = () => qc.invalidateQueries({ queryKey: catalogKey });
     const refreshStudents = () => qc.invalidateQueries({ queryKey: studentsKey });
 
@@ -103,6 +109,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       const liveSuspended = rows.filter((r) => r.suspended_at).map((r) => r.id);
       return {
         courses: liveCourses,
+        updateCompetition,
         cbts: catalog.data?.cbts ?? [],
         students: rows.map((r) => ({
           id: r.id,
@@ -250,6 +257,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       cbts,
       students: seedStudents,
       suspended,
+      updateCompetition,
       addCourse: async (c) => {
         setCourses((p) => [c, ...p]);
         return c.slug;

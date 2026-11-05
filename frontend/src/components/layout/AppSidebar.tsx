@@ -131,6 +131,7 @@ export function AppFrame({
   groups,
   footer,
   topbar,
+  announcement,
   themeClass,
   children,
 }: {
@@ -138,6 +139,7 @@ export function AppFrame({
   groups: NavGroup[];
   footer?: ReactNode;
   topbar?: ReactNode;
+  announcement?: ReactNode;
   /** Theme class re-applied to the mobile drawer (it renders outside the shell). */
   themeClass?: string;
   children: ReactNode;
@@ -172,6 +174,7 @@ export function AppFrame({
         />
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
+        {announcement}
         <header className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-border bg-background/80 px-4 backdrop-blur-md md:px-8">
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
