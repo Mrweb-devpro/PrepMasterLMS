@@ -12,6 +12,8 @@ import { DriveEmptyIllustration } from "@/components/common/EmptyStateIllustrati
 import { PurchaseDialog } from "@/features/drive/components/PurchaseDialog";
 import type { CategorySlug, DriveFile } from "@/lib/mock-data";
 import { usePrep } from "@/lib/prep-store";
+import { useSession } from "@/features/auth/session";
+import { recordHistory } from "@/features/history/history.store";
 
 export const Route = createFileRoute("/drive/$course/$category/$subfolder")({
   head: () => ({
@@ -31,6 +33,7 @@ export const Route = createFileRoute("/drive/$course/$category/$subfolder")({
 function SubfolderPage() {
   const params = Route.useParams();
   const prep = usePrep();
+  const { user } = useSession();
   const [pending, setPending] = useState<DriveFile | null>(null);
   const [viewing, setViewing] = useState<ViewableFile | null>(null);
   const { filesIn, getCategory, getCourse, loading } = useCatalog();
@@ -58,7 +61,20 @@ function SubfolderPage() {
       setPending(file);
       return;
     }
-    loadViewable(file).then(setViewing, (e: Error) => toast.error(e.message));
+    loadViewable(file).then((viewable) => {
+      setViewing(viewable);
+      if (user) {
+        recordHistory(user.id, {
+          kind: "document",
+          targetId: file.id,
+          title: file.name,
+          subtitle: course.code,
+          detail: file.type.toUpperCase(),
+          course: course.code,
+          route: { course: file.courseSlug, category: file.category, subfolder: file.subfolderSlug },
+        });
+      }
+    }, (e: Error) => toast.error(e.message));
   };
 
   return (

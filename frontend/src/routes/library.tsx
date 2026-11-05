@@ -9,6 +9,8 @@ import { useCatalog } from "@/features/catalog/useCatalog";
 import { StudentShell } from "@/components/prep/StudentShell";
 import { EmptyState, FileIcon, PageHeader, SectionTitle } from "@/components/prep/bits";
 import { usePrep } from "@/lib/prep-store";
+import { useSession } from "@/features/auth/session";
+import { recordHistory } from "@/features/history/history.store";
 
 export const Route = createFileRoute("/library")({
   head: () => ({
@@ -24,6 +26,7 @@ export const Route = createFileRoute("/library")({
 
 function LibraryPage() {
   const prep = usePrep();
+  const { user } = useSession();
   const { getCbt, getCourse, getFile, loading } = useCatalog();
   const [viewing, setViewing] = useState<ViewableFile | null>(null);
   const ownedFiles = prep.ownedFileIds.map(getFile).filter((f) => !!f);
@@ -91,7 +94,20 @@ function LibraryPage() {
                 {ownedFiles.map((file) => (
                   <button
                     key={file.id}
-                    onClick={() => loadViewable(file).then(setViewing, (e: Error) => toast.error(e.message))}
+                    onClick={() => loadViewable(file).then((viewable) => {
+                      setViewing(viewable);
+                      if (user) {
+                        recordHistory(user.id, {
+                          kind: "document",
+                          targetId: file.id,
+                          title: file.name,
+                          subtitle: getCourse(file.courseSlug)?.code ?? "Document",
+                          detail: file.type.toUpperCase(),
+                          course: getCourse(file.courseSlug)?.code,
+                          route: { course: file.courseSlug, category: file.category, subfolder: file.subfolderSlug },
+                        });
+                      }
+                    }, (e: Error) => toast.error(e.message))}
                     className="card-hover flex flex-col gap-3 rounded-lg border border-border bg-surface p-4 text-left shadow-sm"
                   >
                     <span className="flex size-10 items-center justify-center rounded-md bg-secondary">

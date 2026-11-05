@@ -9,7 +9,7 @@ import {
   Play,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { EmptyState } from "@/components/prep/bits";
 import { QuestionCard } from "@/features/cbt/components/QuestionCard";
 import { AnswerReview } from "@/features/cbt/components/AnswerReview";
@@ -31,6 +31,8 @@ import { toast } from "sonner";
 import { usePrep } from "@/lib/prep-store";
 import { cn } from "@/lib/utils";
 import { getPracticeConfig, seededShuffle, type PracticeConfig } from "@/features/cbt/utils/practice-config";
+import { useSession } from "@/features/auth/session";
+import { recordHistory } from "@/features/history/history.store";
 
 export const Route = createFileRoute("/attempt/$cbtId")({
   head: () => ({
@@ -50,6 +52,7 @@ export const Route = createFileRoute("/attempt/$cbtId")({
 function AttemptPage() {
   const { cbtId } = Route.useParams();
   const prep = usePrep();
+  const { user } = useSession();
   const navigate = useNavigate();
   const { getCbt, getCourse, loading } = useCatalog();
   const cbt = getCbt(cbtId);
@@ -64,6 +67,7 @@ function AttemptPage() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [paused, setPaused] = useState(false);
   const [practiceConfig] = useState<PracticeConfig | null>(() => getPracticeConfig(cbtId));
+  const startRecorded = useRef(false);
   const isPractice = cbt?.kind === "practice";
   const activePracticeConfig: PracticeConfig = practiceConfig ?? {
     questionCount: "all",
@@ -111,6 +115,20 @@ function AttemptPage() {
     return () => clearInterval(t);
   }, [isPractice, live.state]);
 
+  useEffect(() => {
+    if (!cbt || !user || startRecorded.current || (LIVE && !live.state)) return;
+    startRecorded.current = true;
+    recordHistory(user.id, {
+      kind: "cbt",
+      targetId: cbt.id,
+      title: cbt.title,
+      subtitle: getCourse(cbt.courseSlug)?.code ?? "CBT",
+      detail: "In progress",
+      course: getCourse(cbt.courseSlug)?.code,
+      route: { cbtId: cbt.id },
+    });
+  }, [cbt, getCourse, live.state, user]);
+
   const liveSubmit = () => {
     if (submitting) return;
     setSubmitting(true);
@@ -118,6 +136,17 @@ function AttemptPage() {
       .submit(flagged)
       .then((r) => {
         prep.completeAttempt(cbtId);
+        if (user && cbt) {
+          recordHistory(user.id, {
+            kind: "cbt",
+            targetId: cbt.id,
+            title: cbt.title,
+            subtitle: getCourse(cbt.courseSlug)?.code ?? "CBT",
+            detail: r.autoSubmitted ? "Time ended" : "Submitted",
+            course: getCourse(cbt.courseSlug)?.code,
+            route: { cbtId: cbt.id, attemptId: r.attemptId },
+          });
+        }
         if (r.autoSubmitted) toast.info("Time was up — your saved answers were submitted.");
         navigate({ to: "/attempts/$attemptId", params: { attemptId: r.attemptId }, replace: true });
       })
@@ -190,7 +219,18 @@ function AttemptPage() {
     if (LIVE) return liveSubmit();
     setSubmitted(true);
     prep.completeAttempt(cbt.id);
-    prep.saveAttempt({ cbtId: cbt.id, answers, correct, total: questions.length });
+    const saved = prep.saveAttempt({ cbtId: cbt.id, answers, correct, total: questions.length });
+    if (user) {
+      recordHistory(user.id, {
+        kind: "cbt",
+        targetId: cbt.id,
+        title: cbt.title,
+        subtitle: course?.code ?? "CBT",
+        detail: `${correct}/${questions.length} · ${score}%`,
+        course: course?.code,
+        route: { cbtId: cbt.id, attemptId: saved.id },
+      });
+    }
   };
 
   if (submitted) {
@@ -263,7 +303,20 @@ function AttemptPage() {
             {isUntimedPractice ? `Elapsed ${elapsedMinutes}:${elapsedRemainder}` : `${mm}:${ss}`}
         </div>
           {isPractice && (
-            <Button variant="outline" size="sm" onClick={() => setPaused(true)}>
+            <Button variant="outline" size="sm" onClick={() => {
+              setPaused(true);
+              if (user) {
+                recordHistory(user.id, {
+                  kind: "cbt",
+                  targetId: cbt.id,
+                  title: cbt.title,
+                  subtitle: course?.code ?? "CBT",
+                  detail: "Paused practice",
+                  course: course?.code,
+                  route: { cbtId: cbt.id },
+                });
+              }
+            }}>
               <Pause className="size-4" />
               Pause
             </Button>
