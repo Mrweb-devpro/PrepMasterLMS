@@ -14,7 +14,7 @@ export function AdminCompetitionsPage() {
       description="Schedule contest arenas, monitor registration, and review completed clashes."
       actions={<Button asChild><Link to="/admin/competitions/new"><Plus />New competition</Link></Button>}
     >
-      {competitions.isPending ? <div className="h-48 animate-pulse rounded-lg bg-surface-subtle" /> : competitions.isError && !competitions.data ? <EmptyState title="Couldn’t load competitions" action={<Button onClick={() => competitions.refetch()}>Try again</Button>} /> : competitions.data?.length ? (
+      {competitions.isPending ? <div className="h-48 animate-pulse rounded-lg bg-surface-subtle" /> : competitions.isError && !competitions.data ? <EmptyState title="Couldn't load competitions" action={<Button onClick={() => competitions.refetch()}>Try again</Button>} /> : competitions.data?.length ? (
         <div className="grid gap-4 lg:grid-cols-2">
           {competitions.data.map((competition) => (
             <Card key={competition.id}>
