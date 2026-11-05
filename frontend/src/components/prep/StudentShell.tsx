@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
 import {
-  Box,
   BookMarked,
   FolderClosed,
   History,
@@ -13,6 +12,7 @@ import {
 import type { ReactNode } from "react";
 import { AppFrame, Brand, type NavGroup, useSidebarCollapsed } from "@/components/layout/AppSidebar";
 import { CppIcon } from "@/components/common/CppIcon";
+import { SolidWorksIcon } from "@/components/common/SolidWorksIcon";
 import { useMainAppGuard } from "@/features/auth/hooks/useGuards";
 import { useSession } from "@/features/auth/session";
 import { fullName } from "@/features/auth/utils/profile";
@@ -83,7 +83,7 @@ export function StudentShell({ children }: { children: ReactNode }) {
     {
       label: "Programs",
       items: [
-        { to: isSwRegistered ? "/solidworks" : "/learn-solidworks", label: "SolidWorks", icon: Box },
+        { to: isSwRegistered ? "/solidworks" : "/learn-solidworks", label: "SolidWorks", icon: SolidWorksIcon },
         { to: "/books/cpp", label: "C++ Web Book", icon: CppIcon },
       ],
     },
