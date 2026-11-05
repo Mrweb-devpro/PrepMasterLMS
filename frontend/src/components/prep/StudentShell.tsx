@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import {
   Box,
   BookMarked,
+  Code2,
   FolderClosed,
   History,
   Home,
@@ -85,6 +86,7 @@ export function StudentShell({ children }: { children: ReactNode }) {
       items: [
         { to: isSwRegistered ? "/solidworks" : "/learn-solidworks", label: "SolidWorks", icon: Box },
         { to: "/python", label: "Python Web Book", icon: PythonIcon, badge: "Soon" },
+        { to: "/books/cpp", label: "C++ Book", icon: Code2 },
       ],
     },
     { label: "Account", items: [{ to: "/account", label: "Settings", icon: Settings }] },
